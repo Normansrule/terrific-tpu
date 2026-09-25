@@ -1,0 +1,6 @@
+app,macs,ub_reads,ub_writes,acc_reads,acc_writes,weight_rows
+Neural net,384,24,16,16,24,12
+Fourier,256,16,16,16,16,8
+Image filter,3072,192,64,64,192,12
+Quantum search,320,20,20,20,20,20
+Graph triangles,1024,64,16,16,64,32

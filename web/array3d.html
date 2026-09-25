@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: the systolic array in 3-D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+header.top { max-width: 1280px; margin: 0 auto; padding: 18px 20px 6px; }
+h1 { font-size: clamp(26px, 3.4vw, 40px); margin: 0 0 6px; letter-spacing: -0.02em; line-height: 1.05; }
+header.top p { margin: 0; color: var(--muted); max-width: 82ch; }
+main { max-width: 1280px; margin: 0 auto; padding: 14px 20px 40px; display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+.stage { position: relative; background: radial-gradient(ellipse at 50% 30%, var(--panel), var(--paper)); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; touch-action: none; }
+canvas { display: block; width: 100%; height: auto; cursor: grab; }
+canvas:active { cursor: grabbing; }
+.hint { position: absolute; left: 14px; bottom: 10px; font-size: 12px; color: var(--muted); }
+.side label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+.side input[type=range], .side select { width: 100%; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.stat { background: var(--idle); border-radius: 10px; padding: 8px 10px; margin-top: 10px; }
+.stat .k { font-size: 12px; color: var(--muted); } .stat .v { font-size: 20px; font-weight: 700; }
+.key { font-size: 13px; margin-top: 14px; display: grid; gap: 6px; }
+.key span { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<nav class="site" aria-label="terrific-tpu pages">
+  <span class="brand">terrific-tpu</span>
+  <a href="index.html">Start</a>
+  <a href="playground.html">Systolic array</a>
+  <a href="chip.html">Whole chip</a>
+  <a href="explorers.html">Numbers &amp; roofline</a>
+  <a href="apps.html">Applications</a>
+  <a href="array3d.html" aria-current="page">3-D array</a>
+</nav>
+<header class="top">
+  <h1>The systolic array in 3-D</h1>
+  <p>Every block is a processing element. Its height is the partial sum it is holding right now, so you can watch sums grow as they fall toward the front edge, and watch the diagonal wavefront sweep across. Drag to spin it.</p>
+</header>
+<main>
+  <div class="stage"><canvas id="cv" width="1600" height="1000" aria-label="3-D view of the systolic array"></canvas><div class="hint">drag to rotate · use the Zoom slider to zoom</div></div>
+  <aside class="box side" aria-label="Controls">
+    <div class="btns">
+      <button id="play" class="primary">Play</button>
+      <button id="step">Step</button>
+      <button id="reset">Reset</button>
+    </div>
+    <label for="size">Array size</label>
+    <select id="size"><option value="4">4 × 4 (TinyTPU)</option><option value="8" selected>8 × 8</option><option value="16">16 × 16</option><option value="24">24 × 24</option></select>
+    <label for="batch">Vectors in the batch: <b id="batchv" class="num"></b></label>
+    <input id="batch" type="range" min="1" max="40" value="12">
+    <label for="speed">Speed</label>
+    <input id="speed" type="range" min="1" max="12" value="5">
+    <label for="zoom">Zoom</label>
+    <input id="zoom" type="range" min="50" max="160" value="100">
+    <div class="stat"><div class="k">cycle</div><div class="v num" id="cyc">0</div></div>
+    <div class="stat"><div class="k">PEs busy right now</div><div class="v num" id="busy">0</div></div>
+    <div class="stat"><div class="k">utilization so far</div><div class="v num" id="util">0%</div></div>
+    <div class="key">
+      <div><span style="background:var(--ps)"></span>busy PE (height = partial sum)</div>
+      <div><span style="background:var(--mxu-bg);border:1px solid var(--mxu)"></span>idle PE</div>
+      <div><span style="background:var(--act)"></span>activation entering a row</div>
+      <div><span style="background:var(--out)"></span>finished result leaving</div>
+    </div>
+  </aside>
+</main>
+<script>
+(function () {
+  const cv = document.getElementById("cv"), g = cv.getContext("2d");
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  let N, M, W, X, t = 0, busySum = 0, yaw = -0.72, playing = false, last = 0, acc = 0;
+  let rnd = 1;
+  const rand = (lo, hi) => { rnd = (rnd * 1103515245 + 12345) & 0x7fffffff; return lo + (rnd % (hi - lo + 1)); };
+
+  function setup() {
+    N = +$("size").value; M = +$("batch").value; $("batchv").textContent = M;
+    rnd = 7; W = [...Array(N)].map(() => [...Array(N)].map(() => rand(1, 7)));
+    X = [...Array(M)].map(() => [...Array(N)].map(() => rand(1, 7)));
+    t = 0; busySum = 0; stats(); draw();
+  }
+  const total = () => M + 2 * N - 1;
+  // partial sum inside PE(r,c) at cycle t: vector v = t - r - c, summed over rows 0..r
+  function psum(r, c) {
+    const v = t - r - c; if (v < 0 || v >= M) return null;
+    let s = 0; for (let k = 0; k <= r; k++) s += X[v][k] * W[k][c]; return s;
+  }
+  function stats() {
+    let b = 0; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (psum(r, c) !== null) b++;
+    $("cyc").textContent = `${t} / ${total()}`; $("busy").textContent = `${b} of ${N * N}`;
+    $("util").textContent = t ? Math.round(100 * busySum / (N * N * t)) + "%" : "–";
+    return b;
+  }
+  function tick() {
+    if (t >= total()) { playing = false; $("play").textContent = "Play"; return; }
+    busySum += stats(); t++; stats(); draw();
+  }
+
+  // ---------------------------------------------------------------- 3-D projection
+  function proj(x, y, z, sc, cx, cy) {
+    const cs = Math.cos(yaw), sn = Math.sin(yaw);
+    const rx = cs * x - sn * y, ry = sn * x + cs * y;          // rotate around the vertical axis
+    return [cx + rx * sc, cy + ry * sc * 0.55 - z * sc, ry];    // tilt: squash depth, lift by height
+  }
+  function shade(hex, f) {
+    const n = parseInt(hex.replace("#", ""), 16); let r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
+    return `rgb(${Math.round(r * f)},${Math.round(gg * f)},${Math.round(b * f)})`;
+  }
+  function draw() {
+    const w = cv.width, h = cv.height;
+    g.clearRect(0, 0, w, h);
+    const sc = (Math.min(w, h * 1.5) / (N + 3)) * 0.62 * (+$("zoom").value / 100), cx = w / 2, cy = h * 0.46;
+    const colBusy = css("--ps") || "#A21CAF", colIdle = css("--mxu") || "#6D28D9";
+    let maxS = 1; for (let k = 0; k < N; k++) for (let c = 0; c < N; c++) maxS = Math.max(maxS, 49 * N);
+    const items = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const x = c - (N - 1) / 2, y = r - (N - 1) / 2, s = psum(r, c);
+      const hgt = s === null ? 0.12 : 0.18 + (s / maxS) * N * 0.55;
+      items.push({ kind: "pe", x, y, hgt, busy: s !== null, depth: proj(x, y, 0, 1, 0, 0)[2] });
+    }
+    for (let r = 0; r < N; r++) { const v = t - r; if (v >= 0 && v < M) { const x = -(N - 1) / 2 - 1, y = r - (N - 1) / 2;
+      items.push({ kind: "act", x, y, val: X[v][r], depth: proj(x, y, 0, 1, 0, 0)[2] }); } }
+    for (let c = 0; c < N; c++) { const v = t - (N - 1) - c - 1; if (v >= 0 && v < M) { const x = c - (N - 1) / 2, y = (N - 1) / 2 + 1;
+      items.push({ kind: "out", x, y, depth: proj(x, y, 0, 1, 0, 0)[2] }); } }
+    items.sort((a, b) => a.depth - b.depth);                      // painter's algorithm: far to near
+    // base plate
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => proj(a * (N / 2 + 0.3), b * (N / 2 + 0.3), 0, sc, cx, cy));
+    g.beginPath(); corners.forEach(([px, py], i) => i ? g.lineTo(px, py) : g.moveTo(px, py)); g.closePath();
+    g.fillStyle = "rgba(124,58,237,0.07)"; g.fill(); g.strokeStyle = "rgba(124,58,237,0.35)"; g.lineWidth = 2; g.stroke();
+    const half = 0.38;
+    for (const it of items) {
+      if (it.kind === "pe") {
+        const base = it.busy ? colBusy : colIdle;
+        const pts = [[-half, -half], [half, -half], [half, half], [-half, half]].map(([a, b]) => [it.x + a, it.y + b]);
+        // side faces, only those facing the viewer
+        for (let i = 0; i < 4; i++) {
+          const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % 4];
+          const nx = (y2 - y1), ny = -(x2 - x1);                       // outward normal (for clockwise pts)
+          const facing = Math.sin(yaw) * nx + Math.cos(yaw) * ny;
+          if (facing <= 0) continue;
+          const q = [proj(x1, y1, 0, sc, cx, cy), proj(x2, y2, 0, sc, cx, cy), proj(x2, y2, it.hgt, sc, cx, cy), proj(x1, y1, it.hgt, sc, cx, cy)];
+          g.beginPath(); q.forEach(([px, py], k) => k ? g.lineTo(px, py) : g.moveTo(px, py)); g.closePath();
+          const light = 0.55 + 0.3 * Math.abs(Math.cos(Math.atan2(ny, nx) - yaw));
+          g.fillStyle = it.busy ? shade(base, light) : `rgba(196,181,253,${0.55 + 0.3 * light})`; g.fill();
+          g.strokeStyle = "rgba(20,10,50,0.25)"; g.lineWidth = 1; g.stroke();
+        }
+        const top = pts.map(([a, b]) => proj(a, b, it.hgt, sc, cx, cy));
+        g.beginPath(); top.forEach(([px, py], k) => k ? g.lineTo(px, py) : g.moveTo(px, py)); g.closePath();
+        g.fillStyle = it.busy ? shade(base, 1.15 > 1 ? 1 : 1) : "rgba(237,233,254,0.95)"; g.fill();
+        g.strokeStyle = it.busy ? "rgba(255,255,255,0.6)" : "rgba(124,58,237,0.5)"; g.stroke();
+        // stored weight: small amber disc on top
+        const [wx, wy] = proj(it.x, it.y, it.hgt, sc, cx, cy);
+        g.beginPath(); g.ellipse(wx, wy, sc * 0.1, sc * 0.055, 0, 0, Math.PI * 2); g.fillStyle = "#F59E0B"; g.fill();
+      } else {
+        const [px, py] = proj(it.x, it.y, 0.35, sc, cx, cy);
+        g.beginPath(); g.arc(px, py, sc * 0.2, 0, Math.PI * 2);
+        g.fillStyle = it.kind === "act" ? "#2563EB" : "#059669"; g.fill();
+        g.strokeStyle = "#fff"; g.lineWidth = 3; g.stroke();
+        if (it.kind === "act" && sc > 26) { g.fillStyle = "#fff"; g.font = `700 ${Math.round(sc * 0.2)}px JetBrains Mono, monospace`;
+          g.textAlign = "center"; g.fillText(it.val, px, py + sc * 0.07); }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- interaction
+  let drag = null;
+  cv.addEventListener("pointerdown", e => { drag = e.clientX; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (drag === null) return; yaw += (e.clientX - drag) * 0.008; drag = e.clientX; draw(); });
+  cv.addEventListener("pointerup", () => drag = null);
+  function loop(ts) {
+    if (playing) { acc += ts - last; const period = 900 / +$("speed").value; while (acc > period) { acc -= period; tick(); } }
+    else if (!drag) { yaw += 0.0012; draw(); }
+    last = ts; requestAnimationFrame(loop);
+  }
+  $("play").onclick = () => { if (t >= total()) setup(); playing = !playing; $("play").textContent = playing ? "Pause" : "Play"; };
+  $("step").onclick = () => { playing = false; $("play").textContent = "Play"; tick(); };
+  $("reset").onclick = () => { playing = false; $("play").textContent = "Play"; setup(); };
+  $("size").onchange = setup; $("batch").oninput = setup; $("zoom").oninput = draw;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setup(); if (!reduce) requestAnimationFrame(t0 => { last = t0; requestAnimationFrame(loop); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+/* shared look for every TinyTPU web page */
+:root {
+  --paper: #EEF1F7; --panel: #FFFFFF; --ink: #1B2238; --muted: #5A6480; --line: #CDD4E4; --idle: #F4F6FB;
+  --act: #2563EB; --act-bg: #DBEAFE; --wt: #B45309; --wt-bg: #FEF3C7; --ps: #A21CAF; --ps-bg: #FAE8FF;
+  --out: #047857; --out-bg: #D1FAE5; --mxu: #6D28D9; --mxu-bg: #EDE9FE; --ctl: #475569; --ctl-bg: #E2E8F0;
+  --red: #B91C1C; --red-bg: #FEE2E2;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #141A2B; --panel: #1C2438; --ink: #E7ECF7; --muted: #9AA6C2; --line: #33405E; --idle: #202a42;
+  --act: #7AA7FF; --act-bg: #1E3A8A66; --wt: #F5B64D; --wt-bg: #78350F66; --ps: #E879F9; --ps-bg: #70248066;
+  --out: #34D399; --out-bg: #064E3B88; --mxu: #A78BFA; --mxu-bg: #4C1D9566; --ctl: #9AA6C2; --ctl-bg: #33405E;
+  --red: #F87171; --red-bg: #7F1D1D66; } }
+:root[data-theme="dark"] {
+  --paper: #141A2B; --panel: #1C2438; --ink: #E7ECF7; --muted: #9AA6C2; --line: #33405E; --idle: #202a42;
+  --act: #7AA7FF; --act-bg: #1E3A8A66; --wt: #F5B64D; --wt-bg: #78350F66; --ps: #E879F9; --ps-bg: #70248066;
+  --out: #34D399; --out-bg: #064E3B88; --mxu: #A78BFA; --mxu-bg: #4C1D9566; --ctl: #9AA6C2; --ctl-bg: #33405E;
+  --red: #F87171; --red-bg: #7F1D1D66; }
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", "Segoe UI", system-ui, sans-serif; line-height: 1.5; }
+.num, code, pre, textarea { font-family: "JetBrains Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+nav.site { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; max-width: 1280px; margin: 0 auto; padding: 14px 20px 0; font-size: 15px; }
+nav.site a { color: var(--muted); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
+nav.site a[aria-current="page"] { color: var(--ink); border-color: var(--mxu); font-weight: 600; }
+nav.site a:hover { color: var(--ink); }
+nav.site .brand { font-weight: 800; color: var(--ink); margin-right: 8px; }
+button { font: inherit; font-weight: 600; font-size: 14px; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1.5px solid var(--ink); background: var(--panel); color: var(--ink); }
+button.primary { background: var(--ink); color: var(--panel); }
+button:disabled { opacity: .45; cursor: default; }
+:focus-visible { outline: 3px solid var(--act); outline-offset: 2px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+h2 { font-size: 17px; margin: 0 0 10px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

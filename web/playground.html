@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TinyTPU: systolic array playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+:root {
+  --paper: #EEF1F7;
+  --panel: #FFFFFF;
+  --ink: #1B2238;
+  --muted: #5A6480;
+  --line: #CDD4E4;
+  --act: #2563EB;   --act-bg: #DBEAFE;
+  --wt: #B45309;    --wt-bg: #FEF3C7;
+  --ps: #A21CAF;    --ps-bg: #FAE8FF;
+  --out: #047857;   --out-bg: #D1FAE5;
+  --v0: #2563EB; --v1: #0891B2; --v2: #7C3AED; --v3: #DB2777; --v4: #EA580C; --v5: #65A30D;
+  --idle: #F4F6FB;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141A2B; --panel: #1C2438; --ink: #E7ECF7; --muted: #9AA6C2; --line: #33405E;
+    --act-bg: #1E3A8A55; --wt-bg: #78350F55; --ps-bg: #70248055; --out-bg: #064E3B66; --idle: #202a42;
+    --act: #7AA7FF; --wt: #F5B64D; --ps: #E879F9; --out: #34D399;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141A2B; --panel: #1C2438; --ink: #E7ECF7; --muted: #9AA6C2; --line: #33405E;
+  --act-bg: #1E3A8A55; --wt-bg: #78350F55; --ps-bg: #70248055; --out-bg: #064E3B66; --idle: #202a42;
+  --act: #7AA7FF; --wt: #F5B64D; --ps: #E879F9; --out: #34D399;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "Archivo", "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.5;
+}
+.num { font-family: "JetBrains Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+header { max-width: 1180px; margin: 0 auto; padding: 18px 20px 8px; }
+h1 { font-size: clamp(28px, 4vw, 44px); line-height: 1.05; margin: 0 0 8px; font-weight: 800; letter-spacing: -0.02em; }
+h1 .beat { display: inline-block; width: .55em; height: .55em; border-radius: 3px; background: var(--ps); margin-left: .25em; vertical-align: .08em; }
+@media (prefers-reduced-motion: no-preference) {
+  body.playing h1 .beat { animation: beat var(--beat, 700ms) infinite; }
+  @keyframes beat { 0%,100% { transform: scale(1); } 12% { transform: scale(1.35); } }
+}
+header p { margin: 0; color: var(--muted); max-width: 68ch; }
+main { max-width: 1180px; margin: 0 auto; padding: 12px 20px 40px; display: grid; grid-template-columns: 330px 1fr; gap: 20px; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+section.box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+h2 { font-size: 17px; margin: 0 0 10px; }
+.matrix { display: grid; gap: 4px; margin-bottom: 14px; }
+.matrix input {
+  width: 100%; min-width: 0; padding: 6px 2px; text-align: center; border-radius: 6px;
+  border: 1.5px solid var(--line); background: var(--idle); color: var(--ink); font: inherit; font-size: 14px;
+}
+.matrix.w input { border-color: var(--wt); background: var(--wt-bg); }
+.matrix input:focus-visible, button:focus-visible, input[type=range]:focus-visible { outline: 3px solid var(--act); outline-offset: 2px; }
+.xrow { display: contents; }
+.lbl { font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button {
+  font: inherit; font-weight: 600; font-size: 14px; border-radius: 9px; padding: 8px 14px; cursor: pointer;
+  border: 1.5px solid var(--ink); background: var(--panel); color: var(--ink);
+}
+button.primary { background: var(--ink); color: var(--panel); }
+button:disabled { opacity: .45; cursor: default; }
+.stage { display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; align-items: start; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.clock { font-size: 15px; margin-left: auto; }
+.clock b { font-size: 26px; }
+label.speed { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.feeder { display: grid; gap: 6px; padding-top: 24px; }
+.feed-row { display: flex; justify-content: flex-end; gap: 4px; height: 64px; align-items: center; }
+.chip { min-width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; font-size: 13px; color: #fff; font-weight: 700; padding: 0 4px; }
+.chip.ghost { background: transparent; border: 1.5px dashed var(--line); color: var(--muted); }
+.grid-wrap { overflow-x: auto; }
+.colhead { display: grid; gap: 6px; height: 24px; font-size: 12px; color: var(--wt); font-weight: 700; text-align: center; }
+.pe-grid { display: grid; gap: 6px; }
+.pe {
+  height: 64px; border-radius: 10px; border: 2px solid var(--line); background: var(--idle);
+  display: grid; grid-template-rows: 1fr 1fr 1fr; place-items: center; font-size: 12px; line-height: 1;
+  transition: background-color .18s, border-color .18s;
+}
+@media (prefers-reduced-motion: reduce) { .pe { transition: none; } }
+.pe .w { color: var(--wt); }
+.pe .a { font-weight: 700; }
+.pe .p { color: var(--ps); font-weight: 700; }
+.tray { display: grid; gap: 6px; margin-top: 8px; }
+.tray-cell { border-radius: 8px; border: 1.5px dashed var(--line); min-height: 34px; display: grid; place-items: center; font-size: 13px; }
+.tray-cell.hot { border-style: solid; border-color: var(--out); background: var(--out-bg); color: var(--out); font-weight: 700; }
+.narrate { margin-top: 14px; padding: 12px 14px; border-left: 4px solid var(--ps); background: var(--idle); border-radius: 0 10px 10px 0; min-height: 3.2em; }
+.results { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .results { grid-template-columns: 1fr; } }
+table { border-collapse: collapse; font-size: 14px; }
+td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+td.done { color: var(--out); font-weight: 700; }
+td.wait { color: var(--muted); }
+.verdict { font-weight: 700; margin-top: 8px; }
+.verdict.ok { color: var(--out); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 12px; }
+.legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+footer { max-width: 1180px; margin: 0 auto; padding: 0 20px 40px; color: var(--muted); font-size: 14px; }
+footer a { color: var(--act); }
+</style>
+</head>
+<body>
+<nav class="site" aria-label="TinyTPU pages">
+  <span class="brand">terrific-tpu</span>
+  <a href="index.html">Start</a>
+  <a href="playground.html" aria-current="page">Systolic array</a>
+  <a href="chip.html">Whole chip</a>
+  <a href="explorers.html">Numbers &amp; roofline</a>
+  <a href="apps.html">Applications</a>
+  <a href="array3d.html">3-D array</a>
+</nav>
+<header>
+  <h1>Systolic array playground<span class="beat" aria-hidden="true"></span></h1>
+  <p>A cycle-by-cycle model of the 4 x 4 Matrix Multiply Unit in <span class="num">rtl/systolic_array.v</span>. Weights stay put in the grid, input vectors slide in from the left on a staircase, and partial sums trickle down until finished answers drop out of the bottom. Edit any number, then step the clock.</p>
+</header>
+
+<main>
+  <section class="box" aria-label="Inputs">
+    <h2>Weights W (stay in the grid)</h2>
+    <p class="lbl">W[row][col] sits inside PE(row, col).</p>
+    <div id="wMatrix" class="matrix w num" style="grid-template-columns: repeat(4, 1fr);"></div>
+
+    <h2>Input vectors X (slide in from the left)</h2>
+    <p class="lbl">Each row of X is one vector. Its element k enters array row k.</p>
+    <div id="xMatrix" class="matrix num" style="grid-template-columns: 22px repeat(4, 1fr);"></div>
+    <div class="row-actions">
+      <button id="addRow" type="button">Add vector</button>
+      <button id="delRow" type="button">Remove vector</button>
+      <button id="randomize" type="button">Randomize</button>
+    </div>
+  </section>
+
+  <section class="box" aria-label="Systolic array">
+    <div class="controls">
+      <button id="step" class="primary" type="button">Step one cycle</button>
+      <button id="play" type="button">Play</button>
+      <button id="reset" type="button">Reset</button>
+      <label class="speed">speed <input id="speed" type="range" min="150" max="1500" step="50" value="700" aria-label="Clock period in milliseconds"></label>
+      <div class="clock num" aria-live="polite">cycle <b id="cycle">0</b></div>
+    </div>
+
+    <div class="stage">
+      <div class="feeder" id="feeder" aria-label="Skewed input queue"></div>
+      <div class="grid-wrap">
+        <div class="colhead num" id="colhead" style="grid-template-columns: repeat(4, minmax(78px, 1fr));"></div>
+        <div class="pe-grid num" id="peGrid" style="grid-template-columns: repeat(4, minmax(78px, 1fr));"></div>
+        <div class="tray num" id="tray" style="grid-template-columns: repeat(4, minmax(78px, 1fr));" aria-label="Outputs leaving the bottom"></div>
+      </div>
+    </div>
+
+    <div class="narrate" id="narrate" aria-live="polite"></div>
+
+    <div class="legend">
+      <span style="--c: var(--wt)">weight (stays)</span>
+      <span style="--c: var(--act)">activation x (moves right)</span>
+      <span style="--c: var(--ps)">partial sum Σ (moves down)</span>
+      <span style="--c: var(--out)">finished output y</span>
+    </div>
+
+    <div class="results">
+      <div>
+        <h2>What the array has produced</h2>
+        <table class="num" id="yTable"></table>
+      </div>
+      <div>
+        <h2>Answer key: X × W</h2>
+        <table class="num" id="refTable"></table>
+        <div class="verdict" id="verdict"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Part of the <b>terrific-tpu</b> repository. Same timing as the Verilog: vector v is inside PE(row k, column n) during cycle v + k + n, and finished results need 2N − 1 = 7 cycles to come out lined up.
+</footer>
+
+<script>
+(function () {
+  const N = 4;
+  const VCOL = ["--v0", "--v1", "--v2", "--v3", "--v4", "--v5"];
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  let W = [[1, 2, 0, -1], [0, 1, 3, 2], [2, 0, 1, 1], [1, -1, 2, 0]];
+  let X = [[1, 2, 3, 4], [2, 0, 1, 1], [-1, 1, 0, 2]];
+
+  // ---------- hardware state (mirrors the RTL registers) ----------
+  let cycle, skew, aReg, pReg, Y, timer = null;
+
+  function blank(v) { return Array.from({ length: N }, () => Array.from({ length: N }, () => v)); }
+
+  function reset() {
+    cycle = 0;
+    // skew[k] is a queue of length k (row k is delayed k cycles). Entries: {val, tag}
+    skew = Array.from({ length: N }, (_, k) => Array.from({ length: k }, () => ({ val: 0, tag: -1 })));
+    aReg = blank(null).map(r => r.map(() => ({ val: 0, tag: -1 })));
+    pReg = blank(null).map(r => r.map(() => ({ val: 0, tag: -1 })));
+    Y = X.map(() => Array(N).fill(null));
+    stop();
+    render();
+  }
+
+  // value presented to the skew network this cycle (the in_vec from the Unified Buffer)
+  function inVec(t) {
+    return Array.from({ length: N }, (_, k) => t < X.length ? { val: X[t][k], tag: t } : { val: 0, tag: -1 });
+  }
+
+  // what each PE sees on its inputs during the CURRENT cycle
+  function peInputs() {
+    const v = inVec(cycle);
+    const aIn = blank(null), pIn = blank(null);
+    for (let r = 0; r < N; r++) {
+      const left = r === 0 ? v[0] : skew[r][r - 1];
+      for (let c = 0; c < N; c++) {
+        aIn[r][c] = c === 0 ? left : aReg[r][c - 1];
+        pIn[r][c] = r === 0 ? { val: 0, tag: aIn[r][c].tag } : pReg[r - 1][c];
+      }
+    }
+    return aIn;
+  }
+
+  function tick() {
+    const v = inVec(cycle);
+    const aIn = peInputs();
+    const newA = blank(null), newP = blank(null);
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const a = aIn[r][c];
+      const pin = r === 0 ? 0 : pReg[r - 1][c].val;
+      newA[r][c] = { val: a.val, tag: a.tag };
+      newP[r][c] = { val: pin + a.val * W[r][c], tag: a.tag };
+    }
+    // shift the skew registers
+    for (let k = 1; k < N; k++) { skew[k].pop(); skew[k].unshift(v[k]); }
+    aReg = newA; pReg = newP;
+    cycle++;
+    // collect finished results from the bottom row (they are registered now)
+    for (let c = 0; c < N; c++) {
+      const b = pReg[N - 1][c];
+      if (b.tag >= 0) Y[b.tag][c] = b.val;
+    }
+    render();
+    if (allDone()) stop();
+  }
+
+  function lastCycle() { return X.length - 1 + 2 * (N - 1) + 1; }
+  function allDone() { return cycle >= lastCycle(); }
+
+  // ---------- rendering ----------
+  const $ = (id) => document.getElementById(id);
+
+  function chip(val, tag) {
+    const d = document.createElement("div");
+    d.className = "chip";
+    d.textContent = val;
+    d.style.background = css(VCOL[tag % VCOL.length]);
+    return d;
+  }
+
+  function render() {
+    // feeder: shows, per row, the values waiting to enter (future) - nearest on the right
+    const feeder = $("feeder"); feeder.innerHTML = "";
+    for (let k = 0; k < N; k++) {
+      const row = document.createElement("div"); row.className = "feed-row";
+      const upcoming = [];
+      for (let t = X.length - 1; t >= 0; t--) {
+        const entersAt = t + k;           // cycle when x_t[k] reaches column 0 of row k
+        if (entersAt >= cycle) upcoming.push({ val: X[t][k], tag: t });
+      }
+      if (!upcoming.length) { const g = document.createElement("div"); g.className = "chip ghost"; g.textContent = "·"; row.appendChild(g); }
+      upcoming.slice(-3).forEach(u => row.appendChild(chip(u.val, u.tag)));
+      feeder.appendChild(row);
+    }
+
+    $("colhead").innerHTML = Array.from({ length: N }, (_, c) => `<div>column ${c}</div>`).join("");
+
+    const aIn = peInputs();
+    const grid = $("peGrid"); grid.innerHTML = "";
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const cell = document.createElement("div"); cell.className = "pe";
+      const a = aIn[r][c];
+      const busy = a.tag >= 0 && cycle < lastCycle();
+      const pin = r === 0 ? 0 : pReg[r - 1][c].val;
+      if (busy) {
+        const col = css(VCOL[a.tag % VCOL.length]);
+        cell.style.borderColor = col;
+        cell.style.background = col + "22";
+        cell.innerHTML = `<span class="w">w=${W[r][c]}</span><span class="a" style="color:${col}">x${a.tag}: ${a.val}</span><span class="p">Σ=${pin + a.val * W[r][c]}</span>`;
+        cell.setAttribute("aria-label", `PE row ${r} column ${c}: weight ${W[r][c]}, vector ${a.tag} value ${a.val}, partial sum ${pin + a.val * W[r][c]}`);
+      } else {
+        cell.innerHTML = `<span class="w">w=${W[r][c]}</span><span></span><span style="color:var(--muted)">idle</span>`;
+        cell.setAttribute("aria-label", `PE row ${r} column ${c}: weight ${W[r][c]}, idle`);
+      }
+      grid.appendChild(cell);
+    }
+
+    const tray = $("tray"); tray.innerHTML = "";
+    for (let c = 0; c < N; c++) {
+      const b = pReg[N - 1][c];
+      const d = document.createElement("div");
+      d.className = "tray-cell" + (b.tag >= 0 ? " hot" : "");
+      d.textContent = b.tag >= 0 ? `y${b.tag}[${c}] = ${b.val}` : "▼";
+      tray.appendChild(d);
+    }
+
+    $("cycle").textContent = cycle;
+    $("narrate").textContent = narrate();
+
+    // results tables
+    const ref = X.map(x => Array.from({ length: N }, (_, c) => x.reduce((s, xv, k) => s + xv * W[k][c], 0)));
+    $("yTable").innerHTML = Y.map((row, v) => `<tr><td style="color:${css(VCOL[v % VCOL.length])};font-weight:700">y${v}</td>` +
+      row.map(val => val === null ? `<td class="wait">…</td>` : `<td class="done">${val}</td>`).join("") + "</tr>").join("");
+    $("refTable").innerHTML = ref.map((row, v) => `<tr><td style="font-weight:700">y${v}</td>` +
+      row.map(val => `<td>${val}</td>`).join("") + "</tr>").join("");
+    const finished = Y.every(r => r.every(v => v !== null));
+    const match = finished && Y.every((r, i) => r.every((v, j) => v === ref[i][j]));
+    const verdict = $("verdict");
+    verdict.className = "verdict" + (match ? " ok" : "");
+    verdict.textContent = finished ? (match ? `Every output matches, after ${cycle} cycles.` : "Mismatch: something is wrong.")
+                                   : `${Y.flat().filter(v => v !== null).length} of ${Y.length * N} outputs finished.`;
+
+    $("step").disabled = allDone();
+    $("play").disabled = allDone();
+    $("delRow").disabled = X.length <= 1;
+    $("addRow").disabled = X.length >= VCOL.length;
+  }
+
+  function narrate() {
+    if (cycle === 0) return "Clock not started. Vector x0 is waiting at the front of row 0. Rows further down start later: that staircase is the skew.";
+    if (allDone()) return `Done. ${X.length} vectors × 16 multiply-accumulates = ${X.length * 16} MACs in ${cycle} cycles. A bigger batch keeps every PE busy, which is why TPUs love big batches.`;
+    const busy = [];
+    for (let v = 0; v < X.length; v++) {
+      const cells = [];
+      for (let k = 0; k < N; k++) for (let n = 0; n < N; n++) if (v + k + n === cycle) cells.push(1);
+      if (cells.length) busy.push(`x${v} in ${cells.length} PE${cells.length > 1 ? "s" : ""}`);
+    }
+    const used = busy.length ? busy.join(", ") : "nothing yet";
+    return `Cycle ${cycle}: ${used}. Each busy PE multiplies its x by its stored weight, adds the Σ from above, and passes x right and Σ down.`;
+  }
+
+  // ---------- editors ----------
+  function numInput(value, onChange, label) {
+    const i = document.createElement("input");
+    i.type = "number"; i.min = -9; i.max = 9; i.step = 1; i.value = value;
+    i.setAttribute("aria-label", label);
+    i.addEventListener("change", () => {
+      let v = parseInt(i.value, 10); if (isNaN(v)) v = 0;
+      v = Math.max(-9, Math.min(9, v)); i.value = v; onChange(v);
+    });
+    return i;
+  }
+
+  function buildEditors() {
+    const w = $("wMatrix"); w.innerHTML = "";
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+      w.appendChild(numInput(W[r][c], v => { W[r][c] = v; reset(); }, `weight row ${r} column ${c}`));
+    const x = $("xMatrix"); x.innerHTML = "";
+    X.forEach((row, v) => {
+      const tag = document.createElement("div");
+      tag.textContent = "x" + v; tag.style.cssText = `color:${css(VCOL[v % VCOL.length])};font-weight:700;font-size:13px;align-self:center`;
+      x.appendChild(tag);
+      row.forEach((val, k) => x.appendChild(numInput(val, nv => { X[v][k] = nv; reset(); }, `vector ${v} element ${k}`)));
+    });
+  }
+
+  // ---------- controls ----------
+  function stop() { if (timer) clearInterval(timer); timer = null; $("play").textContent = "Play"; document.body.classList.remove("playing"); }
+  function play() {
+    if (timer) { stop(); return; }
+    if (allDone()) reset();
+    const ms = +$("speed").value;
+    document.body.style.setProperty("--beat", ms + "ms");
+    timer = setInterval(tick, ms);
+    $("play").textContent = "Pause";
+    document.body.classList.add("playing");
+  }
+  $("step").addEventListener("click", () => { stop(); tick(); });
+  $("play").addEventListener("click", play);
+  $("reset").addEventListener("click", reset);
+  $("speed").addEventListener("input", () => { if (timer) { stop(); play(); } });
+  $("addRow").addEventListener("click", () => { X.push(Array.from({ length: N }, () => Math.floor(Math.random() * 7) - 3)); buildEditors(); reset(); });
+  $("delRow").addEventListener("click", () => { X.pop(); buildEditors(); reset(); });
+  $("randomize").addEventListener("click", () => {
+    const rnd = () => Math.floor(Math.random() * 9) - 4;
+    W = W.map(r => r.map(rnd)); X = X.map(r => r.map(rnd));
+    buildEditors(); reset();
+  });
+
+  buildEditors();
+  reset();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="aV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="aS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker><marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="aM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C026D3"/></marker><marker id="aA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker><marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker></defs>
+<rect width="1000" height="520" fill="#F8FAFC"/>
+<text x="30.0" y="42.0" font-size="26" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Experiment 2: how many bits does a network need?</text>
+<text x="30.0" y="68.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">A 2-layer network (8 → 4 → 4) quantized to b bits vs. floating point, 500 random inputs. Solid: ideal rescaling.</text>
+<text x="30.0" y="88.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Dashed: TinyTPU's real ACT (shift 0..7 only). Its 8-bit run is cross-checked against the instruction-level model.</text>
+<line x1="110.0" y1="440.0" x2="900.0" y2="440.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="444.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">0%</text>
+<line x1="110.0" y1="360.0" x2="900.0" y2="360.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="364.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">25%</text>
+<line x1="110.0" y1="280.0" x2="900.0" y2="280.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="284.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">50%</text>
+<line x1="110.0" y1="200.0" x2="900.0" y2="200.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="204.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">75%</text>
+<line x1="110.0" y1="120.0" x2="900.0" y2="120.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="124.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">100%</text>
+<text x="110.0" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2 bits</text>
+<text x="241.7" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">3 bits</text>
+<text x="373.3" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">4 bits</text>
+<text x="505.0" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">5 bits</text>
+<text x="636.7" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">6 bits</text>
+<text x="768.3" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">7 bits</text>
+<text x="900.0" y="462.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">8 bits</text>
+<path d="M110.0 417.0 L241.7 404.8 L373.3 269.1 L505.0 184.6 L636.7 145.6 L768.3 127.0 L900.0 123.8" stroke="#059669" stroke-width="3.5" fill="none"/>
+<circle cx="110.0" cy="417.0" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="110.0" y="405.0" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">7%</text>
+<circle cx="241.7" cy="404.8" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="241.7" y="392.8" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">11%</text>
+<circle cx="373.3" cy="269.1" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="373.3" y="257.1" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">53%</text>
+<circle cx="505.0" cy="184.6" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="505.0" y="172.6" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">80%</text>
+<circle cx="636.7" cy="145.6" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="636.7" y="133.6" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">92%</text>
+<circle cx="768.3" cy="127.0" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="768.3" y="115.0" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">98%</text>
+<circle cx="900.0" cy="123.8" r="5" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="900.0" y="111.8" font-size="12" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">99%</text>
+<path d="M110.0 120.0 L241.7 138.3 L373.3 287.4 L505.0 370.9 L636.7 405.7 L768.3 421.9 L900.0 431.4" stroke="#DC2626" stroke-width="3.5" fill="none"/>
+<circle cx="110.0" cy="120.0" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="110.0" y="108.0" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">100%</text>
+<circle cx="241.7" cy="138.3" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="241.7" y="126.3" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">94%</text>
+<circle cx="373.3" cy="287.4" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="373.3" y="275.4" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">48%</text>
+<circle cx="505.0" cy="370.9" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="505.0" y="358.9" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">22%</text>
+<circle cx="636.7" cy="405.7" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="636.7" y="393.7" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">11%</text>
+<circle cx="768.3" cy="421.9" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="768.3" y="409.9" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">6%</text>
+<circle cx="900.0" cy="431.4" r="5" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="900.0" y="419.4" font-size="12" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">3%</text>
+<path d="M110.0 417.0 L241.7 404.8 L373.3 269.1 L505.0 184.6 L636.7 145.6 L768.3 124.5 L900.0 129.6" stroke="#059669" stroke-width="2.5" fill="none" stroke-dasharray="7 5"/>
+<circle cx="110.0" cy="417.0" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="241.7" cy="404.8" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="373.3" cy="269.1" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="505.0" cy="184.6" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="636.7" cy="145.6" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="768.3" cy="124.5" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="900.0" cy="129.6" r="4" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M110.0 120.0 L241.7 138.3 L373.3 287.4 L505.0 370.9 L636.7 405.7 L768.3 429.1 L900.0 397.6" stroke="#DC2626" stroke-width="2.5" fill="none" stroke-dasharray="7 5"/>
+<circle cx="110.0" cy="120.0" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="241.7" cy="138.3" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="373.3" cy="287.4" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="505.0" cy="370.9" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="636.7" cy="405.7" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="768.3" cy="429.1" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="900.0" cy="397.6" r="4" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="600.0" y="230.0" width="320.0" height="80.0" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+<line x1="614.0" y1="248.0" x2="640.0" y2="248.0" stroke="#059669" stroke-width="4"/>
+<text x="650.0" y="252.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">same top answer as float</text>
+<line x1="614.0" y1="270.0" x2="640.0" y2="270.0" stroke="#DC2626" stroke-width="4"/>
+<text x="650.0" y="274.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">relative output error</text>
+<line x1="614.0" y1="292.0" x2="640.0" y2="292.0" stroke="#94A3B8" stroke-width="4"/>
+<text x="650.0" y="296.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">dashed = TinyTPU's 3-bit shift limit</text>
+</svg>

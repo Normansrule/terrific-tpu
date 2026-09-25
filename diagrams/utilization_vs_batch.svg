@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="aV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="aS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker><marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="aM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C026D3"/></marker><marker id="aA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker><marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker></defs>
+<rect width="980" height="560" fill="#F8FAFC"/>
+<text x="30.0" y="42.0" font-size="26" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Utilization climbs with batch size (measured on the RTL)</text>
+<text x="30.0" y="68.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Program: 4 weight tiles, each LDW + MMUL of M vectors, accumulated (a K = 16 matrix multiply). Every point is a real</text>
+<text x="30.0" y="88.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Verilog run. Utilization = useful MACs ÷ (16 PEs x cycles). Dashed: perfect-overlap limit 4M / (4M + 2N - 2).</text>
+<line x1="110.0" y1="500.0" x2="920.0" y2="500.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="504.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">0%</text>
+<line x1="110.0" y1="405.0" x2="920.0" y2="405.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="409.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">25%</text>
+<line x1="110.0" y1="310.0" x2="920.0" y2="310.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="314.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">50%</text>
+<line x1="110.0" y1="215.0" x2="920.0" y2="215.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="219.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">75%</text>
+<line x1="110.0" y1="120.0" x2="920.0" y2="120.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="100.0" y="124.0" font-size="12" fill="#475569" font-weight="400" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">100%</text>
+<text x="110.0" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1</text>
+<text x="211.2" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2</text>
+<text x="312.5" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">4</text>
+<text x="413.8" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">8</text>
+<text x="515.0" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">16</text>
+<text x="616.2" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">32</text>
+<text x="717.5" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">64</text>
+<text x="818.8" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">128</text>
+<text x="920.0" y="520.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">256</text>
+<text x="515.0" y="544.0" font-size="13" fill="#1E293B" font-weight="600" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">batch size M (vectors per MMUL)</text>
+<path d="M110.0 348.0 L122.7 340.0 L135.3 332.0 L148.0 323.8 L160.6 315.6 L173.3 307.4 L185.9 299.1 L198.6 291.0 L211.2 282.9 L223.9 274.8 L236.6 267.0 L249.2 259.2 L261.9 251.7 L274.5 244.3 L287.2 237.2 L299.8 230.3 L312.5 223.6 L325.2 217.2 L337.8 211.1 L350.5 205.2 L363.1 199.6 L375.8 194.3 L388.4 189.3 L401.1 184.5 L413.8 180.0 L426.4 175.8 L439.1 171.8 L451.7 168.0 L464.4 164.5 L477.0 161.2 L489.7 158.1 L502.3 155.2 L515.0 152.6 L527.7 150.1 L540.3 147.8 L553.0 145.6 L565.6 143.6 L578.3 141.8 L590.9 140.1 L603.6 138.5 L616.2 137.0 L628.9 135.7 L641.6 134.4 L654.2 133.3 L666.9 132.2 L679.5 131.2 L692.2 130.3 L704.8 129.5 L717.5 128.7 L730.2 128.0 L742.8 127.3 L755.5 126.7 L768.1 126.2 L780.8 125.7 L793.4 125.2 L806.1 124.8 L818.8 124.4 L831.4 124.0 L844.1 123.7 L856.7 123.4 L869.4 123.1 L882.0 122.9 L894.7 122.6 L907.3 122.4 L920.0 122.2" stroke="#94A3B8" stroke-width="2.5" fill="none" stroke-dasharray="7 5"/>
+<path d="M110.0 477.3 L211.2 457.2 L312.5 423.0 L413.8 372.0 L515.0 308.5 L616.2 245.3 L717.5 195.0 L818.8 161.6 L919.4 142.1" stroke="#D97706" stroke-width="3" fill="none"/>
+<circle cx="110.0" cy="477.3" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="211.2" cy="457.2" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="312.5" cy="423.0" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="413.8" cy="372.0" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="515.0" cy="308.5" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="616.2" cy="245.3" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="717.5" cy="195.0" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="818.8" cy="161.6" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="919.4" cy="142.1" r="5" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<path d="M110.0 473.3 L211.2 447.6 L312.5 398.7 L413.8 333.4 L515.0 268.4 L616.2 212.2 L717.5 172.5 L818.8 148.2 L919.4 134.7" stroke="#7C3AED" stroke-width="3" fill="none"/>
+<circle cx="110.0" cy="473.3" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="211.2" cy="447.6" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="312.5" cy="398.7" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="413.8" cy="333.4" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="515.0" cy="268.4" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="616.2" cy="212.2" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="717.5" cy="172.5" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="818.8" cy="148.2" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="919.4" cy="134.7" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<text x="302.5" y="441.0" font-size="13" fill="#D97706" font-weight="700" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">20%</text>
+<text x="505.0" y="326.5" font-size="13" fill="#D97706" font-weight="700" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">50%</text>
+<text x="322.5" y="388.7" font-size="13" fill="#7C3AED" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">27%</text>
+<text x="525.0" y="258.4" font-size="13" fill="#7C3AED" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">61%</text>
+<rect x="140.0" y="130.0" width="260.0" height="80.0" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+<line x1="154.0" y1="148.0" x2="180.0" y2="148.0" stroke="#D97706" stroke-width="4"/>
+<text x="190.0" y="152.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">v1_simple (waits for results)</text>
+<line x1="154.0" y1="170.0" x2="180.0" y2="170.0" stroke="#7C3AED" stroke-width="4"/>
+<text x="190.0" y="174.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">v2_pipelined (overlaps)</text>
+<line x1="154.0" y1="192.0" x2="180.0" y2="192.0" stroke="#94A3B8" stroke-width="4"/>
+<text x="190.0" y="196.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">perfect-overlap limit</text>
+</svg>

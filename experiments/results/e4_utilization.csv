@@ -1,0 +1,6 @@
+app,cycles,busy_pe_cycles,utilization
+Neural net,92,384,0.261
+Fourier,69,256,0.232
+Image filter,306,3072,0.627
+Quantum search,128,320,0.156
+Graph triangles,207,1024,0.309

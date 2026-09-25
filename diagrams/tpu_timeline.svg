@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 470" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="aV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="aS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker><marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="aM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C026D3"/></marker><marker id="aA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker><marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker></defs>
+<rect width="1020" height="470" fill="#F8FAFC"/>
+<text x="30.0" y="42.0" font-size="26" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">A decade of TPUs</text>
+<text x="30.0" y="68.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Year first used or announced. Details and sources: docs/13-real-tpus.md</text>
+<line x1="40.0" y1="250.0" x2="960.0" y2="250.0" stroke="#1E293B" stroke-width="3"/>
+<circle cx="70.0" cy="250.0" r="9" fill="#D97706" stroke="#FFFFFF" stroke-width="3"/>
+<text x="70.0" y="280.0" font-size="14" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2015</text>
+<line x1="70.0" y1="240.0" x2="70.0" y2="180.0" stroke="#D97706" stroke-width="2"/>
+<rect x="18.0" y="110.0" width="104.0" height="70.0" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+<text x="70.0" y="132.0" font-size="13" fill="#92400E" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">TPU v1</text>
+<text x="70.0" y="152.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">inference</text>
+<text x="70.0" y="166.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">92 TOPS</text>
+<circle cx="178.0" cy="250.0" r="9" fill="#2563EB" stroke="#FFFFFF" stroke-width="3"/>
+<text x="178.0" y="232.0" font-size="14" fill="#2563EB" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2017</text>
+<line x1="178.0" y1="260.0" x2="178.0" y2="290.0" stroke="#2563EB" stroke-width="2"/>
+<rect x="126.0" y="290.0" width="104.0" height="70.0" rx="10" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+<text x="178.0" y="312.0" font-size="13" fill="#1E3A8A" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">TPU v2</text>
+<text x="178.0" y="332.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">training</text>
+<text x="178.0" y="346.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">bfloat16</text>
+<circle cx="286.0" cy="250.0" r="9" fill="#2563EB" stroke="#FFFFFF" stroke-width="3"/>
+<text x="286.0" y="280.0" font-size="14" fill="#2563EB" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2018</text>
+<line x1="286.0" y1="240.0" x2="286.0" y2="180.0" stroke="#2563EB" stroke-width="2"/>
+<rect x="234.0" y="110.0" width="104.0" height="70.0" rx="10" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+<text x="286.0" y="132.0" font-size="13" fill="#1E3A8A" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">TPU v3</text>
+<text x="286.0" y="152.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">liquid</text>
+<text x="286.0" y="166.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1,024 chips</text>
+<circle cx="394.0" cy="250.0" r="9" fill="#059669" stroke="#FFFFFF" stroke-width="3"/>
+<text x="394.0" y="232.0" font-size="14" fill="#059669" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2018</text>
+<line x1="394.0" y1="260.0" x2="394.0" y2="290.0" stroke="#059669" stroke-width="2"/>
+<rect x="342.0" y="290.0" width="104.0" height="70.0" rx="10" fill="#D1FAE5" stroke="#059669" stroke-width="2"/>
+<text x="394.0" y="312.0" font-size="13" fill="#065F46" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Edge TPU</text>
+<text x="394.0" y="332.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">~4 TOPS</text>
+<text x="394.0" y="346.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">~2 W</text>
+<circle cx="502.0" cy="250.0" r="9" fill="#7C3AED" stroke="#FFFFFF" stroke-width="3"/>
+<text x="502.0" y="280.0" font-size="14" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2021</text>
+<line x1="502.0" y1="240.0" x2="502.0" y2="180.0" stroke="#7C3AED" stroke-width="2"/>
+<rect x="450.0" y="110.0" width="104.0" height="70.0" rx="10" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2"/>
+<text x="502.0" y="132.0" font-size="13" fill="#4C1D95" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">TPU v4</text>
+<text x="502.0" y="152.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">optical</text>
+<text x="502.0" y="166.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">4,096 chips</text>
+<circle cx="610.0" cy="250.0" r="9" fill="#7C3AED" stroke="#FFFFFF" stroke-width="3"/>
+<text x="610.0" y="232.0" font-size="14" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2023</text>
+<line x1="610.0" y1="260.0" x2="610.0" y2="290.0" stroke="#7C3AED" stroke-width="2"/>
+<rect x="558.0" y="290.0" width="104.0" height="70.0" rx="10" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2"/>
+<text x="610.0" y="312.0" font-size="13" fill="#4C1D95" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">v5e / v5p</text>
+<text x="610.0" y="332.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">lean / big</text>
+<circle cx="718.0" cy="250.0" r="9" fill="#C026D3" stroke="#FFFFFF" stroke-width="3"/>
+<text x="718.0" y="280.0" font-size="14" fill="#C026D3" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2024</text>
+<line x1="718.0" y1="240.0" x2="718.0" y2="180.0" stroke="#C026D3" stroke-width="2"/>
+<rect x="666.0" y="110.0" width="104.0" height="70.0" rx="10" fill="#FAE8FF" stroke="#C026D3" stroke-width="2"/>
+<text x="718.0" y="132.0" font-size="13" fill="#86198F" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Trillium v6e</text>
+<text x="718.0" y="152.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">256² MXUs</text>
+<circle cx="826.0" cy="250.0" r="9" fill="#C026D3" stroke="#FFFFFF" stroke-width="3"/>
+<text x="826.0" y="232.0" font-size="14" fill="#C026D3" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2025</text>
+<line x1="826.0" y1="260.0" x2="826.0" y2="290.0" stroke="#C026D3" stroke-width="2"/>
+<rect x="774.0" y="290.0" width="104.0" height="70.0" rx="10" fill="#FAE8FF" stroke="#C026D3" stroke-width="2"/>
+<text x="826.0" y="312.0" font-size="13" fill="#86198F" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Ironwood 7x</text>
+<text x="826.0" y="332.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">inference</text>
+<text x="826.0" y="346.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">192 GB</text>
+<circle cx="934.0" cy="250.0" r="9" fill="#DC2626" stroke="#FFFFFF" stroke-width="3"/>
+<text x="934.0" y="280.0" font-size="14" fill="#DC2626" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2026</text>
+<line x1="934.0" y1="240.0" x2="934.0" y2="180.0" stroke="#DC2626" stroke-width="2"/>
+<rect x="882.0" y="110.0" width="104.0" height="70.0" rx="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="2"/>
+<text x="934.0" y="132.0" font-size="13" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">TPU 8t / 8i</text>
+<text x="934.0" y="152.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">train / serve split</text>
+</svg>

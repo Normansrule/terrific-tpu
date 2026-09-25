@@ -1,0 +1,45 @@
+[*] TinyTPU waveform layout - open with: gtkwave build/tpu.vcd sim/tpu.gtkw
+[dumpfile] "build/tpu.vcd"
+[timestart] 0
+*-18.000000 0 -1
+@28
+tb_tpu_top.clk
+tb_tpu_top.rst
+tb_tpu_top.done
+@200
+-Controller
+@24
+tb_tpu_top.dut.u_ctrl.pc[7:0]
+tb_tpu_top.dut.u_ctrl.state[2:0]
+@22
+tb_tpu_top.dut.u_ctrl.ir[31:0]
+@24
+tb_tpu_top.dut.u_ctrl.cnt[8:0]
+@200
+-Weights
+@28
+tb_tpu_top.dut.w_load
+@22
+tb_tpu_top.dut.wmem_addr[7:0]
+@200
+-Data in (watch the staircase)
+@28
+tb_tpu_top.dut.in_valid
+@22
+tb_tpu_top.dut.in_vec[31:0]
+tb_tpu_top.dut.a_skewed[31:0]
+@200
+-Results out
+@28
+tb_tpu_top.dut.out_valid
+@22
+tb_tpu_top.dut.p_bottom[127:0]
+tb_tpu_top.dut.result_vec[127:0]
+tb_tpu_top.dut.acc_wr_addr[7:0]
+@200
+-Activation
+@28
+tb_tpu_top.dut.ub_wr_en
+@22
+tb_tpu_top.dut.ub_wr_addr[7:0]
+tb_tpu_top.dut.act_out[31:0]

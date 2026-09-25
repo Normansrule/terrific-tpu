@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="aV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="aS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker><marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="aM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C026D3"/></marker><marker id="aA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker><marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker></defs>
+<rect width="960" height="560" fill="#F8FAFC"/>
+<text x="30.0" y="42.0" font-size="26" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">What costs energy inside a chip</text>
+<text x="30.0" y="68.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Energy per operation in picojoules (log scale). 45 nm figures from M. Horowitz, ISSCC 2014.</text>
+<text x="30.0" y="88.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Fetching one number from DRAM costs as much as ~3,000 small multiplies. So: reuse every number you fetch.</text>
+<line x1="290.0" y1="114.0" x2="290.0" y2="472.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="290.0" y="492.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.01 pJ</text>
+<line x1="412.0" y1="114.0" x2="412.0" y2="472.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="412.0" y="492.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.1 pJ</text>
+<line x1="534.0" y1="114.0" x2="534.0" y2="472.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="534.0" y="492.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1 pJ</text>
+<line x1="656.0" y1="114.0" x2="656.0" y2="472.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="656.0" y="492.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">10 pJ</text>
+<line x1="778.0" y1="114.0" x2="778.0" y2="472.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="778.0" y="492.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">100 pJ</text>
+<line x1="900.0" y1="114.0" x2="900.0" y2="472.0" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="900.0" y="492.0" font-size="12" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1000 pJ</text>
+<text x="278.0" y="142.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">8-bit integer add</text>
+<rect x="290.0" y="126.0" width="58.2" height="26.0" rx="5" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="356.2" y="144.0" font-size="13" fill="#2563EB" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.03 pJ</text>
+<text x="278.0" y="186.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">32-bit integer add</text>
+<rect x="290.0" y="170.0" width="122.0" height="26.0" rx="5" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="420.0" y="188.0" font-size="13" fill="#2563EB" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.1 pJ</text>
+<text x="278.0" y="230.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">8-bit integer multiply</text>
+<rect x="290.0" y="214.0" width="158.7" height="26.0" rx="5" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="456.7" y="232.0" font-size="13" fill="#7C3AED" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.2 pJ</text>
+<text x="278.0" y="274.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">16-bit float multiply</text>
+<rect x="290.0" y="258.0" width="249.0" height="26.0" rx="5" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="547.0" y="276.0" font-size="13" fill="#7C3AED" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">1.1 pJ</text>
+<text x="278.0" y="318.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">32-bit float multiply</text>
+<rect x="290.0" y="302.0" width="313.3" height="26.0" rx="5" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="611.3" y="320.0" font-size="13" fill="#7C3AED" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">3.7 pJ</text>
+<text x="278.0" y="362.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">32-bit read, 8 KB SRAM</text>
+<rect x="290.0" y="346.0" width="329.3" height="26.0" rx="5" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="627.3" y="364.0" font-size="13" fill="#D97706" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">5 pJ</text>
+<text x="278.0" y="406.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">32-bit read, 1 MB SRAM</text>
+<rect x="290.0" y="390.0" width="451.3" height="26.0" rx="5" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="749.3" y="408.0" font-size="13" fill="#D97706" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">50 pJ</text>
+<text x="278.0" y="450.0" font-size="14" fill="#1E293B" font-weight="600" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif">32-bit read, off-chip DRAM</text>
+<rect x="290.0" y="434.0" width="586.4" height="26.0" rx="5" fill="#DC2626" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="884.4" y="452.0" font-size="13" fill="#DC2626" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">640 pJ</text>
+<text x="290.0" y="520.0" font-size="13" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">blue = add   violet = multiply   amber = on-chip memory   red = off-chip memory</text>
+</svg>

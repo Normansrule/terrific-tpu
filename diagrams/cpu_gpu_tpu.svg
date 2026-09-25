@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="960" height="520" fill="#F8FAFC"/>
+  <text x="30" y="42" font-size="26" font-weight="700" fill="#1E293B">Three ways to multiply a matrix</text>
+  <text x="30" y="66" font-size="14" fill="#475569">Same job, different amounts of flexibility. The TPU gives up flexibility to spend almost all its silicon on multipliers.</text>
+
+  <!-- CPU -->
+  <rect x="30" y="90" width="280" height="330" rx="14" fill="#FFFFFF" stroke="#64748B" stroke-width="2"/>
+  <text x="170" y="122" text-anchor="middle" font-size="20" font-weight="700" fill="#334155">CPU</text>
+  <text x="170" y="144" text-anchor="middle" font-size="13" fill="#64748B">a few big, clever cores</text>
+  <g fill="#E2E8F0" stroke="#64748B" stroke-width="1.5">
+    <rect x="55" y="165" width="105" height="105" rx="8"/><rect x="180" y="165" width="105" height="105" rx="8"/>
+    <rect x="55" y="285" width="105" height="105" rx="8"/><rect x="180" y="285" width="105" height="105" rx="8"/>
+  </g>
+  <g fill="#94A3B8"><rect x="65" y="232" width="30" height="28" rx="3"/><rect x="190" y="232" width="30" height="28" rx="3"/><rect x="65" y="352" width="30" height="28" rx="3"/><rect x="190" y="352" width="30" height="28" rx="3"/></g>
+  <g font-size="11" fill="#334155" text-anchor="middle"><text x="107" y="190">control +</text><text x="107" y="205">cache</text><text x="232" y="190">control +</text><text x="232" y="205">cache</text><text x="107" y="310">control +</text><text x="107" y="325">cache</text><text x="232" y="310">control +</text><text x="232" y="325">cache</text></g>
+  <text x="170" y="408" text-anchor="middle" font-size="12" fill="#475569">small grey squares = math units</text>
+
+  <!-- GPU -->
+  <rect x="340" y="90" width="280" height="330" rx="14" fill="#FFFFFF" stroke="#0891B2" stroke-width="2"/>
+  <text x="480" y="122" text-anchor="middle" font-size="20" font-weight="700" fill="#0E7490">GPU</text>
+  <text x="480" y="144" text-anchor="middle" font-size="13" fill="#0E7490">thousands of small cores</text>
+  <g id="gpucol" fill="#A5F3FC" stroke="#0891B2" stroke-width="1">
+    <rect x="360" y="165" width="18" height="18" rx="2"/><rect x="360" y="189" width="18" height="18" rx="2"/><rect x="360" y="213" width="18" height="18" rx="2"/><rect x="360" y="237" width="18" height="18" rx="2"/>
+    <rect x="360" y="261" width="18" height="18" rx="2"/><rect x="360" y="285" width="18" height="18" rx="2"/><rect x="360" y="309" width="18" height="18" rx="2"/><rect x="360" y="333" width="18" height="18" rx="2"/><rect x="360" y="357" width="18" height="18" rx="2"/>
+  </g>
+  <use href="#gpucol" x="24"/><use href="#gpucol" x="48"/><use href="#gpucol" x="72"/><use href="#gpucol" x="96"/><use href="#gpucol" x="120"/><use href="#gpucol" x="144"/><use href="#gpucol" x="168"/><use href="#gpucol" x="192"/><use href="#gpucol" x="216"/>
+  <text x="480" y="408" text-anchor="middle" font-size="12" fill="#475569">cores run in lockstep groups (warps)</text>
+
+  <!-- TPU -->
+  <rect x="650" y="90" width="280" height="330" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="3"/>
+  <text x="790" y="122" text-anchor="middle" font-size="20" font-weight="700" fill="#6D28D9">TPU</text>
+  <text x="790" y="144" text-anchor="middle" font-size="13" fill="#6D28D9">one giant grid of multipliers</text>
+  <rect x="672" y="165" width="236" height="210" rx="6" fill="#EDE9FE" stroke="#7C3AED"/>
+  <g stroke="#C4B5FD" stroke-width="1">
+    <path d="M672 178H908M672 191H908M672 204H908M672 217H908M672 230H908M672 243H908M672 256H908M672 269H908M672 282H908M672 295H908M672 308H908M672 321H908M672 334H908M672 347H908M672 360H908"/>
+    <path d="M685 165V375M698 165V375M711 165V375M724 165V375M737 165V375M750 165V375M763 165V375M776 165V375M789 165V375M802 165V375M815 165V375M828 165V375M841 165V375M854 165V375M867 165V375M880 165V375M893 165V375"/>
+  </g>
+  <text x="790" y="408" text-anchor="middle" font-size="12" fill="#475569">one instruction drives 65,536 cells (TPU v1)</text>
+
+  <g font-size="13" fill="#1E293B">
+    <text x="30" y="455"><tspan font-weight="700">CPU:</tspan> anything, one thing at a time (ish).</text>
+    <text x="340" y="455"><tspan font-weight="700">GPU:</tspan> the same small program on many data.</text>
+    <text x="650" y="455"><tspan font-weight="700">TPU:</tspan> matrix math only, extremely fast.</text>
+    <text x="30" y="490" fill="#475569">Pictures are cartoons of silicon area, not to scale.</text>
+  </g>
+</svg>

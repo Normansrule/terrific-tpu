@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: see how a Tensor Processing Unit works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.hero { max-width: 1280px; margin: 0 auto; padding: 36px 20px 20px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+.hero h1 { font-size: clamp(38px, 6vw, 76px); line-height: .95; letter-spacing: -0.035em; margin: 0 0 18px; font-weight: 800; }
+.hero p { font-size: 18px; color: var(--muted); max-width: 46ch; margin: 0 0 22px; }
+.hero .go { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero .go a { text-decoration: none; }
+.array { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; aspect-ratio: 1; max-width: 520px; width: 100%; justify-self: center; }
+.cell { border-radius: 9px; background: var(--mxu-bg); border: 1.5px solid var(--line); }
+@media (prefers-reduced-motion: no-preference) {
+  .cell { animation: wave 2.4s infinite; animation-delay: calc(var(--d) * 110ms); }
+  @keyframes wave { 0%, 60%, 100% { background: var(--mxu-bg); border-color: var(--line); }
+                    12% { background: var(--mxu); border-color: var(--mxu); }
+                    24% { background: var(--ps-bg); border-color: var(--ps); } }
+}
+.array-cap { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+section.tools { max-width: 1280px; margin: 0 auto; padding: 10px 20px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+@media (max-width: 900px) { section.tools { grid-template-columns: 1fr; } }
+.tool { display: block; text-decoration: none; color: inherit; background: var(--panel); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; }
+.tool:hover { border-color: var(--ink); }
+.tool h2 { font-size: 21px; margin: 10px 0 6px; }
+.tool p { margin: 0; color: var(--muted); font-size: 15px; }
+.tool .swatch { height: 8px; border-radius: 4px; }
+section.path { max-width: 1280px; margin: 0 auto; padding: 10px 20px 50px; }
+section.path h2 { font-size: 24px; margin: 18px 0 12px; }
+ol.lessons { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; counter-reset: l; }
+ol.lessons li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; counter-increment: l; }
+ol.lessons li::before { content: counter(l); font-weight: 800; color: var(--mxu); margin-right: 8px; }
+ol.lessons li span { color: var(--muted); font-size: 14px; display: block; margin-top: 2px; }
+</style>
+</head>
+<body>
+<nav class="site" aria-label="TinyTPU pages">
+  <span class="brand">terrific-tpu</span>
+  <a href="index.html" aria-current="page">Start</a>
+  <a href="playground.html">Systolic array</a>
+  <a href="chip.html">Whole chip</a>
+  <a href="explorers.html">Numbers &amp; roofline</a>
+  <a href="apps.html">Applications</a>
+  <a href="array3d.html">3-D array</a>
+</nav>
+<div class="hero">
+  <div>
+    <h1>A chip that only multiplies.</h1>
+    <p>A Tensor Processing Unit (TPU) gives up nearly everything a normal processor can do, and spends its silicon on a grid of multipliers that pass numbers to their neighbors in rhythm. Watch the rhythm, then build one.</p>
+    <div class="go">
+      <a href="playground.html"><button class="primary" tabindex="-1">Watch the array compute</button></a>
+      <a href="chip.html"><button tabindex="-1">Run a program on the chip</button></a>
+    </div>
+  </div>
+  <div>
+    <div class="array" id="array" aria-hidden="true"></div>
+    <div class="array-cap">Each flash is one wave of data crossing the grid diagonally, one step per clock tick.</div>
+  </div>
+</div>
+<section class="tools" aria-label="Interactive tools">
+  <a class="tool" href="playground.html"><div class="swatch" style="background:var(--act)"></div><h2>Systolic array</h2><p>Edit a weight matrix and some input vectors, then step the clock and watch partial sums flow down the grid.</p></a>
+  <a class="tool" href="chip.html"><div class="swatch" style="background:var(--mxu)"></div><h2>Whole chip</h2><p>Write TinyTPU assembly and run it on a register-exact model of the Verilog: controller, skew, array, accumulators and memories.</p></a>
+  <a class="tool" href="apps.html"><div class="swatch" style="background:var(--ps)"></div><h2>Applications</h2><p>Paint an image and watch 4 filters run; search with a 2-qubit quantum algorithm; count triangles in a graph you draw. All on the chip model.</p></a>
+  <a class="tool" href="array3d.html"><div class="swatch" style="background:var(--out)"></div><h2>3-D array</h2><p>Spin an 8 × 8 (or 24 × 24) array in 3-D. Tower heights are live partial sums; the wavefront sweeps across as the clock ticks.</p></a>
+  <a class="tool" href="explorers.html"><div class="swatch" style="background:var(--wt)"></div><h2>Numbers &amp; roofline</h2><p>See what 8-bit rounding does to a layer's weights, and whether a job keeps the multipliers busy or waits on memory.</p></a>
+</section>
+<section class="path" aria-label="Lessons">
+  <h2>The lessons (on GitHub)</h2>
+  <ol class="lessons">
+    <li>What is a TPU?<span>One job, done absurdly well.</span></li>
+    <li>Why matrix math?<span>Every layer is multiply, add, squash.</span></li>
+    <li>Numbers and quantization<span>Why 8 bits are enough.</span></li>
+    <li>Systolic arrays<span>The bucket brigade of multipliers.</span></li>
+    <li>Dataflow and energy<span>Moving data costs more than math.</span></li>
+    <li>Tiling big matrices<span>How a small grid does big work.</span></li>
+    <li>TinyTPU architecture<span>Every block, every wire.</span></li>
+    <li>RTL walkthrough<span>The Verilog, file by file.</span></li>
+    <li>Instructions and programming<span>From assembly to JAX.</span></li>
+    <li>Pipelining (v2)<span>Double buffers and hazards.</span></li>
+    <li>Performance<span>Roofline and utilization.</span></li>
+    <li>From RTL to silicon<span>Real sky130 gate counts.</span></li>
+    <li>Real TPUs<span>v1 to TPU 8, pods, photos.</span></li>
+    <li>New applications<span>What else fits the grid?</span></li>
+    <li>Application gallery<span>Images, qubits, graphs, on the chip.</span></li>
+    <li>Experiments<span>Five questions, answered with data.</span></li>
+    <li>Labs<span>Build it further yourself.</span></li>
+  </ol>
+</section>
+<script>
+  const a = document.getElementById("array");
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const d = document.createElement("div"); d.className = "cell"; d.style.setProperty("--d", r + c); a.appendChild(d);
+  }
+</script>
+</body>
+</html>

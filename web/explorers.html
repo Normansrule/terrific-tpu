@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TinyTPU: numbers and roofline explorers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+header.top { max-width: 1280px; margin: 0 auto; padding: 18px 20px 6px; }
+h1 { font-size: clamp(26px, 3.4vw, 40px); margin: 0 0 6px; letter-spacing: -0.02em; line-height: 1.05; }
+header.top p { margin: 0; color: var(--muted); max-width: 78ch; }
+main { max-width: 1280px; margin: 0 auto; padding: 14px 20px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+.row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 8px 0; font-size: 14px; }
+.row label { display: flex; gap: 8px; align-items: center; }
+svg { width: 100%; height: auto; display: block; }
+.readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.readout div { background: var(--idle); border-radius: 10px; padding: 8px 10px; }
+.readout .k { font-size: 12px; color: var(--muted); } .readout .v { font-size: 19px; font-weight: 700; }
+.verdict { margin-top: 10px; font-weight: 700; }
+.chips button { font-size: 13px; padding: 5px 10px; }
+.chips button[aria-pressed="true"] { background: var(--mxu-bg); border-color: var(--mxu); }
+p.lede { color: var(--muted); margin: 0 0 6px; font-size: 14px; }
+</style>
+</head>
+<body>
+<nav class="site" aria-label="TinyTPU pages">
+  <span class="brand">terrific-tpu</span>
+  <a href="index.html">Start</a>
+  <a href="playground.html">Systolic array</a>
+  <a href="chip.html">Whole chip</a>
+  <a href="explorers.html" aria-current="page">Numbers &amp; roofline</a>
+  <a href="apps.html">Applications</a>
+  <a href="array3d.html">3-D array</a>
+</nav>
+<header class="top">
+  <h1>Numbers and the roofline</h1>
+  <p>Two questions decide whether a TPU is fast for a job: how few bits can the numbers use, and does the chip spend its time computing or waiting for memory?</p>
+</header>
+<main>
+  <section class="box" aria-label="Quantization explorer">
+    <h2>How many bits do we need?</h2>
+    <p class="lede">A trained layer's weights (blue) rounded to fewer bits (orange). Fewer bits means smaller multipliers and less memory traffic, but more rounding error.</p>
+    <div class="row">
+      <label>bits <input id="bits" type="range" min="2" max="8" value="8" aria-label="bits"> <b class="num" id="bitsv">8</b></label>
+      <label><input id="outlier" type="checkbox"> add one outlier weight</label>
+    </div>
+    <svg id="qplot" viewBox="0 0 600 300" role="img" aria-label="Original versus quantized weights"></svg>
+    <div class="readout">
+      <div><div class="k">levels</div><div class="v num" id="levels"></div></div>
+      <div><div class="k">step size</div><div class="v num" id="step"></div></div>
+      <div><div class="k">average error</div><div class="v num" id="qerr"></div></div>
+    </div>
+    <p class="lede" style="margin-top:10px">Try the outlier: one big weight stretches the scale, so every other weight gets fewer usable levels. That is why real quantization schemes clip outliers or use one scale per row.</p>
+  </section>
+
+  <section class="box" aria-label="Roofline explorer">
+    <h2>Compute-bound or memory-bound?</h2>
+    <p class="lede">Pick a chip and a square matrix multiply of size n. The dot shows where it lands under the roof.</p>
+    <div class="row chips" role="group" aria-label="Chip presets">
+      <button data-chip="tiny">TinyTPU @ 100 MHz</button>
+      <button data-chip="v1" aria-pressed="true">TPU v1</button>
+      <button data-chip="v4">TPU v4</button>
+    </div>
+    <div class="row">
+      <label>matrix size n <input id="n" type="range" min="2" max="14" value="8" aria-label="log2 of matrix size"> <b class="num" id="nv"></b></label>
+      <label>bytes per number <select id="bytes"><option value="1">1 (int8)</option><option value="2">2 (bfloat16)</option><option value="4">4 (float32)</option></select></label>
+    </div>
+    <svg id="rplot" viewBox="0 0 600 320" role="img" aria-label="Roofline chart"></svg>
+    <div class="readout">
+      <div><div class="k">intensity</div><div class="v num" id="ai"></div></div>
+      <div><div class="k">attainable</div><div class="v num" id="perf"></div></div>
+      <div><div class="k">time</div><div class="v num" id="time"></div></div>
+    </div>
+    <div class="verdict" id="rverdict"></div>
+  </section>
+</main>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const fmt = (x, u) => { const p = [["P", 1e15], ["T", 1e12], ["G", 1e9], ["M", 1e6], ["k", 1e3]]; for (const [s, v] of p) if (x >= v) return (x / v).toPrecision(3) + " " + s + u; return x.toPrecision(3) + " " + u; };
+
+  // ---------------- quantization
+  const base = Array.from({ length: 64 }, (_, i) => 0.6 * Math.sin(i / 5) * Math.exp(-i / 90) + 0.15 * Math.sin(i * 1.7));
+  function quant() {
+    const bits = +$("bits").value; $("bitsv").textContent = bits;
+    const w = base.slice(); if ($("outlier").checked) w[40] = 2.4;
+    const maxAbs = Math.max(...w.map(Math.abs)), qmax = 2 ** (bits - 1) - 1, scale = maxAbs / qmax;
+    const q = w.map(v => Math.round(v / scale) * scale);
+    const err = w.reduce((s, v, i) => s + Math.abs(v - q[i]), 0) / w.length;
+    $("levels").textContent = 2 ** bits; $("step").textContent = scale.toFixed(4); $("qerr").textContent = err.toFixed(4);
+    const X = i => 40 + i * 8.6, lim = Math.max(1, maxAbs * 1.1), Y = v => 150 - v / lim * 125;
+    let h = `<line x1="40" y1="150" x2="590" y2="150" stroke="${css("--line")}"/>`;
+    for (let k = -qmax; k <= qmax; k++) if (Math.abs(k * scale) <= lim && (bits <= 4 || k % 16 === 0))
+      h += `<line x1="40" x2="590" y1="${Y(k * scale)}" y2="${Y(k * scale)}" stroke="${css("--line")}" stroke-dasharray="2 4"/>`;
+    h += `<polyline fill="none" stroke="${css("--act")}" stroke-width="2.5" points="${w.map((v, i) => X(i) + "," + Y(v)).join(" ")}"/>`;
+    h += `<polyline fill="none" stroke="${css("--wt")}" stroke-width="2.5" points="${q.map((v, i) => `${X(i) - 4.3},${Y(v)} ${X(i) + 4.3},${Y(v)}`).join(" ")}"/>`;
+    h += `<text x="44" y="292" font-size="13" fill="${css("--muted")}">blue: original  ·  orange: ${bits}-bit (dashed lines = available levels)</text>`;
+    $("qplot").innerHTML = h;
+  }
+  $("bits").oninput = quant; $("outlier").onchange = quant; quant();
+
+  // ---------------- roofline
+  const CHIPS = {
+    tiny: { name: "TinyTPU @ 100 MHz", peak: 16 * 2 * 100e6, bw: 4 * 100e6 },
+    v1: { name: "TPU v1", peak: 92e12, bw: 34e9 },
+    v4: { name: "TPU v4", peak: 275e12, bw: 1200e9 }
+  };
+  let chip = "v1";
+  function roof() {
+    const c = CHIPS[chip], n = 2 ** +$("n").value, b = +$("bytes").value;
+    $("nv").textContent = n;
+    const ops = 2 * n ** 3, bytes = 3 * n * n * b, ai = ops / bytes;
+    const perf = Math.min(c.peak, c.bw * ai), ridge = c.peak / c.bw;
+    $("ai").textContent = ai.toFixed(ai < 10 ? 2 : 0) + " op/B";
+    $("perf").textContent = fmt(perf, "op/s");
+    $("time").textContent = fmt(ops / perf, "s").replace(" s", " s");
+    const t = ops / perf; $("time").textContent = t < 1e-6 ? (t * 1e9).toPrecision(3) + " ns" : t < 1e-3 ? (t * 1e6).toPrecision(3) + " µs" : t < 1 ? (t * 1e3).toPrecision(3) + " ms" : t.toPrecision(3) + " s";
+    const v = $("rverdict");
+    v.textContent = ai < ridge ? `Memory-bound: need ${Math.round(ridge)} operations per byte to reach peak, this job has ${ai.toFixed(1)}. Bigger matrices or batches would help.` : `Compute-bound: every multiplier is busy. Only a faster chip helps now.`;
+    v.style.color = ai < ridge ? css("--red") : css("--out");
+    const lx0 = -1, lx1 = 5, ly0 = Math.floor(Math.log10(c.peak)) - 6, ly1 = Math.ceil(Math.log10(c.peak)) + 0.5;
+    const X = a => 60 + (Math.log10(a) - lx0) / (lx1 - lx0) * 520, Y = p => 280 - (Math.log10(p) - ly0) / (ly1 - ly0) * 250;
+    let h = "";
+    for (let d = lx0; d <= lx1; d++) h += `<line x1="${X(10 ** d)}" x2="${X(10 ** d)}" y1="30" y2="280" stroke="${css("--line")}" stroke-dasharray="2 4"/><text x="${X(10 ** d)}" y="298" font-size="12" text-anchor="middle" fill="${css("--muted")}">${10 ** d}</text>`;
+    for (let d = Math.ceil(ly0); d <= ly1; d++) h += `<line x1="60" x2="580" y1="${Y(10 ** d)}" y2="${Y(10 ** d)}" stroke="${css("--line")}" stroke-dasharray="2 4"/><text x="54" y="${Y(10 ** d) + 4}" font-size="11" text-anchor="end" fill="${css("--muted")}">${fmt(10 ** d, "")}</text>`;
+    const a0 = 10 ** lx0;
+    h += `<polyline fill="none" stroke="${css("--mxu")}" stroke-width="3.5" points="${X(a0)},${Y(c.bw * a0)} ${X(ridge)},${Y(c.peak)} ${X(10 ** lx1)},${Y(c.peak)}"/>`;
+    h += `<text x="${X(ridge) > 380 ? X(ridge) - 8 : X(ridge) + 8}" y="${Y(c.peak) - 8}" text-anchor="${X(ridge) > 380 ? "end" : "start"}" font-size="13" font-weight="700" fill="${css("--mxu")}">${c.name}: ridge ${Math.round(ridge)} op/B</text>`;
+    h += `<circle cx="${X(ai)}" cy="${Y(perf)}" r="8" fill="${css("--act")}" stroke="${css("--panel")}" stroke-width="2"/>`;
+    h += `<text x="${X(ai)}" y="${Y(perf) + 24}" font-size="12" font-weight="700" text-anchor="middle" fill="${css("--act")}">n = ${n}</text>`;
+    h += `<text x="320" y="316" font-size="12" text-anchor="middle" fill="${css("--muted")}">operations per byte (log)</text>`;
+    $("rplot").innerHTML = h;
+  }
+  document.querySelectorAll("[data-chip]").forEach(bt => bt.onclick = () => { chip = bt.dataset.chip; document.querySelectorAll("[data-chip]").forEach(x => x.setAttribute("aria-pressed", x === bt)); roof(); });
+  $("n").oninput = roof; $("bytes").onchange = roof; roof();
+})();
+</script>
+</body>
+</html>

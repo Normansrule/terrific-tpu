@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="aV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="aS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker><marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="aM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C026D3"/></marker><marker id="aA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker><marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker></defs>
+<rect width="1000" height="640" fill="#F8FAFC"/>
+<text x="30.0" y="42.0" font-size="26" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Experiment 3: where the energy goes (estimated)</text>
+<text x="30.0" y="68.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Event counts from the cycle-exact model, priced with 45 nm figures. Left bar of each pair: weights in on-chip SRAM.</text>
+<text x="30.0" y="88.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Right bar: weights in off-chip DRAM, like TPU v1. Labels: energy per useful multiply-accumulate.</text>
+<rect x="90.0" y="538.3" width="54.0" height="1.7" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="90.0" y="535.4" width="54.0" height="2.9" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="90.0" y="523.8" width="54.0" height="11.6" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="90.0" y="523.0" width="54.0" height="0.9" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="117.0" y="501.0" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1.2 nJ</text>
+<text x="117.0" y="515.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">3.1 pJ/MAC</text>
+<text x="117.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">SRAM</text>
+<rect x="152.0" y="538.3" width="54.0" height="1.7" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="152.0" y="535.4" width="54.0" height="2.9" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="152.0" y="523.8" width="54.0" height="11.6" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="152.0" y="412.6" width="54.0" height="111.2" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="179.0" y="390.6" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">8.8 nJ</text>
+<text x="179.0" y="404.6" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">22.9 pJ/MAC</text>
+<text x="179.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">DRAM</text>
+<text x="148.0" y="576.0" font-size="13" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Neural net</text>
+<text x="148.0" y="592.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">384 MACs</text>
+<rect x="270.0" y="538.9" width="54.0" height="1.1" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="270.0" y="536.6" width="54.0" height="2.3" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="270.0" y="527.3" width="54.0" height="9.3" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="270.0" y="526.7" width="54.0" height="0.6" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="297.0" y="504.7" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.9 nJ</text>
+<text x="297.0" y="518.7" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">3.6 pJ/MAC</text>
+<text x="297.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">SRAM</text>
+<rect x="332.0" y="538.9" width="54.0" height="1.1" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="332.0" y="536.6" width="54.0" height="2.3" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="332.0" y="527.3" width="54.0" height="9.3" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="332.0" y="453.2" width="54.0" height="74.1" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="359.0" y="431.2" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">6.0 nJ</text>
+<text x="359.0" y="445.2" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">23.4 pJ/MAC</text>
+<text x="359.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">DRAM</text>
+<text x="328.0" y="576.0" font-size="13" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Fourier</text>
+<text x="328.0" y="592.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">256 MACs</text>
+<rect x="450.0" y="526.7" width="54.0" height="13.3" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="450.0" y="508.1" width="54.0" height="18.5" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="450.0" y="434.0" width="54.0" height="74.1" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="450.0" y="433.1" width="54.0" height="0.9" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="477.0" y="411.1" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">7.4 nJ</text>
+<text x="477.0" y="425.1" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2.4 pJ/MAC</text>
+<text x="477.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">SRAM</text>
+<rect x="512.0" y="526.7" width="54.0" height="13.3" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="512.0" y="508.1" width="54.0" height="18.5" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="512.0" y="434.0" width="54.0" height="74.1" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="512.0" y="322.7" width="54.0" height="111.2" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="539.0" y="300.7" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">15.0 nJ</text>
+<text x="539.0" y="314.7" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">4.9 pJ/MAC</text>
+<text x="539.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">DRAM</text>
+<text x="508.0" y="576.0" font-size="13" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Image filter</text>
+<text x="508.0" y="592.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">3,072 MACs</text>
+<rect x="630.0" y="538.6" width="54.0" height="1.4" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="630.0" y="535.7" width="54.0" height="2.9" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="630.0" y="524.1" width="54.0" height="11.6" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="630.0" y="522.7" width="54.0" height="1.4" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="657.0" y="500.7" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1.2 nJ</text>
+<text x="657.0" y="514.7" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">3.7 pJ/MAC</text>
+<text x="657.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">SRAM</text>
+<rect x="692.0" y="538.6" width="54.0" height="1.4" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="692.0" y="535.7" width="54.0" height="2.9" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="692.0" y="524.1" width="54.0" height="11.6" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="692.0" y="338.8" width="54.0" height="185.4" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="719.0" y="316.8" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">13.9 nJ</text>
+<text x="719.0" y="330.8" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">43.4 pJ/MAC</text>
+<text x="719.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">DRAM</text>
+<text x="688.0" y="576.0" font-size="13" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Quantum search</text>
+<text x="688.0" y="592.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">320 MACs</text>
+<rect x="810.0" y="535.6" width="54.0" height="4.4" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="810.0" y="529.8" width="54.0" height="5.8" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="810.0" y="506.6" width="54.0" height="23.2" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="810.0" y="504.3" width="54.0" height="2.3" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="837.0" y="482.3" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2.5 nJ</text>
+<text x="837.0" y="496.3" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">2.4 pJ/MAC</text>
+<text x="837.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">SRAM</text>
+<rect x="872.0" y="535.6" width="54.0" height="4.4" rx="2" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="872.0" y="529.8" width="54.0" height="5.8" rx="2" fill="#2563EB" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="872.0" y="506.6" width="54.0" height="23.2" rx="2" fill="#C026D3" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<rect x="872.0" y="210.0" width="54.0" height="296.6" rx="2" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="1.5"/>
+<text x="899.0" y="188.0" font-size="11" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">22.8 nJ</text>
+<text x="899.0" y="202.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">22.3 pJ/MAC</text>
+<text x="899.0" y="556.0" font-size="10" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">DRAM</text>
+<text x="868.0" y="576.0" font-size="13" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">Graph triangles</text>
+<text x="868.0" y="592.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1,024 MACs</text>
+<rect x="90.0" y="110.0" width="220.0" height="102.0" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+<line x1="104.0" y1="128.0" x2="130.0" y2="128.0" stroke="#7C3AED" stroke-width="4"/>
+<text x="140.0" y="132.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">multiply-accumulate</text>
+<line x1="104.0" y1="150.0" x2="130.0" y2="150.0" stroke="#2563EB" stroke-width="4"/>
+<text x="140.0" y="154.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Unified Buffer</text>
+<line x1="104.0" y1="172.0" x2="130.0" y2="172.0" stroke="#C026D3" stroke-width="4"/>
+<text x="140.0" y="176.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">accumulators</text>
+<line x1="104.0" y1="194.0" x2="130.0" y2="194.0" stroke="#D97706" stroke-width="4"/>
+<text x="140.0" y="198.0" font-size="12" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">weights</text>
+</svg>

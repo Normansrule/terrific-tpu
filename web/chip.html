@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TinyTPU: whole-chip simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+header.top { max-width: 1280px; margin: 0 auto; padding: 18px 20px 6px; }
+h1 { font-size: clamp(26px, 3.4vw, 40px); margin: 0 0 6px; letter-spacing: -0.02em; line-height: 1.05; }
+header.top p { margin: 0; color: var(--muted); max-width: 80ch; }
+main { max-width: 1280px; margin: 0 auto; padding: 14px 20px 40px; display: grid; grid-template-columns: 300px 1fr 330px; gap: 16px; align-items: start; }
+@media (max-width: 1180px) { main { grid-template-columns: 1fr 1fr; } .mem { grid-column: 1 / -1; } }
+@media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+textarea { width: 100%; min-height: 230px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--idle); color: var(--ink); padding: 10px; font-size: 12.5px; line-height: 1.5; resize: vertical; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.presets button { font-size: 13px; padding: 5px 10px; }
+.presets button[aria-pressed="true"] { background: var(--mxu-bg); border-color: var(--mxu); }
+.err { color: var(--red); font-size: 13px; min-height: 1.2em; margin-top: 6px; }
+ol.listing { list-style: none; margin: 10px 0 0; padding: 0; font-size: 12.5px; }
+ol.listing li { display: grid; grid-template-columns: 26px 80px 1fr; gap: 6px; padding: 3px 6px; border-radius: 6px; }
+ol.listing li.cur { background: var(--mxu-bg); outline: 1.5px solid var(--mxu); }
+ol.listing li.doneI { color: var(--muted); }
+ol.listing .hex { color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.controls label { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.stat { border-radius: 10px; background: var(--idle); padding: 8px 10px; }
+.stat .k { font-size: 12px; color: var(--muted); }
+.stat .v { font-size: 20px; font-weight: 700; }
+.state-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 16px; }
+.st-FETCH, .st-DECODE { background: var(--ctl-bg); color: var(--ctl); }
+.st-LDW { background: var(--wt-bg); color: var(--wt); } .st-MMUL { background: var(--mxu-bg); color: var(--mxu); }
+.st-ACT { background: var(--out-bg); color: var(--out); } .st-HALT { background: var(--red-bg); color: var(--red); }
+.datapath { display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
+.lanes { display: grid; gap: 6px; padding-top: 26px; }
+.lane { height: 58px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; font-size: 12px; }
+.sk { min-width: 26px; height: 24px; border-radius: 5px; display: grid; place-items: center; background: var(--idle); border: 1px dashed var(--line); color: var(--muted); }
+.sk.on { background: var(--act-bg); border: 1.5px solid var(--act); color: var(--act); font-weight: 700; }
+.wtop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; height: 20px; font-size: 11px; color: var(--wt); text-align: center; font-weight: 700; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.pe { height: 58px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--idle); font-size: 11.5px; display: grid; grid-template-rows: repeat(3, 1fr); place-items: center; line-height: 1; transition: background-color .15s, border-color .15s; }
+.pe.busy { border-color: var(--mxu); background: var(--mxu-bg); }
+.pe.load { border-color: var(--wt); background: var(--wt-bg); }
+.pe .w { color: var(--wt); } .pe .a { color: var(--act); font-weight: 700; } .pe .p { color: var(--ps); font-weight: 700; }
+.pipe { display: flex; gap: 4px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line); }
+.dot.on { background: var(--ps); border-color: var(--ps); }
+.result { margin-top: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 12px; }
+.result div { border-radius: 7px; border: 1.5px dashed var(--line); padding: 5px; text-align: center; min-height: 30px; }
+.result div.on { border: 1.5px solid var(--out); background: var(--out-bg); color: var(--out); font-weight: 700; }
+.narr { margin-top: 12px; padding: 10px 12px; border-left: 4px solid var(--mxu); background: var(--idle); border-radius: 0 10px 10px 0; font-size: 14px; min-height: 3em; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.tabs button { font-size: 13px; padding: 5px 10px; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--panel); }
+.memwrap { max-height: 560px; overflow: auto; border-radius: 10px; border: 1px solid var(--line); }
+table.mem { border-collapse: collapse; width: 100%; font-size: 12px; }
+table.mem th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 600; padding: 4px; text-align: right; }
+table.mem td { padding: 3px 6px; text-align: right; border-top: 1px solid var(--line); }
+table.mem td.addr { color: var(--muted); text-align: left; }
+table.mem tr.rd td { background: var(--act-bg); } table.mem tr.wr td { background: var(--out-bg); }
+.memnote { font-size: 12px; color: var(--muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+<nav class="site" aria-label="TinyTPU pages">
+  <span class="brand">terrific-tpu</span>
+  <a href="index.html">Start</a>
+  <a href="playground.html">Systolic array</a>
+  <a href="chip.html" aria-current="page">Whole chip</a>
+  <a href="explorers.html">Numbers &amp; roofline</a>
+  <a href="apps.html">Applications</a>
+  <a href="array3d.html">3-D array</a>
+</nav>
+<header class="top">
+  <h1>Whole-chip simulator</h1>
+  <p>This is <span class="num">rtl/v1_simple</span> rebuilt in JavaScript, register for register. It is checked against the Verilog on every commit, so it takes the same number of clock cycles and ends with the same memory contents. Write a program, then step through it one clock tick at a time.</p>
+</header>
+<main>
+  <section class="box" aria-label="Program">
+    <h2>Program</h2>
+    <div class="presets" role="group" aria-label="Example programs">
+      <button data-preset="mlp" aria-pressed="true">Neural net</button>
+      <button data-preset="dft" aria-pressed="false">Fourier</button>
+      <button data-preset="tiny" aria-pressed="false">One MMUL</button>
+    </div>
+    <textarea id="src" spellcheck="false" aria-label="Assembly source"></textarea>
+    <button id="assemble" class="primary" style="margin-top:8px">Load program</button>
+    <div class="err" id="err" role="alert"></div>
+    <ol class="listing num" id="listing"></ol>
+  </section>
+
+  <section class="box" aria-label="Chip">
+    <div class="controls">
+      <button id="step" class="primary">Step one cycle</button>
+      <button id="stepI">Step one instruction</button>
+      <button id="run">Run</button>
+      <button id="finish">Run to end</button>
+      <button id="reset">Reset</button>
+      <label>speed <input id="speed" type="range" min="20" max="800" step="20" value="260" aria-label="Milliseconds per cycle"></label>
+    </div>
+    <div class="status">
+      <div class="stat"><div class="k">cycle</div><div class="v num" id="cyc">0</div></div>
+      <div class="stat"><div class="k">state</div><div class="v"><span class="state-badge" id="state">FETCH</span></div></div>
+      <div class="stat"><div class="k">pc</div><div class="v num" id="pc">0</div></div>
+      <div class="stat"><div class="k">MACs done</div><div class="v num" id="macs">0</div></div>
+    </div>
+    <div class="datapath">
+      <div class="lanes" id="lanes" aria-label="Input skew registers"></div>
+      <div>
+        <div class="wtop num" id="wtop"></div>
+        <div class="grid num" id="grid" aria-label="4 by 4 systolic array"></div>
+        <div class="result num" id="result" aria-label="Lined-up results leaving the de-skew"></div>
+      </div>
+    </div>
+    <div class="pipe"><span>valid pipeline (7 stages, results arrive when the last dot is lit):</span><span id="pipe" style="display:flex;gap:4px"></span></div>
+    <div class="narr" id="narr" aria-live="polite"></div>
+  </section>
+
+  <section class="box mem" aria-label="Memories">
+    <h2>Memories</h2>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-mem="ub" aria-selected="true">Unified Buffer</button>
+      <button role="tab" data-mem="acc" aria-selected="false">Accumulators</button>
+      <button role="tab" data-mem="wmem" aria-selected="false">Weights</button>
+    </div>
+    <div class="memwrap"><table class="mem num" id="memtable"></table></div>
+    <div class="memnote">Blue row = being read this cycle. Green row = being written. Showing addresses 0-31.</div>
+  </section>
+</main>
+
+<script src="tinytpu-core.js"></script>
+<script>
+(function () {
+  const { assemble, disassemble, Chip } = window.TinyTPUCore;
+  const $ = id => document.getElementById(id);
+  const N = 4;
+
+  // --------------------------- example programs + data (same layouts as tools/golden_model.py)
+  function lcg(seed) { let s = seed >>> 0; return (lo, hi) => { s = (s * 1664525 + 1013904223) >>> 0; return lo + ((s >>> 16) % (hi - lo + 1)); }; }
+  const PRESETS = {
+    mlp: {
+      src: `; 2-layer neural network (programs/mlp_demo.asm)
+LDW   w=0                            ; W1 rows 0..3
+MMUL  ub=0  rows=8  acc=0            ; acc  = X[:,0:4] @ W1 top
+LDW   w=4                            ; W1 rows 4..7
+MMUL  ub=8  rows=8  acc=0 accumulate ; acc += X[:,4:8] @ W1 bottom
+LDW   w=8                            ; W2
+ACT   acc=0 rows=8  ub=16 relu shift=3
+MMUL  ub=16 rows=8  acc=8
+ACT   acc=8 rows=8  ub=24 shift=5
+HALT`,
+      data(chip) { const r = lcg(7); for (let i = 0; i < 12; i++) chip.wmem[i] = [0,0,0,0].map(() => r(-8, 7));
+                   for (let i = 0; i < 16; i++) chip.ub[i] = [0,0,0,0].map(() => r(-8, 7)); } },
+    dft: {
+      src: `; 4-point Fourier transform of 8 signals (programs/dft4.asm)
+LDW   w=0                    ; cosine matrix
+MMUL  ub=0  rows=8 acc=0     ; real parts
+LDW   w=4                    ; minus-sine matrix
+MMUL  ub=0  rows=8 acc=8     ; imaginary parts
+ACT   acc=0 rows=8 ub=16 shift=0
+ACT   acc=8 rows=8 ub=24 shift=0
+HALT`,
+      data(chip) { const Cm = [[1,1,1,1],[1,0,-1,0],[1,-1,1,-1],[1,0,-1,0]], Sm = [[0,0,0,0],[0,-1,0,1],[0,0,0,0],[0,1,0,-1]];
+                   Cm.concat(Sm).forEach((row, i) => chip.wmem[i] = row);
+                   const r = lcg(3); for (let i = 0; i < 8; i++) chip.ub[i] = [0,0,0,0].map(() => r(-31, 31)); } },
+    tiny: {
+      src: `; the smallest useful program: 3 vectors times one weight tile
+LDW   w=0
+MMUL  ub=0 rows=3 acc=0
+ACT   acc=0 rows=3 ub=8 shift=0
+HALT`,
+      data(chip) { [[1,2,0,-1],[0,1,3,2],[2,0,1,1],[1,-1,2,0]].forEach((r, i) => chip.wmem[i] = r);
+                   [[1,2,3,4],[2,0,1,1],[-1,1,0,2]].forEach((r, i) => chip.ub[i] = r); } }
+  };
+
+  let chip, words = [], preset = "mlp", timer = null, memTab = "ub", macs = 0;
+
+  function load() {
+    const { words: w, errors } = assemble($("src").value);
+    $("err").textContent = errors.join("  ");
+    if (errors.length) return;
+    words = w; stop();
+    chip = new Chip(N);
+    words.forEach((x, i) => chip.imem[i] = x);
+    PRESETS[preset].data(chip);
+    macs = 0; chip.last = chip.comb();
+    renderListing(); render();
+  }
+
+  function renderListing() {
+    $("listing").innerHTML = words.map((w, i) =>
+      `<li data-i="${i}"><span>${i}</span><span class="hex">${(w >>> 0).toString(16).padStart(8, "0")}</span><span>${disassemble(w)}</span></li>`).join("");
+  }
+
+  function tick() {
+    if (chip.done) { stop(); return; }
+    const s = chip.tick();
+    if (s && s.inValid) macs += 16;
+    render();
+    if (chip.done) stop();
+  }
+
+  function render() {
+    const s = chip.done ? chip.comb() : chip.comb();
+    $("cyc").textContent = chip.cycles;
+    const st = chip.done ? "HALT" : chip.stateName;
+    $("state").textContent = chip.done ? "DONE" : st; $("state").className = "state-badge st-" + st;
+    $("pc").textContent = chip.pc;
+    $("macs").textContent = macs;
+    // listing: the instruction in the instruction register is the one executing
+    const executing = chip.state === 0 ? chip.pc : chip.pc - 1;
+    document.querySelectorAll("#listing li").forEach(li => {
+      const i = +li.dataset.i; li.className = i === executing && !chip.done ? "cur" : (i < executing || chip.done ? "doneI" : "");
+    });
+    // skew lanes
+    $("lanes").innerHTML = Array.from({ length: N }, (_, k) => {
+      const regs = chip.inSkew[k].slice().reverse().map(v => `<span class="sk ${v ? "on" : ""}">${v}</span>`).join("");
+      const entering = s.skewed[k];
+      return `<div class="lane">${regs}<span class="sk on" title="entering row ${k}">${entering}</span>▶</div>`;
+    }).join("");
+    $("wtop").innerHTML = s.wLoad ? s.wTop.map(v => `<div>w▼${v}</div>`).join("") : Array(N).fill("<div></div>").join("");
+    // PEs: show stored weight, input entering this cycle, sum leaving at the edge
+    const g = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const aIn = c === 0 ? s.skewed[r] : chip.A[r][c - 1];
+      const pIn = r === 0 ? 0 : chip.P[r - 1][c];
+      const busy = chip.state === 3 && (chip.cnt - r - c) >= 0 && (chip.cnt - r - c) < chip.fields().B;
+      g.push(`<div class="pe ${s.wLoad ? "load" : busy ? "busy" : ""}" aria-label="PE ${r},${c}">
+        <span class="w">w=${chip.W[r][c]}</span><span class="a">${busy ? "x=" + aIn : ""}</span><span class="p">${busy ? "Σ=" + ((pIn + aIn * chip.W[r][c]) | 0) : ""}</span></div>`);
+    }
+    $("grid").innerHTML = g.join("");
+    $("result").innerHTML = s.result.map(v => `<div class="${s.outValid ? "on" : ""}">${s.outValid ? v : "▼"}</div>`).join("");
+    $("pipe").innerHTML = chip.validPipe.map(v => `<span class="dot ${v ? "on" : ""}"></span>`).join("");
+    $("narr").textContent = narrate(s);
+    renderMem(s);
+    $("step").disabled = $("stepI").disabled = $("run").disabled = $("finish").disabled = chip.done;
+  }
+
+  function narrate(s) {
+    if (chip.done) return `Done in ${chip.cycles} cycles. ${macs} multiply-accumulates of useful work, out of ${16 * chip.cycles} possible (${Math.round(100 * macs / (16 * chip.cycles))}% utilization). Check the Unified Buffer tab for the results.`;
+    const f = chip.fields();
+    switch (chip.stateName) {
+      case "FETCH": return `FETCH: read instruction ${chip.pc} from instruction memory into the instruction register.`;
+      case "DECODE": return `DECODE: the opcode is ${f.op.toString(16).toUpperCase()}, so next cycle the controller runs ${disassemble(chip.ir).split(" ")[0]}.`;
+      case "LDW": return `LDW: weight row ${f.A + N - 1 - chip.cnt} is shifting into the top of the array (last row first, so row 0 ends on top). Cycle ${chip.cnt + 1} of ${N}.`;
+      case "MMUL": return chip.cnt < f.B
+        ? `MMUL: vector ${chip.cnt} of ${f.B} leaves Unified Buffer row ${f.A + chip.cnt} and enters the skew. Each lane waits one more cycle than the lane above it.`
+        : `MMUL: all ${f.B} vectors are in. Waiting for the array to drain (${f.B + 2 * N - 1 - chip.cnt} more cycles). Results land in accumulator rows ${f.C}..${f.C + f.B - 1}.`;
+      case "ACT": return `ACT: accumulator row ${f.A + chip.cnt} → ${f.F & 1 ? "ReLU → " : ""}shift ${f.F >> 1} → clamp → Unified Buffer row ${f.C + chip.cnt}.`;
+      case "HALT": return "HALT: raising the done signal.";
+    }
+    return "";
+  }
+
+  function renderMem(s) {
+    const mem = chip[memTab], wide = memTab === "acc";
+    let rd = -1, wr = -1;
+    if (memTab === "ub") { rd = s.inValid ? s.ubRd : -1; wr = s.ubWrEn ? s.ubWr : -1; }
+    if (memTab === "acc") { rd = chip.stateName === "ACT" ? s.accRd : -1; wr = s.outValid ? chip.accWr : -1; }
+    if (memTab === "wmem") { rd = s.wLoad ? s.wmemAddr : -1; }
+    let h = `<tr><th style="text-align:left">addr</th>${[0,1,2,3].map(l => `<th>lane ${l}</th>`).join("")}</tr>`;
+    for (let i = 0; i < 32; i++) {
+      h += `<tr class="${i === wr ? "wr" : i === rd ? "rd" : ""}"><td class="addr">${i}</td>${mem[i].map(v => `<td>${v}</td>`).join("")}</tr>`;
+    }
+    $("memtable").innerHTML = h;
+  }
+
+  function stop() { clearInterval(timer); timer = null; $("run").textContent = "Run"; }
+  $("run").onclick = () => { if (timer) return stop(); timer = setInterval(tick, +$("speed").value); $("run").textContent = "Pause"; };
+  $("speed").oninput = () => { if (timer) { stop(); $("run").click(); } };
+  $("step").onclick = () => { stop(); tick(); };
+  $("stepI").onclick = () => { stop(); const start = chip.pc; do { tick(); } while (!chip.done && !(chip.state === 0 && chip.pc !== start)); };
+  $("finish").onclick = () => { stop(); while (!chip.done) { const s = chip.tick(); if (s && s.inValid) macs += 16; } render(); };
+  $("reset").onclick = load;
+  $("assemble").onclick = load;
+  document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => {
+    preset = b.dataset.preset;
+    document.querySelectorAll("[data-preset]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    $("src").value = PRESETS[preset].src; load();
+  });
+  document.querySelectorAll("[data-mem]").forEach(b => b.onclick = () => {
+    memTab = b.dataset.mem;
+    document.querySelectorAll("[data-mem]").forEach(x => x.setAttribute("aria-selected", x === b));
+    renderMem(chip.comb());
+  });
+  $("src").value = PRESETS.mlp.src; load();
+})();
+</script>
+</body>
+</html>
