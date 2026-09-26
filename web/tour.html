@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: 3-D chip tour</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+.stage { position: relative; flex: 1; min-height: 0; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.panel, .hud, .bar, #tip { z-index: 5; }
+.lbl { font: 600 12.5px "JetBrains Mono", monospace; color: #E9EBF8; padding: 3px 8px; border-radius: 7px;
+  background: rgba(7,8,15,.72); border: 1px solid rgba(167,139,250,.35); white-space: nowrap; letter-spacing: .02em; }
+.lbl b { color: var(--k, #A78BFA); }
+.panel { position: absolute; top: 16px; right: 16px; width: min(380px, calc(100% - 32px)); max-height: calc(100% - 150px); overflow: auto;
+  padding: 20px; border-radius: 18px; border: 1px solid var(--line); background: rgba(12,14,28,.78); backdrop-filter: blur(14px); color: #E9EBF8; }
+.panel .ch { font: 600 12px "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: #A78BFA; }
+.panel h2 { font-size: 26px; letter-spacing: -.02em; margin: 6px 0 10px; line-height: 1.1; }
+.panel p { color: #B7BCDA; margin: 0 0 10px; font-size: 14.5px; line-height: 1.55; }
+.panel code { color: #fff; background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+.chapters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.chapters button { font-size: 12px; padding: 5px 9px; background: rgba(255,255,255,.05); color: #B7BCDA; border: 1px solid rgba(255,255,255,.1); }
+.chapters button[aria-current="true"] { background: rgba(167,139,250,.25); color: #fff; border-color: #A78BFA; }
+.hud { position: absolute; top: 16px; left: 16px; display: grid; gap: 8px; }
+.hud .chip { padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(12,14,28,.78); backdrop-filter: blur(10px); color: #E9EBF8; font: 600 13px "JetBrains Mono", monospace; }
+.hud .big { font-size: 26px; font-weight: 800; }
+.st { display: inline-block; padding: 1px 8px; border-radius: 999px; margin-left: 6px; }
+.bar { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 12px; align-items: center; padding: 12px 16px;
+  border-radius: 16px; border: 1px solid var(--line); background: rgba(12,14,28,.82); backdrop-filter: blur(14px); color: #E9EBF8; }
+.bar input[type=range] { flex: 1; accent-color: #A78BFA; }
+.bar button { padding: 7px 12px; font-size: 13px; background: rgba(255,255,255,.06); color: #E9EBF8; border-color: rgba(255,255,255,.14); }
+.bar button.primary { background: var(--grad); color: #0B0B14; }
+.timeline { position: relative; flex: 1; height: 38px; }
+.timeline canvas { position: absolute; inset: 0 0 auto 0; width: 100%; height: 18px; border-radius: 6px; }
+.timeline input { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; margin: 0; }
+#tip { position: absolute; pointer-events: none; display: none; padding: 8px 10px; border-radius: 10px; background: rgba(7,8,15,.9);
+  border: 1px solid #E879F9; color: #fff; font: 600 12.5px "JetBrains Mono", monospace; line-height: 1.5; }
+#nogl { position: absolute; inset: 0; display: none; place-items: center; text-align: center; color: #B7BCDA; padding: 30px; }
+@media (max-width: 760px) { .panel { top: auto; bottom: 150px; max-height: 38%; } .hud .chip:nth-child(n+3) { display: none; } }
+footer.site { display: none; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body data-nofooter>
+<nav class="site"></nav>
+<div class="stage">
+  <canvas id="gl" aria-label="3-D model of the TinyTPU chip running a neural network"></canvas>
+  <div id="labels"></div>
+  <div class="hud">
+    <div class="chip">cycle <span class="big" id="cyc">0</span> / <span id="tot"></span></div>
+    <div class="chip">state<span class="st" id="st">FETCH</span></div>
+    <div class="chip" id="instr">pc 0</div>
+    <div class="chip">useful MACs <span id="macs">0</span></div>
+  </div>
+  <aside class="panel" aria-live="polite">
+    <div class="ch" id="chn">Chapter 1 of 8</div>
+    <h2 id="cht"></h2>
+    <div id="chb"></div>
+    <div class="chapters" id="chapters" role="group" aria-label="Chapters"></div>
+  </aside>
+  <div id="tip"></div>
+  <div id="nogl">Your browser could not start WebGL, so the 3-D tour can't run here. Try the <a href="chip.html">chip simulator</a> instead.</div>
+  <div class="bar">
+    <button id="prev" aria-label="Previous chapter">◀</button>
+    <button id="play" class="primary">▶ Play</button>
+    <button id="next" aria-label="Next chapter">▶▶</button>
+    <div class="timeline"><canvas id="tl" width="1600" height="36" aria-hidden="true"></canvas><input id="scrub" type="range" min="0" step="0.01" value="0" aria-label="Clock cycle"></div>
+    <select id="speed" aria-label="Speed"><option value="0.8">slow</option><option value="2" selected>normal</option><option value="5">fast</option></select>
+  </div>
+</div>
+
+<script src="tinytpu-core.js"></script>
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "./vendor/three/jsm/controls/OrbitControls.js";
+import { CSS2DRenderer, CSS2DObject } from "./vendor/three/jsm/renderers/CSS2DRenderer.js";
+import { EffectComposer } from "./vendor/three/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "./vendor/three/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "./vendor/three/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "./vendor/three/jsm/postprocessing/OutputPass.js";
+
+const $ = id => document.getElementById(id);
+const { assemble, disassemble, Chip, STATE } = window.TinyTPUCore;
+const N = 4;
+const COL = { act: 0x60A5FA, wt: 0xFBBF24, ps: 0xE879F9, out: 0x34D399, mxu: 0xA78BFA, ctl: 0x94A3B8, dim: 0x2A2F52 };
+
+// ============================================================ 1. run the real program, keep every cycle
+const PROGRAM = `LDW   w=0
+MMUL  ub=0  rows=8  acc=0
+LDW   w=4
+MMUL  ub=8  rows=8  acc=0 accumulate
+LDW   w=8
+ACT   acc=0 rows=8  ub=16 relu shift=3
+MMUL  ub=16 rows=8  acc=8
+ACT   acc=8 rows=8  ub=24 shift=5
+HALT`;
+function lcg(seed) { let s = seed >>> 0; return (lo, hi) => { s = (s * 1664525 + 1013904223) >>> 0; return lo + ((s >>> 16) % (hi - lo + 1)); }; }
+const chip = new Chip(N);
+const words = assemble(PROGRAM).words; words.forEach((w, i) => chip.imem[i] = w);
+{ const r = lcg(7); for (let i = 0; i < 12; i++) chip.wmem[i] = [0,0,0,0].map(() => r(-8, 7)); for (let i = 0; i < 16; i++) chip.ub[i] = [0,0,0,0].map(() => r(-8, 7)); }
+const snaps = []; let macs = 0;
+const clone = o => JSON.parse(JSON.stringify(o));
+while (true) {
+  const s = chip.comb();
+  snaps.push({ state: chip.state, pc: chip.pc, cnt: chip.cnt, ir: chip.ir, W: clone(chip.W), P: clone(chip.P), A: clone(chip.A),
+    vp: chip.validPipe.slice(), ub: clone(chip.ub.slice(0, 32)), acc: clone(chip.acc.slice(0, 16)), s: clone(s), macs, accWr: chip.accWr, done: chip.done });
+  if (chip.done) break;
+  const r = chip.tick(); if (r && r.inValid) macs += 16;
+}
+const TOTAL = snaps.length - 1;
+$("tot").textContent = TOTAL; $("scrub").max = TOTAL;
+
+// ============================================================ 2. scene
+const canvas = $("gl");
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" }); }
+catch (e) { $("nogl").style.display = "grid"; throw e; }
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05060C);
+scene.fog = new THREE.Fog(0x05060C, 55, 120);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+camera.position.set(11, 13, 17);
+const labelR = new CSS2DRenderer({ element: $("labels") });
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.07; controls.maxPolarAngle = Math.PI * 0.47; controls.minDistance = 6; controls.maxDistance = 55;
+controls.target.set(-1.5, 0, 1);
+
+scene.add(new THREE.HemisphereLight(0xB9C3FF, 0x0A0A18, 1.4));
+const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(8, 18, 10); scene.add(key);
+const rim = new THREE.PointLight(0xE879F9, 60, 40); rim.position.set(-6, 6, -8); scene.add(rim);
+
+// die plate with a faint circuit grid
+const plate = new THREE.Mesh(new THREE.BoxGeometry(30, 0.4, 22), new THREE.MeshStandardMaterial({ color: 0x0B0D1C, roughness: 0.6, metalness: 0.4 }));
+plate.position.set(-1.5, -0.45, 1); scene.add(plate);
+const grid = new THREE.GridHelper(30, 60, 0x2A2F52, 0x151934); grid.position.set(-1.5, -0.24, 1); grid.scale.z = 22 / 30; scene.add(grid);
+// pins around the package
+const pinG = new THREE.BoxGeometry(0.35, 0.12, 0.9), pinM = new THREE.MeshStandardMaterial({ color: 0x8A93B8, metalness: 0.9, roughness: 0.3 });
+for (let i = 0; i < 26; i++) { for (const z of [-10.5, 12.5]) { const p = new THREE.Mesh(pinG, pinM); p.position.set(-14 + i * 1.1, -0.55, z); scene.add(p); } }
+for (let i = 0; i < 19; i++) { for (const x of [-17, 14]) { const p = new THREE.Mesh(pinG, pinM); p.rotation.y = Math.PI / 2; p.position.set(x, -0.55, -8.5 + i * 1.1); scene.add(p); } }
+
+function label(text, color, pos) {
+  const d = document.createElement("div"); d.className = "lbl"; d.innerHTML = text; d.style.setProperty("--k", "#" + color.toString(16).padStart(6, "0"));
+  const o = new CSS2DObject(d); o.position.copy(pos); scene.add(o); return d;
+}
+function block(w, h, d, color, pos, name) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({
+    color: 0x151833, emissive: color, emissiveIntensity: 0.18, roughness: 0.35, metalness: 0.5 }));
+  m.position.copy(pos); m.position.y += h / 2; scene.add(m);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9 }));
+  m.add(edges); m.userData = { name, color, edges };
+  return m;
+}
+// memory blocks get a live "screen" on top, drawn with a 2-D canvas
+function screen(mesh, w, d, px = 512) {
+  const cv = document.createElement("canvas"); cv.width = px; cv.height = Math.round(px * d / w);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const q = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.94, d * 0.94), new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false }));
+  q.rotation.x = -Math.PI / 2; q.position.y = mesh.geometry.parameters.height / 2 + 0.011; mesh.add(q);
+  return { cv, g: cv.getContext("2d"), tex };
+}
+
+const P = {
+  imem: new THREE.Vector3(-12.5, 0, -6), ctrl: new THREE.Vector3(-7.5, 0, -6), wmem: new THREE.Vector3(0, 0, -6.2),
+  ub: new THREE.Vector3(-9, 0, 2), skew: new THREE.Vector3(-4.6, 0, 0), array: new THREE.Vector3(0, 0, 0),
+  deskew: new THREE.Vector3(0, 0, 4.6), acc: new THREE.Vector3(0, 0, 7.6), act: new THREE.Vector3(6.8, 0, 7.6)
+};
+const imem = block(4, 0.6, 5.2, COL.ctl, P.imem, "Instruction memory");
+const ctrl = block(3.6, 1.2, 3.6, COL.mxu, P.ctrl, "Controller");
+const wmem = block(6, 0.7, 2.6, COL.wt, P.wmem, "Weight memory");
+const ub = block(3.2, 0.7, 7.4, COL.act, P.ub, "Unified Buffer");
+const acc = block(6, 0.7, 2.6, COL.ps, P.acc, "Accumulators");
+const act = block(3.2, 0.9, 2.6, COL.out, P.act, "Activation");
+const scr = { imem: screen(imem, 4, 5.2), ctrl: screen(ctrl, 3.6, 3.6, 360), wmem: screen(wmem, 6, 2.6), ub: screen(ub, 3.2, 7.4, 360), acc: screen(acc, 6, 2.6) };
+label("<b>●</b> Instruction memory", COL.ctl, P.imem.clone().add(new THREE.Vector3(0, 1.4, -2.9)));
+label("<b>●</b> Controller", COL.mxu, P.ctrl.clone().add(new THREE.Vector3(0, 2.0, -2.1)));
+label("<b>●</b> Weight memory", COL.wt, P.wmem.clone().add(new THREE.Vector3(0, 1.4, -1.7)));
+label("<b>●</b> Unified Buffer", COL.act, P.ub.clone().add(new THREE.Vector3(0, 1.4, 4.1)));
+label("<b>●</b> Accumulators (32-bit)", COL.ps, P.acc.clone().add(new THREE.Vector3(0, 1.4, 1.7)));
+label("<b>●</b> ReLU + shift", COL.out, P.act.clone().add(new THREE.Vector3(0, 1.6, 1.7)));
+label("<b>●</b> Matrix multiply unit · 4 × 4", COL.mxu, new THREE.Vector3(0, 2.6, -2.9));
+label("<b>●</b> skew", COL.act, P.skew.clone().add(new THREE.Vector3(0, 1.3, -2.8)));
+label("<b>●</b> de-skew", COL.ps, P.deskew.clone().add(new THREE.Vector3(2.9, 1.0, 0)));
+
+// ---- the 4 x 4 processing elements
+const SP = 1.35, peX = c => (c - 1.5) * SP, peZ = r => (r - 1.5) * SP;
+const peGeo = new THREE.BoxGeometry(1, 1, 1); peGeo.translate(0, 0.5, 0);
+const pes = [];
+for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+  const m = new THREE.Mesh(peGeo, new THREE.MeshStandardMaterial({ color: 0x1A1D3A, emissive: COL.mxu, emissiveIntensity: 0.12, roughness: 0.3, metalness: 0.4 }));
+  m.position.set(peX(c), 0, peZ(r)); m.scale.set(0.92, 0.3, 0.92); m.userData = { r, c, kind: "pe" }; scene.add(m);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 24), new THREE.MeshBasicMaterial({ color: COL.wt, toneMapped: false }));
+  scene.add(cap); pes.push({ m, cap, r, c });
+}
+// ---- skew and de-skew registers (a staircase)
+const regGeo = new THREE.BoxGeometry(0.55, 0.35, 0.55); regGeo.translate(0, 0.175, 0);
+const skewRegs = [], deskRegs = [];
+for (let k = 0; k < N; k++) for (let j = 0; j < k; j++) {
+  const m = new THREE.Mesh(regGeo, new THREE.MeshStandardMaterial({ color: 0x14173A, emissive: COL.act, emissiveIntensity: 0.15 }));
+  m.position.set(P.skew.x + 1.4 - j * 0.7, 0, peZ(k)); scene.add(m); skewRegs.push({ m, k, j });
+}
+for (let c = 0; c < N; c++) for (let j = 0; j < N - 1 - c; j++) {
+  const m = new THREE.Mesh(regGeo, new THREE.MeshStandardMaterial({ color: 0x14173A, emissive: COL.ps, emissiveIntensity: 0.15 }));
+  m.position.set(peX(c), 0, P.deskew.z - 1.2 + j * 0.7); scene.add(m); deskRegs.push({ m, c, j });
+}
+// ---- wires (glowing tubes) between blocks
+function wire(points, color, r = 0.05) {
+  const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p[0], p[1], p[2])), false, "catmullrom", 0.05);
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 80, r, 8), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35, toneMapped: false }));
+  scene.add(tube); return curve;
+}
+const Y = 0.25;
+const paths = {
+  wmemToArray: [0, 1, 2, 3].map(c => wire([[peX(c), Y, P.wmem.z + 1.3], [peX(c), Y, peZ(0) - 0.8]], COL.wt, 0.04)),
+  ubToSkew: [0, 1, 2, 3].map(k => wire([[P.ub.x + 1.6, Y, peZ(k)], [P.skew.x - 0.6, Y, peZ(k)]], COL.act, 0.04)),
+  skewToArray: [0, 1, 2, 3].map(k => wire([[P.skew.x - 0.6, Y, peZ(k)], [peX(0) - 0.6, Y, peZ(k)]], COL.act, 0.03)),
+  arrayToAcc: [0, 1, 2, 3].map(c => wire([[peX(c), Y, peZ(3) + 0.6], [peX(c), Y, P.acc.z - 1.3]], COL.ps, 0.04)),
+  accToAct: [wire([[P.acc.x + 3, Y, P.acc.z], [P.act.x - 1.6, Y, P.act.z]], COL.out, 0.07)],
+  actToUb: [wire([[P.act.x, Y, P.act.z + 1.3], [P.act.x, Y, 10.6], [P.ub.x, Y, 10.6], [P.ub.x, Y, P.ub.z + 3.7]], COL.out, 0.07)],
+  imemToCtrl: [wire([[P.imem.x + 2, Y, P.imem.z], [P.ctrl.x - 1.8, Y, P.ctrl.z]], COL.ctl, 0.06)],
+  ctrl: [wire([[P.ctrl.x + 1.8, Y, P.ctrl.z], [P.wmem.x - 3, Y, P.wmem.z]], COL.mxu, 0.03), wire([[P.ctrl.x, Y, P.ctrl.z + 1.8], [P.ub.x, Y, P.ub.z - 3.7]], COL.mxu, 0.03)]
+};
+// ---- data packets (pooled glowing spheres)
+const pktGeo = new THREE.SphereGeometry(0.17, 16, 12);
+const pool = []; for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(pktGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })); m.visible = false; scene.add(m); pool.push(m); }
+
+// ============================================================ 3. post-processing glow
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.6, 0.5, 0.32); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w, h, false); composer.setSize(w, h); labelR.setSize(w, h);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize); resize();
+
+// ============================================================ 4. draw one moment in time
+const hex = n => "#" + n.toString(16).padStart(6, "0");
+function heat(v, max, base) { const t = Math.min(1, Math.abs(v) / max); return `rgba(${base},${0.12 + 0.88 * t})`; }
+function drawMem(sc, rows, max, rgb, rd, wr, title) {
+  const { g, cv } = sc, W = cv.width, H = cv.height;
+  g.clearRect(0, 0, W, H); g.fillStyle = "rgba(5,6,12,.85)"; g.fillRect(0, 0, W, H);
+  g.font = `700 ${Math.round(W / 22)}px JetBrains Mono, monospace`; g.fillStyle = "rgba(233,235,248,.8)"; g.fillText(title, 10, W / 16);
+  const top = W / 11, n = rows.length, rh = (H - top - 6) / n, cw = (W - 60) / 4;
+  rows.forEach((row, i) => {
+    const y = top + i * rh;
+    if (i === rd) { g.fillStyle = "rgba(96,165,250,.35)"; g.fillRect(0, y, W, rh); }
+    if (i === wr) { g.fillStyle = "rgba(52,211,153,.45)"; g.fillRect(0, y, W, rh); }
+    g.fillStyle = "rgba(142,149,186,.8)"; g.font = `${Math.max(8, Math.round(rh * 0.7))}px JetBrains Mono, monospace`; g.fillText(i, 6, y + rh * 0.8);
+    row.forEach((v, l) => { g.fillStyle = v ? heat(v, max, rgb) : "rgba(255,255,255,.04)"; g.fillRect(40 + l * cw, y + 1, cw - 3, rh - 2); });
+  });
+  sc.tex.needsUpdate = true;
+}
+function drawImem(pc, curI) {
+  const { g, cv, tex } = scr.imem, W = cv.width, H = cv.height;
+  g.fillStyle = "rgba(5,6,12,.9)"; g.fillRect(0, 0, W, H);
+  g.font = "700 24px JetBrains Mono, monospace"; g.fillStyle = "#E9EBF8"; g.fillText("program", 16, 34);
+  words.forEach((w, i) => {
+    const y = 64 + i * 66;
+    if (i === curI) { g.fillStyle = "rgba(167,139,250,.35)"; g.fillRect(8, y - 6, W - 16, 58); g.strokeStyle = "#A78BFA"; g.lineWidth = 3; g.strokeRect(8, y - 6, W - 16, 58); }
+    g.fillStyle = i < curI ? "rgba(142,149,186,.6)" : "#E9EBF8"; g.font = "600 22px JetBrains Mono, monospace";
+    g.fillText(disassemble(w).replace(/\s+/g, " "), 18, y + 32);
+  });
+  tex.needsUpdate = true;
+}
+function drawCtrl(sn) {
+  const { g, cv, tex } = scr.ctrl, W = cv.width;
+  g.fillStyle = "rgba(5,6,12,.9)"; g.fillRect(0, 0, W, W);
+  const name = sn.done ? "DONE" : STATE[sn.state], col = { FETCH: "#94A3B8", DECODE: "#94A3B8", LDW: "#FBBF24", MMUL: "#A78BFA", ACT: "#34D399", HALT: "#F87171", DONE: "#F87171" }[name];
+  g.textAlign = "center"; g.fillStyle = col; g.font = "800 64px Archivo, sans-serif"; g.fillText(name, W / 2, W / 2);
+  g.fillStyle = "#B7BCDA"; g.font = "600 26px JetBrains Mono, monospace"; g.fillText(`pc ${sn.pc} · cnt ${sn.cnt}`, W / 2, W / 2 + 54); g.textAlign = "left";
+  tex.needsUpdate = true;
+}
+function place(pkt, curve, u, color, scale = 1) {
+  pkt.visible = true; pkt.material.color.setHex(color); curve.getPointAt(Math.min(1, Math.max(0, u)), pkt.position); pkt.scale.setScalar(scale);
+}
+let lastCyc = -1;
+function show(t) {
+  const i = Math.min(TOTAL, Math.floor(t)), f = t - i, sn = snaps[i], s = sn.s;
+  // text HUD
+  $("cyc").textContent = i; $("macs").textContent = sn.macs;
+  const name = sn.done ? "DONE" : STATE[sn.state];
+  const stc = { FETCH: "--ctl", DECODE: "--ctl", LDW: "--wt", MMUL: "--mxu", ACT: "--out", HALT: "--red", DONE: "--red" }[name];
+  $("st").textContent = name; $("st").style.background = `var(${stc}-bg)`; $("st").style.color = `var(${stc})`;
+  const curI = sn.state === 0 ? sn.pc : sn.pc - 1;
+  $("instr").textContent = sn.done ? "program finished" : `${curI}: ${disassemble(words[curI] || 0)}`;
+  if (i !== lastCyc) {
+    lastCyc = i;
+    drawImem(sn.pc, sn.done ? -1 : curI); drawCtrl(sn);
+    drawMem(scr.wmem, snapsW(), 8, "251,191,36", s.wLoad ? s.wmemAddr : -1, -1, "weight memory");
+    drawMem(scr.ub, sn.ub, 16, "96,165,250", s.inValid ? s.ubRd : -1, s.ubWrEn ? s.ubWr : -1, "unified buffer");
+    drawMem(scr.acc, sn.acc, 160, "232,121,249", sn.state === 4 ? s.accRd : -1, s.outValid ? sn.accWr : -1, "accumulators");
+    // block highlights
+    ub.material.emissiveIntensity = (s.inValid || s.ubWrEn) ? 0.5 : 0.15;
+    wmem.material.emissiveIntensity = s.wLoad ? 0.55 : 0.15;
+    acc.material.emissiveIntensity = (s.outValid || sn.state === 4) ? 0.55 : 0.15;
+    act.material.emissiveIntensity = sn.state === 4 ? 0.8 : 0.15;
+    ctrl.material.emissiveIntensity = sn.state <= 1 ? 0.6 : 0.25;
+    imem.material.emissiveIntensity = sn.state === 0 ? 0.6 : 0.15;
+    skewRegs.forEach(o => o.m.material.emissiveIntensity = chip.inSkew && snapSkew(i, o.k, o.j) ? 0.9 : 0.12);
+  }
+  // processing elements: height = partial sum being produced this cycle
+  const B = (sn.ir >>> 12) & 255;
+  for (const p of pes) {
+    const v = sn.cnt - p.r - p.c, busy = sn.state === 3 && !sn.done && v >= 0 && v < B;
+    const aIn = p.c === 0 ? s.skewed[p.r] : sn.A[p.r][p.c - 1], pIn = p.r === 0 ? 0 : sn.P[p.r - 1][p.c];
+    const out = busy ? pIn + aIn * sn.W[p.r][p.c] : 0;
+    const target = busy ? 0.35 + Math.min(2.4, Math.abs(out) / 30) : (s.wLoad ? 0.45 : 0.3);
+    p.m.scale.y += (target - p.m.scale.y) * 0.25;
+    p.m.material.emissive.setHex(busy ? (out >= 0 ? COL.ps : COL.act) : (s.wLoad ? COL.wt : COL.mxu));
+    p.m.material.emissiveIntensity = busy ? 0.6 : (s.wLoad ? 0.45 : 0.12);
+    p.cap.position.set(p.m.position.x, p.m.scale.y + 0.04, p.m.position.z);
+    const w = sn.W[p.r][p.c]; p.cap.scale.setScalar(0.35 + Math.abs(w) / 8); p.cap.material.color.setHex(w ? COL.wt : 0x3A3F66);
+    p.m.userData.info = { w, aIn, pIn, out, busy };
+  }
+  // packets that belong to this cycle, moving as the cycle progresses
+  let k = 0; pool.forEach(p => p.visible = false);
+  const pk = (curve, u, color, sc) => { if (k < pool.length) place(pool[k++], curve, u, color, sc); };
+  if (!sn.done) {
+    if (s.wLoad) paths.wmemToArray.forEach(c => pk(c, f, COL.wt));
+    if (s.inValid) paths.ubToSkew.forEach(c => pk(c, f, COL.act));
+    s.skewed.forEach((v, r) => { if (sn.state === 3 && sn.cnt - r >= 0 && sn.cnt - r < B) pk(paths.skewToArray[r], f, COL.act, 0.85); });
+    if (s.outValid) paths.arrayToAcc.forEach(c => pk(c, 0.55 + 0.45 * f, COL.ps));
+    if (sn.state === 4) { pk(paths.accToAct[0], f, COL.out, 1.3); pk(paths.actToUb[0], f, COL.out, 1.3); }
+    if (sn.state === 0) pk(paths.imemToCtrl[0], f, COL.ctl, 1.2);
+  }
+  $("scrub").value = t;
+}
+function snapsW() { return chip.wmem.slice(0, 12); }
+const skewHist = snaps.map(sn => sn);   // skew registers are derived from inputs of earlier cycles
+function snapSkew(i, k, j) { const src = i - 1 - j; if (src < 0) return false; const s = snaps[src].s; return s.inValid && s.inVec[k] !== 0 && k > j; }
+
+// ============================================================ 5. timeline strip
+(function drawTimeline() {
+  const c = $("tl"), g = c.getContext("2d"), w = c.width, h = c.height;
+  const cols = { 0: "#3A3F66", 1: "#3A3F66", 2: "#FBBF24", 3: "#A78BFA", 4: "#34D399", 5: "#F87171" };
+  snaps.forEach((sn, i) => { g.fillStyle = sn.done ? "#F87171" : cols[sn.state]; g.fillRect(i / (TOTAL + 1) * w, 0, w / (TOTAL + 1) + 1, h * 0.62);
+    if (sn.s.outValid) { g.fillStyle = "#E879F9"; g.fillRect(i / (TOTAL + 1) * w, h * 0.72, w / (TOTAL + 1) + 1, h * 0.28); } });
+})();
+
+// ============================================================ 6. chapters (guided tour)
+const first = pred => snaps.findIndex(pred);
+const iLdw = first(s => s.state === 2), iMm = first(s => s.state === 3), iOut = first(s => s.s.outValid),
+      iAct = first(s => s.state === 4), iL2 = first((s, i) => s.state === 3 && s.pc === 7), iHalt = first(s => s.state === 5);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const CH = [
+  { t: "The whole chip", at: 0, cam: V(11, 13.5, 17), tgt: V(-1.5, 0, 1),
+    b: `<p>This is TinyTPU, the chip in <code>rtl/v1_simple</code>, running a real two-layer neural network. Every number you see comes from a model that matches the Verilog cycle for cycle.</p><p>Drag to orbit, scroll to zoom, hover a processing element to read its registers. Use the chapters or just press Play.</p>` },
+  { t: "A program, one instruction at a time", at: 0, cam: V(-17, 10, 4), tgt: V(-10, 0, -5.5),
+    b: `<p>The <b>instruction memory</b> holds 9 instructions. The <b>controller</b> fetches one (FETCH), looks at its opcode (DECODE), then drives the rest of the chip for as many cycles as that instruction needs.</p><p>That's the whole control story: 2% of TPU v1's area. Everything else is math and memory.</p>` },
+  { t: "LDW: weights move in and stay", at: iLdw, cam: V(5, 10, -12), tgt: V(0, 0, -2.2),
+    b: `<p>Four rows of weights stream from the <b>weight memory</b> down the columns, one row per cycle, last row first. Watch the amber caps appear on top of each processing element (PE).</p><p>From now on these 16 numbers don't move. Every input vector that passes through gets multiplied by them: weight-stationary dataflow.</p>` },
+  { t: "MMUL: the staircase and the wave", at: iMm + 1, cam: V(-9.5, 10, 11), tgt: V(-1.8, 0, 0.3),
+    b: `<p>Vectors leave the <b>Unified Buffer</b> one per cycle. The <b>skew</b> delays row k by k cycles, so the numbers enter the array on a staircase.</p><p>Towers light up along a diagonal: that is the wavefront. Tower height is the partial sum each PE is producing; magenta is positive, blue negative.</p>` },
+  { t: "Drain into the accumulators", at: iOut, cam: V(8.5, 10, 14), tgt: V(0, 0, 4),
+    b: `<p>Finished sums fall out of the bottom 2N − 1 = 7 cycles after their vector entered. The <b>de-skew</b> lines them back up, and they land in the 32-bit <b>accumulators</b>.</p><p>The second MMUL uses <code>accumulate</code>: it adds onto these rows instead of overwriting them. That is how a 4-wide array computes an 8-deep dot product (tiling).</p>` },
+  { t: "ACT: ReLU, shift, back to 8 bits", at: iAct + 2, cam: V(13, 10, 16), tgt: V(2.5, 0, 6.5),
+    b: `<p><b>ACT</b> reads each accumulator row, zeroes negatives (ReLU), shifts right by 3 (a cheap divide by 8), clamps to −128…127, and writes the result back into the Unified Buffer.</p><p>Those 8-bit numbers are the hidden layer, ready to be the input of layer 2. Watch the green path loop back.</p>` },
+  { t: "Layer 2 reuses everything", at: iL2 + 3, cam: V(-4, 14, 15), tgt: V(-2, 0, 1),
+    b: `<p>The same array, the same skew, new weights (loaded early, before the ACT) and the hidden layer as input. No new hardware: a neural network is just this loop, many times.</p><p>On the pipelined <b>v2</b> chip, that early <code>LDW</code> overlaps with draining results: the same program takes 77 cycles instead of 92.</p>` },
+  { t: "Done: 92 cycles, 384 MACs", at: TOTAL, cam: V(12, 14.5, 17.5), tgt: V(-1.5, 0, 1),
+    b: `<p>384 useful multiply-accumulates in 92 cycles is 26 % utilization. The timeline below shows why: amber (loading) and gaps (fetch, decode, draining) where the array sits idle.</p><p>Bigger batches, overlapping instructions, and bigger arrays close that gap. The <a href="chip.html">chip simulator</a> lets you write your own program; the <a href="https://github.com/Normansrule/terrific-tpu/blob/main/docs/16-experiments.md">experiments</a> measure all of it.</p>` }
+];
+let ch = 0, camFrom = null, camTo = null, tgtFrom = null, tgtTo = null, fly = 1;
+$("chapters").innerHTML = CH.map((c, i) => `<button data-i="${i}">${i + 1}. ${c.t.split(":")[0]}</button>`).join("");
+$("chapters").querySelectorAll("button").forEach(b => b.onclick = () => go(+b.dataset.i));
+function go(n, instant) {
+  ch = Math.max(0, Math.min(CH.length - 1, n)); const c = CH[ch];
+  $("chn").textContent = `Chapter ${ch + 1} of ${CH.length}`; $("cht").textContent = c.t; $("chb").innerHTML = c.b;
+  $("chapters").querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-current", i === ch));
+  camFrom = camera.position.clone(); tgtFrom = controls.target.clone(); camTo = c.cam; tgtTo = c.tgt; fly = 0;
+  if (!playing || ch === 0) t = Math.max(0, c.at);
+  if (instant) { camera.position.copy(c.cam); controls.target.copy(c.tgt); fly = 1; }
+}
+$("prev").onclick = () => go(ch - 1); $("next").onclick = () => go(ch + 1);
+
+// ============================================================ 7. hover to inspect a PE
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let hoverXY = null;
+canvas.addEventListener("pointermove", e => { const r = canvas.getBoundingClientRect(); mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); hoverXY = [e.clientX - r.left, e.clientY - r.top]; });
+canvas.addEventListener("pointerleave", () => { hoverXY = null; $("tip").style.display = "none"; });
+function hover() {
+  if (!hoverXY) return;
+  ray.setFromCamera(mouse, camera); const hit = ray.intersectObjects(pes.map(p => p.m))[0];
+  const tip = $("tip");
+  if (!hit) { tip.style.display = "none"; return; }
+  const { r, c, info } = hit.object.userData;
+  tip.style.display = "block"; tip.style.left = hoverXY[0] + 16 + "px"; tip.style.top = hoverXY[1] + 12 + "px";
+  tip.innerHTML = `PE(${r}, ${c})<br><span style="color:#FBBF24">weight ${info.w}</span><br>` +
+    (info.busy ? `<span style="color:#60A5FA">in ${info.aIn}</span> · sum in ${info.pIn}<br><span style="color:#E879F9">sum out ${info.pIn} + ${info.aIn}×${info.w} = ${info.out}</span>` : `<span style="color:#8E95BA">idle this cycle</span>`);
+}
+
+// ============================================================ 8. main loop
+let t = 0, playing = false, last = performance.now();
+$("play").onclick = () => { playing = !playing; $("play").textContent = playing ? "❚❚ Pause" : "▶ Play"; if (playing && t >= TOTAL) t = 0; };
+$("scrub").oninput = e => { t = +e.target.value; };
+addEventListener("keydown", e => { if (e.key === " ") { e.preventDefault(); $("play").click(); } if (e.key === "ArrowRight") go(ch + 1); if (e.key === "ArrowLeft") go(ch - 1); });
+const ease = x => 1 - Math.pow(1 - x, 3);
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing) { t += dt * +$("speed").value; if (t >= TOTAL) { t = TOTAL; playing = false; $("play").textContent = "▶ Play"; }
+    // advance chapters automatically while playing
+    const nextCh = CH.findIndex((c, i) => i > ch && c.at <= t && i < CH.length - 1 && c.at > 0);
+    if (nextCh > ch && CH[nextCh].at <= t) { const keep = t; go(nextCh); t = keep; } }
+  if (fly < 1 && camTo) { fly = Math.min(1, fly + dt / 1.6); const e = ease(fly);
+    camera.position.lerpVectors(camFrom, camTo, e); controls.target.lerpVectors(tgtFrom, tgtTo, e); }
+  controls.update(); show(t); hover();
+  rim.position.x = -6 + Math.sin(now / 1400) * 4;
+  composer.render(); labelR.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+go(0); requestAnimationFrame(frame);
+window.__tour = { snaps, TOTAL, go, setT: v => t = v };
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

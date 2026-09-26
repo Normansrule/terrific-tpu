@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TinyTPU: whole-chip simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,17 +64,10 @@ table.mem td.addr { color: var(--muted); text-align: left; }
 table.mem tr.rd td { background: var(--act-bg); } table.mem tr.wr td { background: var(--out-bg); }
 .memnote { font-size: 12px; color: var(--muted); margin-top: 6px; }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<nav class="site" aria-label="TinyTPU pages">
-  <span class="brand">terrific-tpu</span>
-  <a href="index.html">Start</a>
-  <a href="playground.html">Systolic array</a>
-  <a href="chip.html" aria-current="page">Whole chip</a>
-  <a href="explorers.html">Numbers &amp; roofline</a>
-  <a href="apps.html">Applications</a>
-  <a href="array3d.html">3-D array</a>
-</nav>
+<nav class="site" aria-label="terrific-tpu pages"></nav>
 <header class="top">
   <h1>Whole-chip simulator</h1>
   <p>This is <span class="num">rtl/v1_simple</span> rebuilt in JavaScript, register for register. It is checked against the Verilog on every commit, so it takes the same number of clock cycles and ends with the same memory contents. Write a program, then step through it one clock tick at a time.</p>
@@ -289,5 +283,6 @@ HALT`,
   $("src").value = PRESETS.mlp.src; load();
 })();
 </script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

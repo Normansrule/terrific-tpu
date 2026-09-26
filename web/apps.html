@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>terrific-tpu: applications running on the chip</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,17 +43,10 @@ svg.graph { width: 100%; max-width: 300px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<nav class="site" aria-label="terrific-tpu pages">
-  <span class="brand">terrific-tpu</span>
-  <a href="index.html">Start</a>
-  <a href="playground.html">Systolic array</a>
-  <a href="chip.html">Whole chip</a>
-  <a href="explorers.html">Numbers &amp; roofline</a>
-  <a href="apps.html" aria-current="page">Applications</a>
-  <a href="array3d.html">3-D array</a>
-</nav>
+<nav class="site" aria-label="terrific-tpu pages"></nav>
 <header class="top">
   <h1>Applications on the chip</h1>
   <p>Three problems that don't look like neural networks at all, each rewritten as matrix multiplies and run on the cycle-exact TinyTPU model (the same one the Verilog is checked against). Change the inputs and the chip runs again.</p>
@@ -247,5 +241,6 @@ HALT`;
   runGraph();
 })();
 </script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

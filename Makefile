@@ -14,6 +14,8 @@
 #   make diagrams        regenerate every SVG in diagrams/ (runs the RTL)
 #   make synth           gate counts with Yosys (sky130 area if PDK found)
 #   make wave            open the waveform in GTKWave
+#   make serve           the website at http://localhost:8000/web/  (3-D pages need a web server)
+#   make screenshots     re-capture docs/img/*.png with a headless browser (needs Playwright)
 # =====================================================================
 V        ?= v1_simple v2_pipelined
 SEED     ?= 1
@@ -21,7 +23,7 @@ FUZZ     ?= 200
 COMMON   := $(wildcard rtl/common/*.v)
 PY       := python3
 
-.PHONY: all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
+.PHONY: serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
 
 all: sim
 
@@ -101,3 +103,10 @@ wave:
 
 clean:
 	rm -rf build tools/__pycache__ tools/diagrams/__pycache__ experiments/__pycache__
+
+serve:
+	@echo "open http://localhost:8000/web/   (Ctrl-C to stop)"
+	$(PY) -m http.server 8000
+
+screenshots:
+	$(PY) tools/screenshots.py

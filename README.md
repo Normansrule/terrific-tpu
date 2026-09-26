@@ -6,7 +6,7 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-6%20interactive%20pages-2563EB)
+![Web](https://img.shields.io/badge/web-8%20interactive%20pages%20·%203--D-2563EB)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
 </div>
@@ -18,6 +18,11 @@
 The goal: **understand a TPU first, then find new things to use it for.**
 
 <div align="center">
+
+### [▶ Open the live site](https://normansrule.github.io/terrific-tpu/web/) · [Take the 3-D tour](https://normansrule.github.io/terrific-tpu/web/tour.html) · [Try the challenges](https://normansrule.github.io/terrific-tpu/web/challenges.html)
+
+<a href="https://normansrule.github.io/terrific-tpu/web/tour.html"><img src="docs/img/tour.png" alt="3-D chip tour: the TinyTPU running a neural network, with glowing processing elements and live memory screens" width="100%"></a>
+
 <img src="diagrams/animated_wavefront.svg" alt="Animated systolic wavefront" width="640">
 </div>
 
@@ -41,12 +46,22 @@ Every diagram, every web page, and every lesson uses the same colors.
 
 ---
 
-## Start here: the six web pages
+## Start here: the web pages
 
-Open `web/index.html` locally, or turn on GitHub Pages (below).
+Everything runs in the browser, on GitHub Pages or locally with `make serve`. The simulators use a JavaScript model that is checked cycle-for-cycle against the Verilog on every commit.
 
-| Page | What you do |
-|---|---|
+| | Page | What you do |
+|---|---|---|
+| <img src="docs/img/index.png" width="260"> | [**Home**](web/index.html) | an interactive systolic field, a scroll-driven story of the four beats of a matrix multiply, and every command you need |
+| <img src="docs/img/tour.png" width="260"> | [**3-D chip tour**](web/tour.html) | fly through the whole chip in 3-D while it runs a real neural network; 8 guided chapters, a 92-cycle scrubber, hover any PE to read its registers |
+| <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock: controller, skew, array, every memory |
+| <img src="docs/img/challenges.png" width="260"> | [**Challenges**](web/challenges.html) | six programming puzzles, from "first light" to "the whole network"; beat the par for three stars |
+| <img src="docs/img/apps.png" width="260"> | [**Applications**](web/apps.html) | paint an image for 4 filters, pick the answer for Grover's search, draw a graph and count triangles |
+| <img src="docs/img/array3d.png" width="260"> | [**Array in 3-D**](web/array3d.html) | spin an array of up to 24 × 24 PEs; tower heights are live partial sums |
+| <img src="docs/img/playground.png" width="260"> | [**Systolic array**](web/playground.html) | edit weights and inputs, step the clock, see every multiply-accumulate |
+| <img src="docs/img/explorers.png" width="260"> | [**Numbers & roofline**](web/explorers.html) | round weights to fewer bits; see whether a job is compute- or memory-bound |
+
+---|---|
 | [**Start**](web/index.html) | a live wavefront and a map of the lessons |
 | [**Systolic array**](web/playground.html) | edit weights and inputs, step the clock, watch sums flow down the grid |
 | [**Whole chip**](web/chip.html) | write TinyTPU assembly and run it on a register-exact model of the Verilog; see the controller, skew, array, and every memory |
@@ -136,7 +151,7 @@ sudo apt update
 sudo apt install -y iverilog gtkwave yosys python3 nodejs make git
 
 # get the repo
-git clone https://github.com/<your-account>/terrific-tpu.git
+git clone https://github.com/Normansrule/terrific-tpu.git
 cd terrific-tpu
 
 make                 # neural network demo on both chips
@@ -152,6 +167,8 @@ make test            # all of the above (includes the three applications)
 make diagrams        # redraw every generated SVG (runs the Verilog)
 make synth           # sky130 area (set SKY130_LIB to your liberty file)
 make wave            # open the waveform in GTKWave
+make serve           # the website at http://localhost:8000/web/
+make screenshots     # re-capture docs/img/*.png (pip install playwright && playwright install chromium)
 ```
 
 Expected from `make`:
@@ -186,7 +203,9 @@ flowchart LR
 
 1. Push the repo to GitHub.
 2. **Settings → Pages → Deploy from a branch**, branch `main`, folder `/ (root)`.
-3. Open `https://<your-account>.github.io/terrific-tpu/web/`.
+3. Open `https://normansrule.github.io/terrific-tpu/` (it forwards to `web/`).
+
+The 3-D pages load a vendored copy of three.js from `web/vendor/` (MIT license), so nothing depends on an outside CDN. Open them through a web server (`make serve` or GitHub Pages), not by double-clicking the file: browsers refuse to load JavaScript modules from `file://`.
 
 The workflow in [`.github/workflows/sim.yml`](.github/workflows/sim.yml) runs `make test` on every push.
 
@@ -213,7 +232,10 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · playground · chip · explorers · apps · array3d (+ tinytpu-core.js)
+├── web/                  index · tour · chip · challenges · apps · array3d · playground · explorers
+│   ├── tinytpu-core.js      cycle-exact JavaScript model of the chip + assembler
+│   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
+│   └── vendor/three/        three.js r160 (MIT), for the 3-D pages
 ├── diagrams/             32 SVGs (hand-drawn, concept, measured, application, experiment)
 ├── data/synth.csv        synthesis results
 ├── docs/                 18 lessons + glossary
@@ -225,3 +247,5 @@ terrific-tpu/
 **Start here → [Lesson 1: What is a TPU?](docs/01-what-is-a-tpu.md)**
 
 </div>
+
+<sub>Design credits: the web pages' visual effects (spotlight cards, border beams, shimmer buttons, marquees, number tickers, scroll-driven storytelling, a 3-D guided walkthrough) are hand-written re-creations of ideas popularized by open-source projects including Magic UI, React Bits, Motion Primitives, GSAP demos, Bruno Simon's folio, bbycroft/llm-viz and Polo Club's Transformer Explainer. No code from them is included.</sub>

@@ -449,7 +449,7 @@ def hero():
     s.text(60, 120, "terrific-tpu", 64, "#FFFFFF", 800)
     s.text(62, 170, "How a Tensor Processing Unit works: from the math,", 24, "#CBD5E1")
     s.text(62, 202, "to the Verilog, to real chips, to new ideas.", 24, "#CBD5E1")
-    chips = [("2 Verilog chips", C["mxu"]), ("30+ diagrams", C["ps"]), ("6 web pages", C["act"]),
+    chips = [("2 Verilog chips", C["mxu"]), ("30+ diagrams", C["ps"]), ("8 web pages", C["act"]),
              ("5 applications", C["wt"]), ("5 experiments", C["out"]), ("sky130", C["red"])]
     x = 62
     for lab, col in chips:

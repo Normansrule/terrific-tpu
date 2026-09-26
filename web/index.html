@@ -1,101 +1,393 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>terrific-tpu: see how a Tensor Processing Unit works</title>
+<title>terrific-tpu: see, run, and break a Tensor Processing Unit</title>
+<meta name="description" content="An open-source Tensor Processing Unit you can read in an afternoon: Verilog, a 3-D chip tour, a cycle-exact simulator, applications and experiments.">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="site.css">
 <style>
-.hero { max-width: 1280px; margin: 0 auto; padding: 36px 20px 20px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; }
-@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
-.hero h1 { font-size: clamp(38px, 6vw, 76px); line-height: .95; letter-spacing: -0.035em; margin: 0 0 18px; font-weight: 800; }
-.hero p { font-size: 18px; color: var(--muted); max-width: 46ch; margin: 0 0 22px; }
-.hero .go { display: flex; gap: 10px; flex-wrap: wrap; }
-.hero .go a { text-decoration: none; }
-.array { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; aspect-ratio: 1; max-width: 520px; width: 100%; justify-self: center; }
-.cell { border-radius: 9px; background: var(--mxu-bg); border: 1.5px solid var(--line); }
-@media (prefers-reduced-motion: no-preference) {
-  .cell { animation: wave 2.4s infinite; animation-delay: calc(var(--d) * 110ms); }
-  @keyframes wave { 0%, 60%, 100% { background: var(--mxu-bg); border-color: var(--line); }
-                    12% { background: var(--mxu); border-color: var(--mxu); }
-                    24% { background: var(--ps-bg); border-color: var(--ps); } }
-}
-.array-cap { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
-section.tools { max-width: 1280px; margin: 0 auto; padding: 10px 20px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-@media (max-width: 900px) { section.tools { grid-template-columns: 1fr; } }
-.tool { display: block; text-decoration: none; color: inherit; background: var(--panel); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; }
-.tool:hover { border-color: var(--ink); }
-.tool h2 { font-size: 21px; margin: 10px 0 6px; }
-.tool p { margin: 0; color: var(--muted); font-size: 15px; }
-.tool .swatch { height: 8px; border-radius: 4px; }
-section.path { max-width: 1280px; margin: 0 auto; padding: 10px 20px 50px; }
-section.path h2 { font-size: 24px; margin: 18px 0 12px; }
-ol.lessons { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; counter-reset: l; }
-ol.lessons li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; counter-increment: l; }
-ol.lessons li::before { content: counter(l); font-weight: 800; color: var(--mxu); margin-right: 8px; }
-ol.lessons li span { color: var(--muted); font-size: 14px; display: block; margin-top: 2px; }
+main { overflow-x: clip; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+/* ---------------- hero */
+.hero { position: relative; min-height: min(92vh, 900px); display: grid; align-items: center; }
+#field { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 60% 55% at 30% 50%, color-mix(in srgb, var(--paper) 88%, transparent), transparent 75%); }
+.hero .wrap { position: relative; z-index: 2; padding-top: 40px; padding-bottom: 40px; }
+.pill { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px 6px 6px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--glass); font-size: 13.5px; color: var(--muted); text-decoration: none; }
+.pill b { background: var(--grad); color: #0B0B14; border-radius: 999px; padding: 2px 9px; font-size: 12px; }
+.hero h1 { font-size: clamp(44px, 7.4vw, 104px); line-height: .92; letter-spacing: -.045em; font-weight: 900; margin: 22px 0 18px; max-width: 12ch; }
+.hero p.lede { font-size: clamp(17px, 1.6vw, 21px); color: var(--muted); max-width: 52ch; margin: 0 0 30px; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 54px; max-width: 900px; }
+@media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px); }
+.stat .n { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+.stat .k { font-size: 12.5px; color: var(--muted); }
+/* ---------------- sections */
+section.s { padding: 96px 0 20px; }
+.eyebrow { font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--mxu); }
+h2.big { font-size: clamp(32px, 4.2vw, 56px); letter-spacing: -.035em; line-height: 1; margin: 12px 0 16px; font-weight: 800; }
+p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px; }
+/* ---------------- story */
+.story { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; }
+@media (max-width: 900px) { .story { grid-template-columns: 1fr; } .story .sticky { position: relative !important; top: 0 !important; } }
+.story .sticky { position: sticky; top: 90px; align-self: start; }
+#storyCanvas { width: 100%; aspect-ratio: 1.12; display: block; border-radius: 22px; border: 1px solid var(--line); background: var(--glass); }
+.steps { display: grid; gap: 22vh; padding: 8vh 0 30vh; }
+.step { padding: 26px; border-radius: 18px; border: 1px solid var(--line); background: var(--glass); opacity: .38; transition: opacity .4s, border-color .4s, transform .4s var(--ease); }
+.step.on { opacity: 1; border-color: var(--mxu); transform: translateX(-6px); box-shadow: var(--glow); }
+.step .num { font-family: "JetBrains Mono", monospace; color: var(--mxu); font-size: 13px; }
+.step h3 { font-size: 26px; margin: 6px 0 8px; letter-spacing: -.02em; }
+.step p { color: var(--muted); margin: 0; font-size: 16px; }
+.step code { color: var(--ink); background: var(--idle); padding: 1px 6px; border-radius: 6px; }
+/* ---------------- bento */
+.bento { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 240px; gap: 16px; }
+@media (max-width: 900px) { .bento { grid-template-columns: 1fr; grid-auto-rows: auto; } .bento > * { grid-column: auto !important; grid-row: auto !important; min-height: 220px; } }
+.card { display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; text-decoration: none; color: var(--ink); }
+.card h3 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.02em; }
+.card p { margin: 0; color: var(--muted); font-size: 14.5px; max-width: 46ch; }
+.card .go { position: absolute; top: 18px; right: 20px; font-size: 13px; color: var(--muted); transition: transform .3s var(--ease), color .3s; }
+.card:hover .go { transform: translateX(4px); color: var(--ink); }
+.card .art { position: absolute; inset: 0 0 42% 0; display: grid; place-items: center; pointer-events: none; }
+.card .art canvas, .card .art svg { width: 100%; height: 100%; }
+.tag { position: absolute; top: 18px; left: 20px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: var(--idle); color: var(--muted); }
+/* ---------------- marquee */
+.chipcard { flex: 0 0 auto; width: 260px; padding: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--glass); }
+.chipcard b { display: block; font-size: 16px; margin-bottom: 4px; } .chipcard span { font-size: 13.5px; color: var(--muted); }
+.chipcard i { display: block; width: 28px; height: 4px; border-radius: 2px; margin-bottom: 12px; }
+/* ---------------- gallery + verify */
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 900px) { .gallery { grid-template-columns: 1fr; } }
+.shot { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #F8FAFC; }
+.shot img { width: 100%; display: block; }
+.shot figcaption { background: var(--panel); padding: 10px 14px; font-size: 13.5px; color: var(--muted); }
+.checks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 26px; }
+@media (max-width: 900px) { .checks { grid-template-columns: 1fr 1fr; } }
+/* ---------------- commands */
+.run { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .run { grid-template-columns: 1fr; } }
+.run h3 { font-size: 16px; margin: 0 0 8px; }
+/* ---------------- lessons */
+.lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; counter-reset: l; }
+.lessons a { display: block; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--glass); text-decoration: none; color: var(--ink); counter-increment: l; transition: border-color .2s, transform .2s var(--ease); }
+.lessons a:hover { border-color: var(--mxu); transform: translateY(-2px); }
+.lessons a::before { content: counter(l, decimal-leading-zero); font-family: "JetBrains Mono", monospace; color: var(--mxu); font-size: 12px; display: block; }
+.lessons a span { display: block; color: var(--muted); font-size: 13.5px; }
+.grp { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; grid-column: 1 / -1; margin-top: 10px; }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<nav class="site" aria-label="TinyTPU pages">
-  <span class="brand">terrific-tpu</span>
-  <a href="index.html" aria-current="page">Start</a>
-  <a href="playground.html">Systolic array</a>
-  <a href="chip.html">Whole chip</a>
-  <a href="explorers.html">Numbers &amp; roofline</a>
-  <a href="apps.html">Applications</a>
-  <a href="array3d.html">3-D array</a>
-</nav>
-<div class="hero">
-  <div>
-    <h1>A chip that only multiplies.</h1>
-    <p>A Tensor Processing Unit (TPU) gives up nearly everything a normal processor can do, and spends its silicon on a grid of multipliers that pass numbers to their neighbors in rhythm. Watch the rhythm, then build one.</p>
-    <div class="go">
-      <a href="playground.html"><button class="primary" tabindex="-1">Watch the array compute</button></a>
-      <a href="chip.html"><button tabindex="-1">Run a program on the chip</button></a>
+<nav class="site"></nav>
+<main>
+<!-- ============================================================ HERO -->
+<section class="hero">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <a class="pill" href="tour.html"><b>NEW</b> Fly through the chip in 3-D →</a>
+    <h1>A chip that <span class="grad-text">only multiplies.</span></h1>
+    <p class="lede">terrific-tpu is a Tensor Processing Unit (TPU) you can read in an afternoon: real Verilog, a cycle-exact simulator in your browser, a 3-D tour, and experiments that push it into image processing, quantum search, and graph analytics.</p>
+    <div class="cta">
+      <a class="btn-shimmer" href="tour.html">▶ Take the 3-D tour</a>
+      <a class="btn-ghost" href="chip.html">Run a program on the chip</a>
+      <a class="btn-ghost" href="https://github.com/Normansrule/terrific-tpu">★ Source on GitHub</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n num"><span data-count="16">0</span>/16</div><div class="k">planted bugs caught</div></div>
+      <div class="stat"><div class="n num" data-count="400">0</div><div class="k">random programs verified</div></div>
+      <div class="stat"><div class="n num">92→<span data-count="77">0</span></div><div class="k">cycles, v1 → pipelined v2</div></div>
+      <div class="stat"><div class="n num" data-count="0.063">0</div><div class="k">mm² in SkyWater 130 nm</div></div>
+      <div class="stat"><div class="n num" data-count="18">0</div><div class="k">illustrated lessons</div></div>
     </div>
   </div>
-  <div>
-    <div class="array" id="array" aria-hidden="true"></div>
-    <div class="array-cap">Each flash is one wave of data crossing the grid diagonally, one step per clock tick.</div>
+</section>
+
+<!-- ============================================================ STORY -->
+<section class="s wrap" id="how">
+  <div class="eyebrow" data-reveal>How it works</div>
+  <h2 class="big" data-reveal>Four beats of a <span class="grad-text">systolic heart</span></h2>
+  <p class="sub" data-reveal>Scroll. The array on the left follows along, running the same timing rules as the Verilog: vector v is inside PE(k, n) on cycle v + k + n.</p>
+  <div class="story">
+    <div class="sticky"><canvas id="storyCanvas" width="1120" height="1000" aria-label="Animated 4 by 4 systolic array"></canvas></div>
+    <div class="steps">
+      <div class="step" data-step="0"><div class="num">01 · LDW</div><h3>Weights move in, and stay.</h3><p>Four rows of weights shift down from the top, one per clock tick. Then they sit still inside the 16 processing elements (PEs) for the whole batch. Weight-stationary: every weight fetched once, used many times.</p></div>
+      <div class="step" data-step="1"><div class="num">02 · skew</div><h3>Inputs enter on a staircase.</h3><p>Each row's input waits one extra cycle more than the row above. That delay line (<code>skew.v</code>) is what makes every number arrive at exactly the right PE at exactly the right moment.</p></div>
+      <div class="step" data-step="2"><div class="num">03 · MMUL</div><h3>A diagonal wave does the math.</h3><p>Every tick, every busy PE multiplies its input by its weight, adds the sum from above, and passes both on. Inputs flow right, sums flow down, and a diagonal wavefront sweeps across the grid.</p></div>
+      <div class="step" data-step="3"><div class="num">04 · ACT</div><h3>Results drain, add, activate.</h3><p>Finished sums leave the bottom 2N − 1 cycles later, get lined back up, land in 32-bit accumulators, then pass through ReLU and a shift back to 8 bits for the next layer.</p></div>
+    </div>
   </div>
-</div>
-<section class="tools" aria-label="Interactive tools">
-  <a class="tool" href="playground.html"><div class="swatch" style="background:var(--act)"></div><h2>Systolic array</h2><p>Edit a weight matrix and some input vectors, then step the clock and watch partial sums flow down the grid.</p></a>
-  <a class="tool" href="chip.html"><div class="swatch" style="background:var(--mxu)"></div><h2>Whole chip</h2><p>Write TinyTPU assembly and run it on a register-exact model of the Verilog: controller, skew, array, accumulators and memories.</p></a>
-  <a class="tool" href="apps.html"><div class="swatch" style="background:var(--ps)"></div><h2>Applications</h2><p>Paint an image and watch 4 filters run; search with a 2-qubit quantum algorithm; count triangles in a graph you draw. All on the chip model.</p></a>
-  <a class="tool" href="array3d.html"><div class="swatch" style="background:var(--out)"></div><h2>3-D array</h2><p>Spin an 8 × 8 (or 24 × 24) array in 3-D. Tower heights are live partial sums; the wavefront sweeps across as the clock ticks.</p></a>
-  <a class="tool" href="explorers.html"><div class="swatch" style="background:var(--wt)"></div><h2>Numbers &amp; roofline</h2><p>See what 8-bit rounding does to a layer's weights, and whether a job keeps the multipliers busy or waits on memory.</p></a>
 </section>
-<section class="path" aria-label="Lessons">
-  <h2>The lessons (on GitHub)</h2>
-  <ol class="lessons">
-    <li>What is a TPU?<span>One job, done absurdly well.</span></li>
-    <li>Why matrix math?<span>Every layer is multiply, add, squash.</span></li>
-    <li>Numbers and quantization<span>Why 8 bits are enough.</span></li>
-    <li>Systolic arrays<span>The bucket brigade of multipliers.</span></li>
-    <li>Dataflow and energy<span>Moving data costs more than math.</span></li>
-    <li>Tiling big matrices<span>How a small grid does big work.</span></li>
-    <li>TinyTPU architecture<span>Every block, every wire.</span></li>
-    <li>RTL walkthrough<span>The Verilog, file by file.</span></li>
-    <li>Instructions and programming<span>From assembly to JAX.</span></li>
-    <li>Pipelining (v2)<span>Double buffers and hazards.</span></li>
-    <li>Performance<span>Roofline and utilization.</span></li>
-    <li>From RTL to silicon<span>Real sky130 gate counts.</span></li>
-    <li>Real TPUs<span>v1 to TPU 8, pods, photos.</span></li>
-    <li>New applications<span>What else fits the grid?</span></li>
-    <li>Application gallery<span>Images, qubits, graphs, on the chip.</span></li>
-    <li>Experiments<span>Five questions, answered with data.</span></li>
-    <li>Labs<span>Build it further yourself.</span></li>
-  </ol>
+
+<!-- ============================================================ BENTO -->
+<section class="s wrap" id="explore">
+  <div class="eyebrow" data-reveal>Explore</div>
+  <h2 class="big" data-reveal>Eight ways to <span class="grad-text">get your hands on it</span></h2>
+  <p class="sub" data-reveal>Every page runs in your browser. The chip simulator and applications use a JavaScript model that is checked cycle-for-cycle against the Verilog on every commit.</p>
+  <div class="bento">
+    <a class="spot beam card" href="tour.html" style="grid-column: span 4; grid-row: span 2" data-reveal>
+      <span class="tag">3-D · guided</span><span class="go">Open →</span>
+      <div class="art"><canvas id="artTour" width="900" height="420"></canvas></div>
+      <h3>3-D chip tour</h3><p>Fly through every block of the chip while it runs a real neural network: instruction memory, controller, skew, the array, accumulators. Scrub through all 92 cycles.</p></a>
+    <a class="spot card" href="chip.html" style="grid-column: span 2" data-reveal="80">
+      <span class="tag">simulator</span><span class="go">Open →</span>
+      <div class="art"><canvas id="artChip" width="420" height="200"></canvas></div>
+      <h3>Chip simulator</h3><p>Write assembly, step clock by clock, watch every register and memory.</p></a>
+    <a class="spot card" href="challenges.html" style="grid-column: span 2" data-reveal="160">
+      <span class="tag">game</span><span class="go">Play →</span>
+      <div class="art"><svg viewBox="0 0 420 200" id="artStars"></svg></div>
+      <h3>Challenges</h3><p>Program the chip to hit a target. Fewer cycles, more stars.</p></a>
+    <a class="spot card" href="apps.html" style="grid-column: span 3" data-reveal>
+      <span class="tag">applications</span><span class="go">Open →</span>
+      <div class="art"><canvas id="artApps" width="640" height="200"></canvas></div>
+      <h3>Applications</h3><p>Paint an image and watch four filters run. Search with a 2-qubit quantum algorithm. Draw a graph and count its triangles.</p></a>
+    <a class="spot card" href="array3d.html" style="grid-column: span 3" data-reveal="80">
+      <span class="tag">3-D</span><span class="go">Open →</span>
+      <div class="art"><canvas id="artArray" width="640" height="200"></canvas></div>
+      <h3>Array in 3-D</h3><p>Spin a 24 × 24 array. Tower heights are live partial sums.</p></a>
+    <a class="spot card" href="playground.html" style="grid-column: span 3" data-reveal>
+      <span class="tag">step by step</span><span class="go">Open →</span>
+      <h3>Systolic array playground</h3><p>Edit the weights and inputs, step the clock, and see every multiply-accumulate with its numbers.</p></a>
+    <a class="spot card" href="explorers.html" style="grid-column: span 3" data-reveal="80">
+      <span class="tag">explorers</span><span class="go">Open →</span>
+      <h3>Numbers &amp; roofline</h3><p>How many bits does a network need? Is a job waiting on math or on memory?</p></a>
+  </div>
 </section>
+
+<!-- ============================================================ MARQUEE -->
+<section class="s" id="apps">
+  <div class="wrap"><div class="eyebrow" data-reveal>Beyond neural networks</div>
+  <h2 class="big" data-reveal>If it's a matrix multiply, <span class="grad-text">it runs here.</span></h2></div>
+  <div class="marquee" data-reveal><div class="track" id="track"></div></div>
+</section>
+
+<!-- ============================================================ VERIFIED -->
+<section class="s wrap" id="verified">
+  <div class="eyebrow" data-reveal>Measured, not just drawn</div>
+  <h2 class="big" data-reveal>Every chart comes from <span class="grad-text">the real hardware.</span></h2>
+  <p class="sub" data-reveal>Run <code>make diagrams</code> and <code>make experiments</code>: the Verilog runs, and the pictures redraw themselves from its waveforms, memories, and synthesis reports.</p>
+  <div class="checks">
+    <div class="stat" data-reveal><div class="n num" data-count="512">0</div><div class="k">memory words checked per test</div></div>
+    <div class="stat" data-reveal="60"><div class="n num" data-count="205">0</div><div class="k">programs in the speedup study</div></div>
+    <div class="stat" data-reveal="120"><div class="n num" data-count="6867">0</div><div class="k">µm² per processing element</div></div>
+    <div class="stat" data-reveal="180"><div class="n num" data-count="32">0</div><div class="k">generated diagrams</div></div>
+  </div>
+  <div class="gallery">
+    <figure class="shot" data-reveal style="margin:0"><img src="../diagrams/exp_spacetime.svg" alt="Space-time map of processing element activity" loading="lazy"><figcaption>Every PE, every cycle, for five applications</figcaption></figure>
+    <figure class="shot" data-reveal="80" style="margin:0"><img src="../diagrams/app_grover.svg" alt="Grover's search amplitudes" loading="lazy"><figcaption>Grover's quantum search, read from chip memory</figcaption></figure>
+    <figure class="shot" data-reveal="160" style="margin:0"><img src="../diagrams/v1_vs_v2_timeline.svg" alt="v1 versus v2 timeline" loading="lazy"><figcaption>v1 vs pipelined v2, from the simulation</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================================================ RUN -->
+<section class="s wrap" id="run">
+  <div class="eyebrow" data-reveal>Run it yourself</div>
+  <h2 class="big" data-reveal>Four commands to <span class="grad-text">a working TPU.</span></h2>
+  <p class="sub" data-reveal>Ubuntu or Windows Subsystem for Linux (WSL). Everything is open-source: Icarus Verilog, Yosys, Python, Node.js.</p>
+  <div class="run">
+    <div data-reveal><h3>1 · Install and test</h3>
+<pre class="cmd"><code><span class="c"># tools</span>
+<span class="p">$ </span>sudo apt install -y iverilog gtkwave yosys python3 nodejs make git
+<span class="c"># get it and prove it works (demos, 400 random programs, 16 planted bugs)</span>
+<span class="p">$ </span>git clone https://github.com/Normansrule/terrific-tpu.git
+<span class="p">$ </span>cd terrific-tpu && make test</code></pre></div>
+    <div data-reveal="80"><h3>2 · See it</h3>
+<pre class="cmd"><code><span class="c"># this website, locally, at http://localhost:8000/web/</span>
+<span class="p">$ </span>make serve
+<span class="c"># the waveform in GTKWave</span>
+<span class="p">$ </span>make wave</code></pre></div>
+    <div data-reveal><h3>3 · Push it into new places</h3>
+<pre class="cmd"><code><span class="c"># image filter, quantum search, graph triangles</span>
+<span class="p">$ </span>make apps
+<span class="p">$ </span>python3 tools/golden_model.py --demo grover --marked 1
+<span class="c"># five experiments: CSV files + charts</span>
+<span class="p">$ </span>make experiments</code></pre></div>
+    <div data-reveal="80"><h3>4 · Take it toward silicon</h3>
+<pre class="cmd"><code><span class="c"># real SkyWater 130 nm area with Yosys</span>
+<span class="p">$ </span>export SKY130_LIB=~/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+<span class="p">$ </span>make synth && make diagrams</code></pre></div>
+  </div>
+</section>
+
+<!-- ============================================================ LESSONS -->
+<section class="s wrap" id="learn">
+  <div class="eyebrow" data-reveal>Learn</div>
+  <h2 class="big" data-reveal>Eighteen lessons, <span class="grad-text">zero hand-waving.</span></h2>
+  <div class="lessons" id="lessons" data-reveal></div>
+</section>
+</main>
+
+<script src="tinytpu-core.js"></script>
 <script>
-  const a = document.getElementById("array");
-  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
-    const d = document.createElement("div"); d.className = "cell"; d.style.setProperty("--d", r + c); a.appendChild(d);
+(function () {
+  const REPO = "https://github.com/Normansrule/terrific-tpu/blob/main/docs/";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const C = { act: "#60A5FA", wt: "#FBBF24", ps: "#E879F9", out: "#34D399", mxu: "#A78BFA" };
+
+  // ------------------------------------------------ hero: interactive systolic field
+  const cv = document.getElementById("field"), g = cv.getContext("2d");
+  let W, H, dpr, cell = 34, mouse = { x: -999, y: -999 }, streaks = [];
+  function size() { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  size(); addEventListener("resize", size);
+  cv.parentElement.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
+  cv.parentElement.addEventListener("pointerleave", () => mouse = { x: -999, y: -999 });
+  function field(t) {
+    g.clearRect(0, 0, W, H);
+    const cols = Math.ceil(W / cell) + 1, rows = Math.ceil(H / cell) + 1, wave = (t / 55) % (cols + rows + 30);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const x = c * cell, y = r * cell, d = r + c - wave;
+      let a = 0.05, col = C.mxu;
+      if (d > -3 && d <= 0) { a = 0.1 + 0.55 * (1 + d / 3); col = d > -1 ? C.ps : C.mxu; }
+      const md = Math.hypot(x - mouse.x, y - mouse.y); if (md < 160) a += 0.4 * (1 - md / 160);
+      g.globalAlpha = Math.min(0.85, a); g.fillStyle = col;
+      g.beginPath(); g.roundRect(x + 7, y + 7, cell - 14, cell - 14, 5); g.fill();
+    }
+    if (Math.random() < 0.35) streaks.push(Math.random() < 0.6
+      ? { x: -40, y: Math.floor(Math.random() * rows) * cell + cell / 2, dx: 3.2, dy: 0, c: C.act }
+      : { x: Math.floor(Math.random() * cols) * cell + cell / 2, y: -40, dx: 0, dy: 2.6, c: C.ps });
+    streaks = streaks.filter(s => s.x < W + 60 && s.y < H + 60);
+    for (const s of streaks) {
+      s.x += s.dx; s.y += s.dy;
+      const grd = g.createLinearGradient(s.x - s.dx * 18, s.y - s.dy * 18, s.x, s.y);
+      grd.addColorStop(0, "transparent"); grd.addColorStop(1, s.c);
+      g.globalAlpha = 0.8; g.strokeStyle = grd; g.lineWidth = 2.2;
+      g.beginPath(); g.moveTo(s.x - s.dx * 18, s.y - s.dy * 18); g.lineTo(s.x, s.y); g.stroke();
+      g.beginPath(); g.arc(s.x, s.y, 2.6, 0, 7); g.fillStyle = s.c; g.fill();
+    }
+    g.globalAlpha = 1;
   }
+
+  // ------------------------------------------------ scroll story: 4x4 array animated per beat
+  const sc = document.getElementById("storyCanvas"), sg = sc.getContext("2d");
+  let beat = 0, beatT0 = 0;
+  const Wm = [[2, -1, 3, 1], [0, 2, -2, 1], [1, 1, 0, -3], [-1, 3, 1, 2]], Xs = [[1, 2, 3, 4], [2, 0, 1, 1], [-1, 1, 0, 2], [3, 1, 2, 0]];
+  function drawStory(now) {
+    const w = sc.width, h = sc.height, N = 4, cs = 150, x0 = 330, y0 = 190;
+    sg.clearRect(0, 0, w, h);
+    const t = (now - beatT0) / 1000;
+    sg.font = "600 26px JetBrains Mono, monospace"; sg.textAlign = "center"; sg.textBaseline = "middle";
+    const label = ["LDW: weights shift down", "skew: a staircase of inputs", "MMUL: the wavefront", "drain → accumulate → ReLU"][beat];
+    sg.fillStyle = "#8E95BA"; sg.fillText(label, w / 2, 70);
+    // which cycle to show
+    const loop = beat === 0 ? 5 : beat === 1 ? 5 : 12, cyc = Math.floor((t * 1.6) % (loop + 2));
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const x = x0 + c * cs, y = y0 + r * cs;
+      const loaded = beat > 0 || cyc > r;           // rows fill from the top during LDW
+      const v = cyc - r - c, busy = beat >= 2 && v >= 0 && v < 4;
+      sg.globalAlpha = 1; sg.lineWidth = 3;
+      sg.fillStyle = busy ? "rgba(232,121,249,.22)" : "rgba(167,139,250,.08)";
+      sg.strokeStyle = busy ? C.ps : "rgba(167,139,250,.45)";
+      sg.beginPath(); sg.roundRect(x, y, cs - 22, cs - 22, 18); sg.fill(); sg.stroke();
+      if (loaded) { sg.fillStyle = C.wt; sg.font = "700 30px JetBrains Mono, monospace"; sg.fillText(Wm[r][c], x + (cs - 22) / 2, y + 42); }
+      if (busy) {
+        let s = 0; for (let k = 0; k <= r; k++) s += Xs[v][k] * Wm[k][c];
+        sg.fillStyle = C.ps; sg.font = "700 28px JetBrains Mono, monospace"; sg.fillText("Σ" + s, x + (cs - 22) / 2, y + 92);
+      }
+    }
+    // inputs on the left (staircase)
+    if (beat >= 1) for (let r = 0; r < N; r++) for (let q = 0; q < 4; q++) {
+      const v = q, when = v + r, dx = (cyc - when);
+      const x = x0 - 60 - (-dx) * 58, y = y0 + r * cs + (cs - 22) / 2;
+      if (dx < 0 && x > 20) { sg.fillStyle = C.act; sg.globalAlpha = .9; sg.beginPath(); sg.arc(x, y, 22, 0, 7); sg.fill();
+        sg.fillStyle = "#07080F"; sg.font = "700 22px JetBrains Mono, monospace"; sg.fillText(Xs[v][r], x, y + 1); }
+    }
+    // weights arriving from the top during LDW
+    if (beat === 0) { sg.fillStyle = C.wt; sg.globalAlpha = .9; for (let c = 0; c < N; c++) { sg.beginPath(); sg.moveTo(x0 + c * cs + 64, y0 - 70); sg.lineTo(x0 + c * cs + 64, y0 - 20); sg.lineWidth = 5; sg.strokeStyle = C.wt; sg.stroke(); } }
+    // outputs below
+    if (beat === 3) for (let c = 0; c < N; c++) for (let v = 0; v < 4; v++) {
+      const leave = v + (N - 1) + c + 1 + (N - 1 - c), dy = cyc - leave;
+      if (dy >= 0 && dy < 3) { let s = 0; for (let k = 0; k < N; k++) s += Xs[v][k] * Wm[k][c];
+        const y = y0 + N * cs + 20 + dy * 26; sg.globalAlpha = 1 - dy / 3; sg.fillStyle = C.out;
+        sg.beginPath(); sg.roundRect(x0 + c * cs + 14, y, cs - 50, 40, 10); sg.fill();
+        sg.fillStyle = "#07080F"; sg.font = "700 22px JetBrains Mono, monospace"; sg.fillText(Math.max(0, s), x0 + c * cs + 64, y + 21); }
+    }
+    sg.globalAlpha = 1;
+  }
+  const steps = document.querySelectorAll(".step");
+  const stepIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) {
+    steps.forEach(s => s.classList.toggle("on", s === e.target)); beat = +e.target.dataset.step; beatT0 = performance.now(); } }),
+    { rootMargin: "-45% 0px -45% 0px" });
+  steps.forEach(s => stepIO.observe(s)); steps[0].classList.add("on");
+
+  // ------------------------------------------------ bento art
+  function tourArt(now) {
+    const c = document.getElementById("artTour"), x = c.getContext("2d"), w = c.width, h = c.height; x.clearRect(0, 0, w, h);
+    const t = now / 1000, ox = w / 2, oy = 70, a = 34, b = 19;
+    for (let s = 0; s < 64; s++) {
+      const r = Math.floor(s / 8), q = s % 8, px = ox + (q - r) * a, py = oy + (q + r) * b;
+      const wave = ((t * 3) % 22) - (r + q), hh = wave > 0 && wave < 5 ? 14 + (5 - wave) * 9 : 8;
+      x.fillStyle = wave > 0 && wave < 5 ? "rgba(232,121,249,.85)" : "rgba(167,139,250,.35)";
+      x.beginPath(); x.moveTo(px, py - hh); x.lineTo(px + a, py + b - hh); x.lineTo(px, py + 2 * b - hh); x.lineTo(px - a, py + b - hh); x.closePath(); x.fill();
+      x.fillStyle = wave > 0 && wave < 5 ? "rgba(162,28,175,.9)" : "rgba(76,29,149,.5)";
+      x.beginPath(); x.moveTo(px - a, py + b - hh); x.lineTo(px, py + 2 * b - hh); x.lineTo(px, py + 2 * b); x.lineTo(px - a, py + b); x.fill();
+    }
+  }
+  let chipDemo = null;
+  function chipArt() {
+    const c = document.getElementById("artChip"), x = c.getContext("2d");
+    if (!chipDemo || chipDemo.done) { chipDemo = new TinyTPUCore.Chip(4);
+      const w = TinyTPUCore.assemble("LDW w=0\nMMUL ub=0 rows=8 acc=0\nACT acc=0 rows=8 ub=16 relu shift=1\nHALT").words;
+      w.forEach((v, i) => chipDemo.imem[i] = v); for (let i = 0; i < 8; i++) { chipDemo.wmem[i] = [1, -1, 2, 1]; chipDemo.ub[i] = [i, 2, -1, 3]; } }
+    const s = chipDemo.tick() || chipDemo.comb();
+    x.clearRect(0, 0, c.width, c.height);
+    x.font = "700 18px JetBrains Mono, monospace"; x.fillStyle = "#8E95BA"; x.fillText(`cycle ${String(chipDemo.cycles).padStart(3, "0")}  ${chipDemo.stateName}`, 24, 34);
+    for (let r = 0; r < 4; r++) for (let q = 0; q < 4; q++) {
+      const v = chipDemo.cnt - r - q, busy = chipDemo.state === 3 && v >= 0 && v < 8;
+      x.fillStyle = busy ? "#E879F9" : "rgba(167,139,250,.25)"; x.beginPath(); x.roundRect(250 + q * 38, 20 + r * 38, 30, 30, 6); x.fill();
+    }
+    chipDemo.validPipe.forEach((v, i) => { x.fillStyle = v ? "#34D399" : "rgba(148,163,184,.25)"; x.beginPath(); x.arc(34 + i * 24, 70, 8, 0, 7); x.fill(); });
+  }
+  function appsArt(now) {
+    const c = document.getElementById("artApps"), x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height);
+    const t = now / 900;
+    for (let m = 0; m < 4; m++) for (let i = 0; i < 64; i++) {
+      const r = Math.floor(i / 8), q = i % 8, v = 0.5 + 0.5 * Math.sin(r * 0.9 + q * (0.4 + m * 0.3) + t + m);
+      x.fillStyle = `hsl(${270 - v * 60} 80% ${20 + v * 50}%)`; x.fillRect(40 + m * 150 + q * 15, 30 + r * 15, 14, 14);
+    }
+  }
+  function arrayArt(now) {
+    const c = document.getElementById("artArray"), x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height);
+    const t = now / 1000;
+    for (let i = 0; i < 24; i++) { const hh = 20 + 70 * Math.max(0, Math.sin(t * 2 - i * 0.35)); x.fillStyle = `rgba(232,121,249,${.3 + hh / 140})`;
+      x.beginPath(); x.roundRect(40 + i * 24, 170 - hh, 18, hh, 4); x.fill(); }
+  }
+  const stars = document.getElementById("artStars");
+  stars.innerHTML = [0, 1, 2].map(i => `<text x="${140 + i * 70}" y="110" font-size="64" text-anchor="middle" fill="${i < 2 ? "#FBBF24" : "rgba(251,191,36,.25)"}">★</text>`).join("") +
+    `<text x="210" y="160" text-anchor="middle" font-size="18" fill="#8E95BA" font-family="JetBrains Mono, monospace">77 cycles · target 70</text>`;
+
+  // ------------------------------------------------ marquee + lessons
+  const apps = [["Neural network", "2 layers, 8 → 4 → 4", C.mxu], ["Fourier transform", "exact 4-point DFT", C.act], ["Image filtering", "4 filters via im2col", C.ps],
+    ["Grover's search", "2 qubits, 100 % success", C.out], ["Graph triangles", "trace(A³) ÷ 6", C.wt], ["Ising model", "idea bank · lesson 14", C.mxu],
+    ["Radio beamforming", "idea bank · lesson 14", C.act], ["Homomorphic encryption", "idea bank · lesson 14", C.ps], ["Weather models", "idea bank · lesson 14", C.out]];
+  const card = ([a, b, col]) => `<div class="chipcard"><i style="background:${col}"></i><b>${a}</b><span>${b}</span></div>`;
+  document.getElementById("track").innerHTML = apps.map(card).join("") + apps.map(card).join("");
+  const L = [["Understand", [["01-what-is-a-tpu", "What is a TPU?", "one job, done absurdly well"], ["02-why-matrix-math", "Why matrix math?", "multiply, add, squash"], ["03-numbers-and-quantization", "Numbers", "why 8 bits are enough"], ["04-systolic-arrays", "Systolic arrays", "the bucket brigade"], ["05-dataflow-and-energy", "Dataflow & energy", "data movement dominates"], ["06-tiling", "Tiling", "small grid, big matrices"]]],
+    ["Build", [["07-architecture", "Architecture", "every block, every wire"], ["08-rtl-walkthrough", "RTL walkthrough", "the Verilog, file by file"], ["09-instruction-set", "Instructions", "from assembly to JAX"], ["10-pipelining-v2", "Pipelining v2", "double buffers, hazards"]]],
+    ["Measure", [["11-performance", "Performance", "roofline, utilization"], ["12-rtl-to-silicon", "RTL to silicon", "real sky130 numbers"], ["13-real-tpus", "Real TPUs", "v1 to TPU 8, pods"]]],
+    ["New ideas", [["14-new-applications", "New applications", "what fits the grid?"], ["15-application-gallery", "Application gallery", "images, qubits, graphs"], ["16-experiments", "Experiments", "five questions, answered"], ["17-labs", "Labs", "build it further"], ["18-references", "References", "papers, videos, tools"]]]];
+  document.getElementById("lessons").innerHTML = L.map(([grp, ls]) => `<div class="grp">${grp}</div>` + ls.map(([f, t, s]) => `<a href="${REPO}${f}.md">${t}<span>${s}</span></a>`).join("")).join("");
+
+  // ------------------------------------------------ one animation loop, paused when off-screen
+  const visible = new Set(); const vio = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+  ["field", "storyCanvas", "artTour", "artChip", "artApps", "artArray"].forEach(id => vio.observe(document.getElementById(id)));
+  let lastChip = 0;
+  function loop(now) {
+    if (visible.has("field")) field(now);
+    if (visible.has("storyCanvas")) drawStory(now);
+    if (visible.has("artTour")) tourArt(now);
+    if (visible.has("artChip") && now - lastChip > 140) { chipArt(); lastChip = now; }
+    if (visible.has("artApps")) appsArt(now);
+    if (visible.has("artArray")) arrayArt(now);
+    requestAnimationFrame(loop);
+  }
+  if (reduce) { field(0); drawStory(0); tourArt(0); chipArt(); appsArt(0); arrayArt(0); } else requestAnimationFrame(loop);
+})();
 </script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

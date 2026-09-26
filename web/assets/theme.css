@@ -1,0 +1,119 @@
+/* =====================================================================
+   terrific-tpu design system  (loaded LAST on every page)
+   Dark "lab at night" look: aurora glow, faint grid, glass panels,
+   gradient accents. Effects are hand-written CSS inspired by open-source
+   UI kits (Magic UI, React Bits, Motion Primitives); no code copied.
+   ===================================================================== */
+:root[data-theme="dark"] {
+  --paper: #07080F; --panel: #0F1120; --idle: #161A2E; --line: #262B47;
+  --ink: #E9EBF8; --muted: #8E95BA;
+  --act: #60A5FA; --act-bg: rgba(96,165,250,.14);
+  --wt: #FBBF24;  --wt-bg: rgba(251,191,36,.14);
+  --ps: #E879F9;  --ps-bg: rgba(232,121,249,.15);
+  --out: #34D399; --out-bg: rgba(52,211,153,.14);
+  --mxu: #A78BFA; --mxu-bg: rgba(167,139,250,.16);
+  --ctl: #94A3B8; --ctl-bg: rgba(148,163,184,.14);
+  --red: #F87171; --red-bg: rgba(248,113,113,.14);
+  --glass: rgba(20,23,42,.62);
+  --glow: 0 0 0 1px rgba(167,139,250,.18), 0 20px 60px -20px rgba(124,58,237,.45);
+  color-scheme: dark;
+}
+:root { --grad: linear-gradient(100deg, #60A5FA 0%, #A78BFA 35%, #E879F9 65%, #FBBF24 100%);
+        --ease: cubic-bezier(.2,.8,.2,1); }
+
+/* ------------------------------------------------ backdrop */
+:root[data-theme="dark"] body { background: var(--paper); }
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(60vw 40vw at 12% -8%, rgba(124,58,237,.22), transparent 60%),
+    radial-gradient(50vw 35vw at 95% 5%, rgba(232,121,249,.13), transparent 60%),
+    radial-gradient(60vw 40vw at 50% 110%, rgba(37,99,235,.14), transparent 60%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);
+}
+:root[data-theme="light"] body::after { opacity: .9; background-image: linear-gradient(rgba(27,34,56,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(27,34,56,.05) 1px, transparent 1px); }
+
+/* ------------------------------------------------ top navigation */
+nav.site {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; max-width: none; margin: 0;
+  padding: 10px max(20px, calc((100vw - 1280px) / 2 + 20px));
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--line); gap: 2px 6px;
+}
+nav.site .brand { display: flex; align-items: center; gap: 9px; margin-right: 14px; font-weight: 800; letter-spacing: -.01em; text-decoration: none; color: var(--ink); border: 0; }
+nav.site .brand svg { width: 26px; height: 26px; }
+nav.site a:not(.brand) { padding: 6px 10px; border-radius: 8px; border-bottom: 0; font-size: 14px; }
+nav.site a:not(.brand):hover { background: var(--idle); }
+nav.site a[aria-current="page"] { background: var(--mxu-bg); color: var(--ink); border: 0; }
+nav.site .spacer { flex: 1; }
+nav.site .gh { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); }
+nav.site .tt { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; font-size: 14px; color: var(--muted); }
+@media (max-width: 860px) { nav.site { overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; } }
+
+/* ------------------------------------------------ surfaces */
+.box, section.box { background: color-mix(in srgb, var(--panel) 86%, transparent); border: 1px solid var(--line);
+  backdrop-filter: blur(6px); box-shadow: 0 1px 0 rgba(255,255,255,.03) inset; }
+button { transition: transform .15s var(--ease), background-color .15s, border-color .15s; border-color: var(--line); }
+button:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--mxu); }
+button.primary { background: var(--grad); color: #0B0B14; border: 0; }
+:root[data-theme="light"] button.primary { color: #fff; background: linear-gradient(100deg,#2563EB,#7C3AED,#C026D3); }
+.grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* shimmer button */
+.btn-shimmer { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px;
+  border-radius: 12px; font-weight: 700; text-decoration: none; color: #0B0B14; background: var(--grad); box-shadow: var(--glow); }
+.btn-shimmer::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.55) 50%, transparent 80%); animation: shimmer 2.8s infinite; }
+@keyframes shimmer { 60%, 100% { transform: translateX(100%); } }
+.btn-ghost { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 12px; font-weight: 600;
+  text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(8px); }
+.btn-ghost:hover { border-color: var(--mxu); }
+
+/* spotlight card: a glow that follows the mouse (set by ui.js) */
+.spot { position: relative; overflow: hidden; border-radius: 18px; border: 1px solid var(--line); background: var(--glass); }
+.spot::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(167,139,250,.22), transparent 45%); }
+.spot:hover::before { opacity: 1; }
+
+/* border beam: a light that runs around the edge */
+.beam { position: relative; }
+.beam::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: conic-gradient(from var(--a, 0deg), transparent 0 70%, #A78BFA 80%, #E879F9 88%, #FBBF24 92%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: beam 6s linear infinite; }
+@property --a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes beam { to { --a: 360deg; } }
+
+/* marquee */
+.marquee { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.marquee .track { display: flex; gap: 14px; width: max-content; animation: marquee 38s linear infinite; }
+.marquee:hover .track { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* reveal on scroll (ui.js adds .in) */
+[data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+[data-reveal].in { opacity: 1; transform: none; }
+
+/* code blocks with copy buttons */
+.cmd { position: relative; margin: 0; background: #05060C; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+  font-size: 13px; line-height: 1.65; overflow-x: auto; color: #D6DAF5; }
+:root[data-theme="light"] .cmd { background: #0F1120; }
+.cmd .c { color: #6B7394; } .cmd .p { color: #A78BFA; user-select: none; }
+.copy { position: absolute; top: 8px; right: 8px; font-size: 12px; padding: 4px 9px; border-radius: 7px; background: var(--idle); color: var(--muted); }
+
+/* footer */
+footer.site { max-width: 1280px; margin: 40px auto 0; padding: 26px 20px 40px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; }
+footer.site a { color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; }
+  .btn-shimmer::after, .beam::after, .marquee .track { animation: none; }
+}

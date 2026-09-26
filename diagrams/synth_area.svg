@@ -4,30 +4,30 @@
 <text x="30.0" y="42.0" font-size="26" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">How big is it? Systolic array area in SkyWater 130 nm</text>
 <text x="30.0" y="68.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Synthesized with Yosys onto sky130_fd_sc_hd standard cells (tools/synth_report.sh, data/synth.csv).</text>
 <text x="30.0" y="88.0" font-size="14" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">Area grows with N² because the PE count does. v2's shadow registers cost about 8 % more area.</text>
-<rect x="140.0" y="435.2" width="70.0" height="14.8" rx="4" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="0"/>
-<text x="175.0" y="409.2" font-size="12" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.014 mm²</text>
-<text x="175.0" y="425.2" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1,616 cells</text>
-<rect x="220.0" y="434.0" width="70.0" height="16.0" rx="4" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="0"/>
-<text x="255.0" y="408.0" font-size="12" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.015 mm²</text>
-<text x="255.0" y="424.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1,695 cells</text>
+<rect x="140.0" y="435.1" width="70.0" height="14.9" rx="4" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="0"/>
+<text x="175.0" y="409.1" font-size="12" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.014 mm²</text>
+<text x="175.0" y="425.1" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1,625 cells</text>
+<rect x="220.0" y="433.7" width="70.0" height="16.3" rx="4" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="0"/>
+<text x="255.0" y="407.7" font-size="12" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.015 mm²</text>
+<text x="255.0" y="423.7" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">1,736 cells</text>
 <text x="215.0" y="474.0" font-size="14" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">N = 2  (4 PEs)</text>
-<rect x="390.0" y="383.0" width="70.0" height="67.0" rx="4" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="0"/>
-<text x="425.0" y="357.0" font-size="12" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.061 mm²</text>
-<text x="425.0" y="373.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">7,794 cells</text>
-<rect x="470.0" y="377.4" width="70.0" height="72.6" rx="4" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="0"/>
-<text x="505.0" y="351.4" font-size="12" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.066 mm²</text>
-<text x="505.0" y="367.4" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">8,251 cells</text>
+<rect x="390.0" y="381.5" width="70.0" height="68.5" rx="4" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="0"/>
+<text x="425.0" y="355.5" font-size="12" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.063 mm²</text>
+<text x="425.0" y="371.5" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">7,683 cells</text>
+<rect x="470.0" y="376.0" width="70.0" height="74.0" rx="4" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="0"/>
+<text x="505.0" y="350.0" font-size="12" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.068 mm²</text>
+<text x="505.0" y="366.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">8,179 cells</text>
 <text x="465.0" y="474.0" font-size="14" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">N = 4  (16 PEs)</text>
-<rect x="640.0" y="153.8" width="70.0" height="296.2" rx="4" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="0"/>
-<text x="675.0" y="127.8" font-size="12" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.271 mm²</text>
-<text x="675.0" y="143.8" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">34,314 cells</text>
+<rect x="640.0" y="152.3" width="70.0" height="297.7" rx="4" fill="#D97706" fill-opacity="0.9" stroke="none" stroke-width="0"/>
+<text x="675.0" y="126.3" font-size="12" fill="#D97706" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.273 mm²</text>
+<text x="675.0" y="142.3" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">32,439 cells</text>
 <rect x="720.0" y="130.0" width="70.0" height="320.0" rx="4" fill="#7C3AED" fill-opacity="0.9" stroke="none" stroke-width="0"/>
 <text x="755.0" y="104.0" font-size="12" fill="#7C3AED" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">0.293 mm²</text>
-<text x="755.0" y="120.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">36,222 cells</text>
+<text x="755.0" y="120.0" font-size="11" fill="#475569" font-weight="400" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">34,510 cells</text>
 <text x="715.0" y="474.0" font-size="14" fill="#1E293B" font-weight="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif">N = 8  (64 PEs)</text>
-<text x="140.0" y="180.0" font-size="15" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">one PE ≈ 6,957 µm²</text>
+<text x="140.0" y="180.0" font-size="15" fill="#1E293B" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">one PE ≈ 6,867 µm²</text>
 <text x="140.0" y="204.0" font-size="13" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">x 65,536 PEs (TPU v1 size)</text>
-<text x="140.0" y="224.0" font-size="13" fill="#DC2626" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">≈ 456 mm² at 130 nm</text>
+<text x="140.0" y="224.0" font-size="13" fill="#DC2626" font-weight="700" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">≈ 450 mm² at 130 nm</text>
 <text x="140.0" y="248.0" font-size="13" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">TPU v1's whole die, at 28 nm, was</text>
 <text x="140.0" y="268.0" font-size="13" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">under 331 mm². Smaller transistors</text>
 <text x="140.0" y="288.0" font-size="13" fill="#475569" font-weight="400" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif">are the other half of the story.</text>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TinyTPU: systolic array playground</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -110,17 +111,10 @@ td.wait { color: var(--muted); }
 footer { max-width: 1180px; margin: 0 auto; padding: 0 20px 40px; color: var(--muted); font-size: 14px; }
 footer a { color: var(--act); }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<nav class="site" aria-label="TinyTPU pages">
-  <span class="brand">terrific-tpu</span>
-  <a href="index.html">Start</a>
-  <a href="playground.html" aria-current="page">Systolic array</a>
-  <a href="chip.html">Whole chip</a>
-  <a href="explorers.html">Numbers &amp; roofline</a>
-  <a href="apps.html">Applications</a>
-  <a href="array3d.html">3-D array</a>
-</nav>
+<nav class="site" aria-label="terrific-tpu pages"></nav>
 <header>
   <h1>Systolic array playground<span class="beat" aria-hidden="true"></span></h1>
   <p>A cycle-by-cycle model of the 4 x 4 Matrix Multiply Unit in <span class="num">rtl/systolic_array.v</span>. Weights stay put in the grid, input vectors slide in from the left on a staircase, and partial sums trickle down until finished answers drop out of the bottom. Edit any number, then step the clock.</p>
@@ -401,5 +395,6 @@ footer a { color: var(--act); }
   reset();
 })();
 </script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

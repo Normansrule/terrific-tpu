@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: programming challenges</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+header.top { max-width: 1280px; margin: 0 auto; padding: 34px 20px 8px; }
+h1 { font-size: clamp(34px, 5vw, 60px); margin: 0 0 8px; letter-spacing: -.04em; line-height: 1; font-weight: 900; }
+header.top p { margin: 0; color: var(--muted); max-width: 76ch; font-size: 17px; }
+main { max-width: 1280px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 270px 1fr 330px; gap: 16px; align-items: start; }
+@media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+.list { display: grid; gap: 8px; }
+.item { text-align: left; display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; padding: 12px; border-radius: 12px;
+  background: var(--glass); border: 1px solid var(--line); color: var(--ink); font-weight: 600; font-size: 14px; }
+.item[aria-current="true"] { border-color: var(--mxu); background: var(--mxu-bg); }
+.item .n { font-family: "JetBrains Mono", monospace; color: var(--mxu); }
+.item .stars { color: var(--wt); letter-spacing: 1px; font-size: 13px; }
+.total { margin-top: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--glass); text-align: center; }
+.total b { font-size: 30px; color: var(--wt); }
+.brief h2 { font-size: 26px; margin: 0 0 6px; letter-spacing: -.02em; }
+.brief p { color: var(--muted); margin: 0 0 12px; }
+.goal { padding: 12px 14px; border-radius: 12px; background: var(--idle); border-left: 4px solid var(--ps); margin-bottom: 12px; font-size: 14.5px; }
+.map { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted); display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin-bottom: 12px; }
+.map b { color: var(--ink); font-weight: 600; }
+.editor { position: relative; display: grid; grid-template-columns: 38px 1fr; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #05060C; }
+.gutter { padding: 12px 6px; text-align: right; color: #4B5275; font: 13px/1.6 "JetBrains Mono", monospace; user-select: none; white-space: pre; }
+textarea { border: 0; outline: 0; resize: vertical; min-height: 240px; padding: 12px; background: transparent; color: #E9EBF8; font: 13px/1.6 "JetBrains Mono", monospace; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.result { min-height: 200px; }
+.verdict { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+.big-stars { font-size: 46px; color: var(--wt); letter-spacing: 6px; margin: 6px 0; }
+.big-stars span { display: inline-block; transform: scale(0); }
+.big-stars span.on { animation: pop .5s cubic-bezier(.2,1.6,.4,1) forwards; }
+.big-stars span.off { color: var(--line); transform: scale(1); }
+@keyframes pop { to { transform: scale(1); } }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; margin: 10px 0; }
+.kv span:nth-child(odd) { color: var(--muted); }
+table.diff { width: 100%; border-collapse: collapse; font: 12px "JetBrains Mono", monospace; margin-top: 8px; }
+table.diff td, table.diff th { padding: 3px 6px; border-top: 1px solid var(--line); text-align: right; }
+table.diff .bad { color: var(--red); }
+details { margin-top: 10px; font-size: 14px; color: var(--muted); }
+details summary { cursor: pointer; color: var(--ink); }
+.err { color: var(--red); font-size: 13px; margin-top: 6px; }
+canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 60; width: 100%; height: 100%; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<nav class="site"></nav>
+<header class="top">
+  <h1>Program the chip. <span class="grad-text">Beat the clock.</span></h1>
+  <p>Each challenge gives you data already sitting in the chip's memories and a result to produce. Write TinyTPU assembly, run it on the cycle-exact model, and earn up to three stars by finishing in as few clock cycles as the par.</p>
+</header>
+<main>
+  <aside>
+    <div class="list" id="list" role="list"></div>
+    <div class="total">total stars<br><b id="total">0</b> / <span id="max"></span></div>
+  </aside>
+  <section class="box brief">
+    <h2 id="title"></h2>
+    <p id="story"></p>
+    <div class="goal" id="goal"></div>
+    <div class="map" id="map"></div>
+    <div class="editor"><div class="gutter" id="gutter"></div><textarea id="src" spellcheck="false" aria-label="Your program"></textarea></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="row">
+      <button class="primary" id="run">▶ Run on the chip</button>
+      <button id="reset">Reset code</button>
+      <a class="btn-ghost" id="openSim" href="chip.html" style="padding:8px 14px">Step through in the simulator</a>
+    </div>
+    <details><summary>Instruction cheat sheet</summary><pre class="cmd" style="margin-top:8px"><code>LDW   w=A                         weights ← weight memory rows A..A+3      (6 cycles)
+MMUL  ub=A rows=B acc=C [accumulate]  acc[C+r] (+)= ub[A+r] · weights    (2 + B + 7 cycles)
+ACT   acc=A rows=B ub=C [relu] shift=S  ub[C+r] = clamp(relu(acc[A+r]) >> S)  (2 + B cycles)
+HALT                                                                        (3 cycles)</code></pre></details>
+    <details id="hintBox"><summary>Hint</summary><p id="hint"></p></details>
+  </section>
+  <section class="box result" aria-live="polite">
+    <div class="verdict" id="verdict">Ready when you are.</div>
+    <div class="big-stars" id="stars"><span>★</span><span>★</span><span>★</span></div>
+    <div class="kv" id="kv"></div>
+    <div id="diff"></div>
+  </section>
+</main>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<script src="tinytpu-core.js"></script>
+<script>
+(function () {
+  const { assemble, Chip } = window.TinyTPUCore;
+  const $ = id => document.getElementById(id);
+  function lcg(seed) { let s = seed >>> 0; return (lo, hi) => { s = (s * 1664525 + 1013904223) >>> 0; return lo + ((s >>> 16) % (hi - lo + 1)); }; }
+  const mm = (X, W) => X.map(x => W[0].map((_, j) => x.reduce((s, v, k) => s + v * W[k][j], 0)));
+  const rq = (v, relu, sh) => Math.max(-128, Math.min(127, ((relu && v < 0) ? 0 : v) >> sh));
+  const rows = (r, n, lo = -8, hi = 7) => [...Array(n)].map(() => [0, 0, 0, 0].map(() => r(lo, hi)));
+  const I = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]], NEG = I.map(r => r.map(v => -v)), REV = [[0,0,0,1],[0,0,1,0],[0,1,0,0],[1,0,0,0]];
+
+  const CH = [
+    { t: "First light", par: 22,
+      story: "Four input vectors sit in the Unified Buffer and one 4 × 4 weight tile sits in weight memory. Multiply them.",
+      goal: "Put X · W into accumulator rows 0-3.", hint: "Load the weights, then one MMUL with rows=4. Don't forget HALT.",
+      map: [["weights W", "weight memory 0-3"], ["inputs X", "Unified Buffer 0-3"], ["answer", "accumulators 0-3"]],
+      start: "; your program\nLDW w=0\n",
+      setup(c) { const r = lcg(11); const W = rows(r, 4), X = rows(r, 4); W.forEach((v, i) => c.wmem[i] = v); X.forEach((v, i) => c.ub[i] = v);
+        return { region: "acc", from: 0, expect: mm(X, W) }; } },
+    { t: "Batch it", par: 30,
+      story: "Twelve vectors this time, same weights. The array is fastest when it streams many vectors through one set of weights.",
+      goal: "Put X · W into accumulator rows 0-11.", hint: "One MMUL with rows=12 pays the 7-cycle drain once. Three MMULs of 4 rows pay it three times.",
+      map: [["weights W", "weight memory 0-3"], ["inputs X", "Unified Buffer 0-11"], ["answer", "accumulators 0-11"]],
+      start: "LDW w=0\nMMUL ub=0 rows=4 acc=0\nMMUL ub=4 rows=4 acc=4\nMMUL ub=8 rows=4 acc=8\nHALT\n",
+      setup(c) { const r = lcg(12); const W = rows(r, 4), X = rows(r, 12); W.forEach((v, i) => c.wmem[i] = v); X.forEach((v, i) => c.ub[i] = v);
+        return { region: "acc", from: 0, expect: mm(X, W) }; } },
+    { t: "Go deeper (tiling)", par: 49,
+      story: "Each input now has 8 numbers, but the array is only 4 wide. Split the dot product in two and add the halves in the accumulators.",
+      goal: "Put X · W (X is 8 × 8, W is 8 × 4) into accumulator rows 0-7.", hint: "LDW the top tile, MMUL the left halves; LDW the bottom tile, MMUL the right halves with accumulate.",
+      map: [["W rows 0-3", "weight memory 0-3"], ["W rows 4-7", "weight memory 4-7"], ["X columns 0-3", "Unified Buffer 0-7"], ["X columns 4-7", "Unified Buffer 8-15"], ["answer", "accumulators 0-7"]],
+      start: "", setup(c) { const r = lcg(13); const W = rows(r, 8), X = [...Array(8)].map(() => [...Array(8)].map(() => r(-8, 7)));
+        W.forEach((v, i) => c.wmem[i] = v); X.forEach((x, i) => { c.ub[i] = x.slice(0, 4); c.ub[8 + i] = x.slice(4); });
+        return { region: "acc", from: 0, expect: mm(X, W) }; } },
+    { t: "Activate", par: 36,
+      story: "A neural network layer is a matrix multiply followed by an activation. Produce the 8-bit layer output.",
+      goal: "Put ReLU(X · W) >> 2 (clamped to 8 bits) into Unified Buffer rows 32-39.", hint: "MMUL into any accumulator rows, then ACT with relu and shift=2.",
+      map: [["weights W", "weight memory 0-3"], ["inputs X", "Unified Buffer 0-7"], ["answer", "Unified Buffer 32-39"]],
+      start: "", setup(c) { const r = lcg(14); const W = rows(r, 4), X = rows(r, 8); W.forEach((v, i) => c.wmem[i] = v); X.forEach((v, i) => c.ub[i] = v);
+        return { region: "ub", from: 32, expect: mm(X, W).map(row => row.map(v => rq(v, true, 2))) }; } },
+    { t: "Mirror, mirror", par: 59,
+      story: "Weight memory holds three tiles: identity at 0, minus-identity at 4, and a lane-reversal at 8. Use them to turn every input [a, b, c, d] into [−d, −c, −b, −a].",
+      goal: "Put the negated, reversed inputs into accumulator rows 16-23.", hint: "One matrix can't be picked directly, but two can be chained: MMUL, ACT back to 8 bits (shift 0, no ReLU), MMUL again. Or… is there a single product of two tiles you could avoid computing twice?",
+      map: [["identity", "weight memory 0-3"], ["minus identity", "weight memory 4-7"], ["reverse lanes", "weight memory 8-11"], ["inputs X", "Unified Buffer 0-7"], ["answer", "accumulators 16-23"]],
+      start: "", setup(c) { const r = lcg(15); const X = rows(r, 8, -100, 100); I.concat(NEG, REV).forEach((v, i) => c.wmem[i] = v); X.forEach((v, i) => c.ub[i] = v);
+        return { region: "acc", from: 16, expect: X.map(x => x.slice().reverse().map(v => -v)) }; } },
+    { t: "The whole network", par: 92,
+      story: "Two layers: H = ReLU(X · W1) >> 3, then Y = (H · W2) >> 5. This is the repo's neural-network demo. Match the reference in 92 cycles or fewer.",
+      goal: "Put Y into Unified Buffer rows 24-31.", hint: "Tile layer 1 (K = 8) like challenge 3. ACT with relu shift=3 into rows 16-23. Then MMUL with W2 and ACT with shift=5.",
+      map: [["W1 rows 0-3 / 4-7", "weight memory 0-3 / 4-7"], ["W2", "weight memory 8-11"], ["X columns 0-3 / 4-7", "Unified Buffer 0-7 / 8-15"], ["answer Y", "Unified Buffer 24-31"]],
+      start: "", setup(c) { const r = lcg(7); const W = rows(r, 12); const X = rows(r, 16);
+        W.forEach((v, i) => c.wmem[i] = v); X.forEach((v, i) => c.ub[i] = v);
+        const Xf = [...Array(8)].map((_, i) => X[i].concat(X[8 + i]));
+        const H = mm(Xf, W.slice(0, 8)).map(row => row.map(v => rq(v, true, 3)));
+        return { region: "ub", from: 24, expect: mm(H, W.slice(8, 12)).map(row => row.map(v => rq(v, false, 5))) }; } }
+  ];
+  let best = {}; try { best = JSON.parse(localStorage.getItem("tt-challenges") || "{}"); } catch (e) {}
+  const save = () => { try { localStorage.setItem("tt-challenges", JSON.stringify(best)); } catch (e) {} };
+  let cur = 0;
+  const starStr = n => "★".repeat(n) + "☆".repeat(3 - n);
+  function renderList() {
+    $("list").innerHTML = CH.map((c, i) => `<button class="item" role="listitem" data-i="${i}" aria-current="${i === cur}"><span class="n">${String(i + 1).padStart(2, "0")}</span><span>${c.t}</span><span class="stars">${starStr((best[i] || {}).stars || 0)}</span></button>`).join("");
+    $("list").querySelectorAll("button").forEach(b => b.onclick = () => open(+b.dataset.i));
+    const tot = CH.reduce((s, _, i) => s + ((best[i] || {}).stars || 0), 0); $("total").textContent = tot; $("max").textContent = CH.length * 3;
+  }
+  function open(i) {
+    cur = i; const c = CH[i];
+    $("title").textContent = `${i + 1}. ${c.t}`; $("story").textContent = c.story; $("goal").innerHTML = `<b>Goal:</b> ${c.goal} <b>Par:</b> ${c.par} cycles.`;
+    $("map").innerHTML = c.map.map(([a, b]) => `<b>${a}</b><span>${b}</span>`).join("");
+    $("hint").textContent = c.hint; $("hintBox").open = false;
+    $("src").value = (best[i] && best[i].code) || c.start || "; write your program here\n";
+    gutter(); $("verdict").textContent = "Ready when you are."; $("kv").innerHTML = ""; $("diff").innerHTML = ""; setStars(0, true);
+    renderList();
+  }
+  function gutter() { $("gutter").textContent = $("src").value.split("\n").map((_, i) => i + 1).join("\n"); }
+  $("src").addEventListener("input", gutter);
+  $("src").addEventListener("scroll", () => $("gutter").scrollTop = $("src").scrollTop);
+  $("src").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); } });
+  function setStars(n, silent) {
+    [...$("stars").children].forEach((s, i) => { s.className = ""; void s.offsetWidth;
+      if (i < n) { s.className = "on"; s.style.animationDelay = silent ? "0s" : (i * 0.18) + "s"; } else s.className = "off"; });
+  }
+  function run() {
+    const c = CH[cur], { words, errors } = assemble($("src").value);
+    $("err").textContent = errors.join("  ");
+    if (errors.length) return;
+    if (!words.length) { $("err").textContent = "Write at least one instruction."; return; }
+    const chip = new Chip(4); words.forEach((w, i) => chip.imem[i] = w);
+    const task = c.setup(chip); chip.run(20000);
+    if (!chip.done) { $("verdict").textContent = "The program never halted."; return; }
+    const got = task.expect.map((_, r) => chip[task.region][task.from + r]);
+    const bad = task.expect.map((e, r) => JSON.stringify(e) !== JSON.stringify(got[r]) ? r : -1).filter(r => r >= 0);
+    const ok = bad.length === 0, cyc = chip.cycles;
+    const stars = !ok ? 0 : cyc <= c.par ? 3 : cyc <= Math.ceil(c.par * 1.3) ? 2 : 1;
+    $("verdict").innerHTML = ok ? (stars === 3 ? `<span class="grad-text">Perfect.</span>` : "Correct!") : `<span style="color:var(--red)">Not quite.</span>`;
+    setStars(stars);
+    $("kv").innerHTML = `<span>clock cycles</span><b class="num">${cyc}</b><span>par</span><b class="num">${c.par}</b><span>instructions</span><b class="num">${words.length}</b><span>rows correct</span><b class="num">${task.expect.length - bad.length} / ${task.expect.length}</b>`;
+    $("diff").innerHTML = ok ? (stars < 3 ? `<p style="color:var(--muted);font-size:14px">Correct, but ${cyc - c.par} cycles over par. Where does the array sit idle?</p>` : "") :
+      `<table class="diff"><tr><th>row</th><th>expected</th><th>your chip</th></tr>${bad.slice(0, 8).map(r => `<tr><td>${task.region} ${task.from + r}</td><td>${task.expect[r].join(", ")}</td><td class="bad">${got[r].join(", ")}</td></tr>`).join("")}</table>`;
+    if (ok) {
+      const prev = best[cur] || { stars: 0, cycles: 1e9 };
+      if (stars > prev.stars || cyc < prev.cycles) { best[cur] = { stars: Math.max(stars, prev.stars), cycles: Math.min(cyc, prev.cycles), code: $("src").value }; save(); }
+      renderList(); if (stars === 3) confetti();
+    }
+  }
+  $("run").onclick = run;
+  $("reset").onclick = () => { $("src").value = CH[cur].start || "; write your program here\n"; gutter(); };
+  function confetti() {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = $("confetti"), g = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+    const cols = ["#60A5FA", "#A78BFA", "#E879F9", "#FBBF24", "#34D399"];
+    const ps = [...Array(140)].map(() => ({ x: innerWidth / 2, y: innerHeight / 3, vx: (Math.random() - .5) * 16, vy: -Math.random() * 14 - 4, s: 4 + Math.random() * 6, c: cols[Math.random() * 5 | 0], r: Math.random() * 6 }));
+    let n = 0; (function step() { g.clearRect(0, 0, cv.width, cv.height);
+      ps.forEach(p => { p.vy += .45; p.x += p.vx; p.y += p.vy; p.r += .2; g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.fillStyle = p.c; g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); g.restore(); });
+      if (++n < 110) requestAnimationFrame(step); else g.clearRect(0, 0, cv.width, cv.height); })();
+  }
+  open(0);
+  window.__challenges = { CH, run, open };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

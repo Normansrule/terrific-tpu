@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>terrific-tpu: the systolic array in 3-D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,17 +26,10 @@ canvas:active { cursor: grabbing; }
 .key { font-size: 13px; margin-top: 14px; display: grid; gap: 6px; }
 .key span { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<nav class="site" aria-label="terrific-tpu pages">
-  <span class="brand">terrific-tpu</span>
-  <a href="index.html">Start</a>
-  <a href="playground.html">Systolic array</a>
-  <a href="chip.html">Whole chip</a>
-  <a href="explorers.html">Numbers &amp; roofline</a>
-  <a href="apps.html">Applications</a>
-  <a href="array3d.html" aria-current="page">3-D array</a>
-</nav>
+<nav class="site" aria-label="terrific-tpu pages"></nav>
 <header class="top">
   <h1>The systolic array in 3-D</h1>
   <p>Every block is a processing element. Its height is the partial sum it is holding right now, so you can watch sums grow as they fall toward the front edge, and watch the diagonal wavefront sweep across. Drag to spin it.</p>
@@ -183,5 +177,6 @@ canvas:active { cursor: grabbing; }
   setup(); if (!reduce) requestAnimationFrame(t0 => { last = t0; requestAnimationFrame(loop); });
 })();
 </script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

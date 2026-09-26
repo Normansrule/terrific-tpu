@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TinyTPU: numbers and roofline explorers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,17 +25,10 @@ svg { width: 100%; height: auto; display: block; }
 .chips button[aria-pressed="true"] { background: var(--mxu-bg); border-color: var(--mxu); }
 p.lede { color: var(--muted); margin: 0 0 6px; font-size: 14px; }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<nav class="site" aria-label="TinyTPU pages">
-  <span class="brand">terrific-tpu</span>
-  <a href="index.html">Start</a>
-  <a href="playground.html">Systolic array</a>
-  <a href="chip.html">Whole chip</a>
-  <a href="explorers.html" aria-current="page">Numbers &amp; roofline</a>
-  <a href="apps.html">Applications</a>
-  <a href="array3d.html">3-D array</a>
-</nav>
+<nav class="site" aria-label="terrific-tpu pages"></nav>
 <header class="top">
   <h1>Numbers and the roofline</h1>
   <p>Two questions decide whether a TPU is fast for a job: how few bits can the numbers use, and does the chip spend its time computing or waiting for memory?</p>
@@ -139,5 +133,6 @@ p.lede { color: var(--muted); margin: 0 0 6px; font-size: 14px; }
   $("n").oninput = roof; $("bytes").onchange = roof; roof();
 })();
 </script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

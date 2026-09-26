@@ -1,9 +1,9 @@
 design,version,N,cells,flops,area_um2
-pe,v1_simple,1,872,48,6956.672000
-pe_db,v2_pipelined,1,878,57,7365.814400
-systolic_array,v1_simple,2,1616,128,13558.003200
-systolic_array_db,v2_pipelined,2,1695,162,14676.576000
-systolic_array,v1_simple,4,7794,640,61385.123200
-systolic_array_db,v2_pipelined,4,8251,780,66490.019200
-systolic_array,v1_simple,8,34314,2816,271407.801600
-systolic_array_db,v2_pipelined,8,36222,3384,293202.454400
+pe,v1_simple,1,808,48,6866.585600
+pe_db,v2_pipelined,1,813,57,7235.689600
+systolic_array,v1_simple,2,1625,128,13664.355200
+systolic_array_db,v2_pipelined,2,1736,162,14940.579200
+systolic_array,v1_simple,4,7683,640,62680.115200
+systolic_array_db,v2_pipelined,4,8179,780,67736.214400
+systolic_array,v1_simple,8,32439,2816,272635.228800
+systolic_array_db,v2_pipelined,8,34510,3384,293026.035200
