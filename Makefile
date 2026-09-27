@@ -104,9 +104,10 @@ wave:
 clean:
 	rm -rf build tools/__pycache__ tools/diagrams/__pycache__ experiments/__pycache__
 
+PORT ?= 8000
 serve:
-	@echo "open http://localhost:8000/web/   (Ctrl-C to stop)"
-	$(PY) -m http.server 8000
+	@echo "open http://localhost:$(PORT)/web/   (Ctrl-C to stop)"
+	$(PY) -m http.server $(PORT)
 
 screenshots:
 	$(PY) tools/screenshots.py
