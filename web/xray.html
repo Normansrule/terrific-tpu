@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: chip X-ray</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+html, body { height: 100%; } body { display: flex; flex-direction: column; overflow: hidden; }
+.stage { position: relative; flex: 1; min-height: 0; background: #020308; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+#cv.drag { cursor: grabbing; }
+.panel { position: absolute; z-index: 3; top: 16px; left: 16px; width: min(340px, calc(100% - 32px)); padding: 18px; border-radius: 18px;
+  border: 1px solid var(--line); background: rgba(8,10,20,.8); backdrop-filter: blur(14px); color: #E9EBF8; }
+.panel .eyebrow { font: 600 12px "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: #A78BFA; }
+.panel h1 { font-size: 30px; margin: 6px 0 8px; letter-spacing: -.03em; line-height: 1; }
+.panel p { color: #B7BCDA; font-size: 13.5px; margin: 0 0 10px; line-height: 1.5; }
+.tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.tools button { font-size: 12.5px; padding: 6px 10px; background: rgba(255,255,255,.06); color: #E9EBF8; border-color: rgba(255,255,255,.14); }
+.tools button[aria-pressed="true"] { background: rgba(167,139,250,.28); border-color: #A78BFA; }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 12px; font-size: 12px; color: #B7BCDA; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); vertical-align: -1px; }
+.hud { position: absolute; z-index: 3; right: 16px; top: 16px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(8,10,20,.8); color: #E9EBF8; font: 600 13px "JetBrains Mono", monospace; }
+#tip { position: absolute; z-index: 4; pointer-events: none; display: none; max-width: 300px; padding: 10px 12px; border-radius: 12px; background: rgba(5,6,12,.94); border: 1px solid #A78BFA; color: #E9EBF8; font-size: 13px; line-height: 1.45; }
+#tip b { font-size: 14px; } #tip .m { font-family: "JetBrains Mono", monospace; color: #A78BFA; font-size: 12px; }
+#mini { position: absolute; z-index: 3; right: 16px; bottom: 16px; width: 200px; height: 150px; border-radius: 10px; border: 1px solid var(--line); background: rgba(8,10,20,.8); }
+.scale { position: absolute; z-index: 3; left: 16px; bottom: 16px; color: #B7BCDA; font: 600 12px "JetBrains Mono", monospace; }
+.scale i { display: block; height: 3px; background: #E9EBF8; margin-bottom: 4px; border-radius: 2px; }
+@media (max-width: 760px) { .panel p, .legend { display: none; } #mini { display: none; } }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body data-nofooter>
+<nav class="site"></nav>
+<div class="stage">
+  <canvas id="cv" aria-label="Zoomable floor plan of the TinyTPU chip"></canvas>
+  <aside class="panel">
+    <div class="eyebrow">Chip X-ray</div>
+    <h1>Zoom into <span class="grad-text">the silicon.</span></h1>
+    <p>A floor plan of TinyTPU in SkyWater 130 nm. Scroll to zoom from the whole die down to individual standard cells (each row is 2.72 µm tall, like the real sky130 library). Click a block to fly to it; turn on <b>Live heat</b> to watch it run a neural network.</p>
+    <div class="tools">
+      <button id="heat" aria-pressed="true">🔥 Live heat</button>
+      <button id="wires" aria-pressed="true">Metal wires</button>
+      <button id="fit">Fit die</button>
+      <button id="zin" aria-label="Zoom in">＋</button><button id="zout" aria-label="Zoom out">－</button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </aside>
+  <div class="hud" id="hud">cycle 0 · FETCH</div>
+  <div id="tip"></div>
+  <canvas id="mini" width="400" height="300" aria-hidden="true"></canvas>
+  <div class="scale"><i id="bar" style="width:100px"></i><span id="barL">100 µm</span></div>
+</div>
+<script src="tinytpu-core.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const cv = $("cv"), g = cv.getContext("2d");
+  // ------------------------------------------------ blocks and their areas (µm²)
+  // Systolic array: real Yosys + sky130 result (data/synth.csv). Memories: estimated as
+  // SRAM macros at ~5 µm² per bit. Small logic: estimated from flip-flop counts.
+  const B = [
+    { id: "acc", name: "Accumulators", area: 256 * 128 * 5, col: "#E879F9", kind: "sram", real: false, what: "256 rows × 4 × 32-bit running sums. The biggest block: wide numbers are expensive." },
+    { id: "ub", name: "Unified Buffer", area: 256 * 32 * 5, col: "#60A5FA", kind: "sram", real: false, what: "256 × 4 bytes of activations. TPU v1's version was 24 MiB, 29 % of its die." },
+    { id: "wmem", name: "Weight memory", area: 256 * 32 * 5, col: "#FBBF24", kind: "sram", real: false, what: "Weight tiles waiting to be loaded. On TPU v1 this lived off-chip in DDR3." },
+    { id: "imem", name: "Instruction memory", area: 256 * 32 * 5, col: "#94A3B8", kind: "sram", real: false, what: "The program: 256 × 32-bit instructions." },
+    { id: "mxu", name: "Systolic array (4 × 4)", area: 62680, col: "#A78BFA", kind: "array", real: true, what: "16 processing elements. Area from real synthesis: 62,680 µm², 7,683 cells, 640 flip-flops." },
+    { id: "act", name: "Activation (ReLU + shift)", area: 9000, col: "#34D399", kind: "logic", real: false, what: "4 lanes of ReLU, arithmetic shift, and clamp to 8 bits." },
+    { id: "skew", name: "Input skew", area: 48 * 22, col: "#93C5FD", kind: "logic", real: false, what: "A staircase of 8-bit delay registers so row k waits k cycles." },
+    { id: "deskew", name: "Output de-skew", area: 192 * 22, col: "#F0ABFC", kind: "logic", real: false, what: "The reverse staircase, 32 bits wide, lining results back up." },
+    { id: "ctrl", name: "Controller", area: 3500, col: "#C4B5FD", kind: "logic", real: false, what: "Fetch, decode, and a handful of counters. Tiny: control is ~2 % of TPU v1 too." }
+  ];
+  // ------------------------------------------------ squarified treemap floor plan
+  function squarify(items, x, y, w, h, out) {
+    if (!items.length) return;
+    const total = items.reduce((s, b) => s + b.a, 0);
+    if (items.length === 1) { out.push({ ...items[0], x, y, w, h }); return; }
+    const vertical = w >= h, side = vertical ? h : w;
+    let row = [], best = Infinity, i = 0;
+    const worst = (r, s) => { const sum = r.reduce((a, b) => a + b.a, 0) / total * w * h, mx = Math.max(...r.map(b => b.a / total * w * h)), mn = Math.min(...r.map(b => b.a / total * w * h));
+      return Math.max(side * side * mx / (sum * sum), sum * sum / (side * side * mn)); };
+    for (; i < items.length; i++) { const r2 = row.concat(items[i]), wv = worst(r2); if (wv > best && row.length) break; row = r2; best = wv; }
+    const frac = row.reduce((s, b) => s + b.a, 0) / total, thick = (vertical ? w : h) * frac;
+    let off = 0;
+    for (const b of row) { const len = side * b.a / row.reduce((s, q) => s + q.a, 0);
+      vertical ? out.push({ ...b, x, y: y + off, w: thick, h: len }) : out.push({ ...b, x: x + off, y, w: len, h: thick }); off += len; }
+    vertical ? squarify(items.slice(i), x + thick, y, w - thick, h, out) : squarify(items.slice(i), x, y + thick, w, h - thick, out);
+  }
+  const total = B.reduce((s, b) => s + b.area, 0) * 1.12;           // 12 % for routing channels
+  const DW = Math.sqrt(total * 1.3), DH = total / DW, RING = 40;   // die with an I/O ring
+  const rects = []; squarify(B.map(b => ({ ...b, a: b.area })).sort((a, b) => b.a - a.a), RING, RING, DW, DH, rects);
+  const GAP = 4; rects.forEach(r => { r.x += GAP; r.y += GAP; r.w -= 2 * GAP; r.h -= 2 * GAP; r.heat = 0; });
+  const DIE = { w: DW + 2 * RING, h: DH + 2 * RING };
+  // processing elements inside the array
+  const mxu = rects.find(r => r.id === "mxu"), pes = [];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+    const pw = mxu.w / 4, ph = mxu.h / 4, x = mxu.x + c * pw + 3, y = mxu.y + r * ph + 3, w = pw - 6, h = ph - 6;
+    pes.push({ r, c, x, y, w, h, heat: 0, parts: [
+      { name: "8 × 8 multiplier", x, y, w: w * 0.62, h, col: "#A78BFA" },
+      { name: "32-bit adder", x: x + w * 0.62, y, w: w * 0.26, h: h * 0.7, col: "#E879F9" },
+      { name: "registers (weight, input, sum)", x: x + w * 0.62, y: y + h * 0.7, w: w * 0.38, h: h * 0.3, col: "#FBBF24" },
+      { name: "wiring to neighbors", x: x + w * 0.88, y, w: w * 0.12, h: h * 0.7, col: "#60A5FA" }] });
+  }
+  $("legend").innerHTML = B.map(b => `<span style="--c:${b.col}">${b.name.split(" (")[0]}</span>`).join("");
+
+  // ------------------------------------------------ camera
+  let dpr = 1, W = 0, H = 0, cam = { x: DIE.w / 2, y: DIE.h / 2, z: 1 }, target = null;
+  function fit() { cam.z = Math.min(W / DIE.w, H / DIE.h) * 0.86; cam.x = DIE.w / 2 + (W > 900 ? -170 / cam.z : 0); cam.y = DIE.h / 2; }
+  function resize() { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; }
+  const sx = x => (x - cam.x) * cam.z + W / 2, sy = y => (y - cam.y) * cam.z + H / 2;
+  const wx = px => (px - W / 2) / cam.z + cam.x, wy = py => (py - H / 2) / cam.z + cam.y;
+  // deterministic pseudo-random numbers, so cells don't flicker
+  const hash = (a, b) => { let h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; };
+
+  // ------------------------------------------------ drawing
+  function stdcells(x, y, w, h, col, seed) {
+    const ROW = 2.72, SITE = 0.46, rowPx = ROW * cam.z;
+    if (rowPx < 2.2) {                                   // too small: a shaded texture
+      g.fillStyle = col; g.globalAlpha = 0.22; g.fillRect(sx(x), sy(y), w * cam.z, h * cam.z); g.globalAlpha = 1; return;
+    }
+    const y0 = Math.max(y, wy(0) - ROW), y1 = Math.min(y + h, wy(H) + ROW), x0 = Math.max(x, wx(0)), x1 = Math.min(x + w, wx(W));
+    for (let ry = Math.floor((y0 - y) / ROW); y + ry * ROW < y1; ry++) {
+      const yy = y + ry * ROW; if (yy + ROW > y + h) break;
+      g.fillStyle = ry % 2 ? "rgba(255,255,255,.025)" : "rgba(0,0,0,.2)"; g.fillRect(sx(x), sy(yy), w * cam.z, rowPx);
+      let cx = x, k = 0;
+      // skip quickly to the visible part of the row
+      if (x0 > x) { cx = x + Math.floor((x0 - x) / (SITE * 6)) * SITE * 6; k = Math.floor((cx - x) / SITE); }
+      while (cx < Math.min(x1, x + w)) {
+        const r = hash(seed * 7919 + ry, k), cw = SITE * (2 + Math.floor(r * 9));
+        if (cx + cw > x + w) break;
+        if (r > 0.12) { g.fillStyle = col; g.globalAlpha = 0.25 + 0.5 * hash(k, ry * 31 + seed);
+          g.fillRect(sx(cx) + 0.5, sy(yy) + rowPx * 0.12, Math.max(0.5, cw * cam.z - 1), rowPx * 0.76);
+          if (rowPx > 26) { g.globalAlpha = 0.7; g.fillStyle = "#05060C"; g.font = `${Math.min(11, rowPx * 0.3)}px JetBrains Mono, monospace`;
+            const nm = ["nand2", "dfxtp", "fa", "xor2", "a21oi", "inv", "mux2", "o21ai", "buf", "nor2"][Math.floor(r * 10)];
+            if (cw * cam.z > nm.length * 6.5) g.fillText(nm, sx(cx) + 3, sy(yy) + rowPx * 0.6); } }
+        cx += cw; k++;
+      }
+      g.globalAlpha = 1;
+    }
+  }
+  function sram(r) {
+    const cell = 2.4 * cam.z;
+    g.fillStyle = "#0B0E1E"; g.fillRect(sx(r.x), sy(r.y), r.w * cam.z, r.h * cam.z);
+    // bit-cell array with decoder strip and sense amplifiers
+    const dec = r.w * 0.12, sa = r.h * 0.1;
+    g.fillStyle = r.col; g.globalAlpha = 0.28; g.fillRect(sx(r.x), sy(r.y), dec * cam.z, r.h * cam.z);
+    g.fillRect(sx(r.x + dec), sy(r.y + r.h - sa), (r.w - dec) * cam.z, sa * cam.z); g.globalAlpha = 1;
+    if (cell > 3) {
+      const x0 = Math.max(r.x + dec, wx(0)), x1 = Math.min(r.x + r.w, wx(W)), y0 = Math.max(r.y, wy(0)), y1 = Math.min(r.y + r.h - sa, wy(H));
+      g.strokeStyle = r.col; g.globalAlpha = 0.25; g.lineWidth = 1; g.beginPath();
+      for (let x = r.x + dec + Math.ceil((x0 - r.x - dec) / 2.4) * 2.4; x < x1; x += 2.4) { g.moveTo(sx(x), sy(Math.max(r.y, y0))); g.lineTo(sx(x), sy(Math.min(r.y + r.h - sa, y1))); }
+      for (let y = r.y + Math.ceil((y0 - r.y) / 2.4) * 2.4; y < y1; y += 2.4) { g.moveTo(sx(Math.max(r.x + dec, x0)), sy(y)); g.lineTo(sx(Math.min(r.x + r.w, x1)), sy(y)); }
+      g.stroke(); g.globalAlpha = 1;
+    } else { g.fillStyle = r.col; g.globalAlpha = 0.12; g.fillRect(sx(r.x + dec), sy(r.y), (r.w - dec) * cam.z, (r.h - sa) * cam.z); g.globalAlpha = 1; }
+  }
+  function wires() {
+    g.lineWidth = Math.max(0.6, 0.4 * cam.z); 
+    for (let i = 0; i < 70; i++) {
+      const vert = i % 2, p = hash(i, 99), q = hash(i, 7), len = hash(i, 3);
+      g.strokeStyle = vert ? "rgba(96,165,250,.14)" : "rgba(232,121,249,.12)";
+      g.beginPath();
+      if (vert) { const x = RING + p * DW; g.moveTo(sx(x), sy(RING + q * DH * 0.5)); g.lineTo(sx(x), sy(RING + (q * 0.5 + len * 0.5) * DH)); }
+      else { const y = RING + p * DH; g.moveTo(sx(RING + q * DW * 0.5), sy(y)); g.lineTo(sx(RING + (q * 0.5 + len * 0.5) * DW), sy(y)); }
+      g.stroke();
+    }
+  }
+  function glow(x, y, w, h, col, a) {
+    if (a < 0.02) return;
+    g.save(); g.globalCompositeOperation = "lighter"; g.shadowColor = col; g.shadowBlur = 40; g.globalAlpha = Math.min(1, a) * 0.55;
+    g.fillStyle = col; g.fillRect(sx(x), sy(y), w * cam.z, h * cam.z); g.restore();
+  }
+  function label(r, text, sub) {
+    const w = r.w * cam.z, h = r.h * cam.z; if (w < 60 || h < 26) return;
+    const fs = Math.max(11, Math.min(22, w / 12));
+    g.font = `800 ${fs}px Archivo, sans-serif`; g.fillStyle = "#fff"; g.globalAlpha = 0.92; g.textAlign = "center";
+    g.shadowColor = "#000"; g.shadowBlur = 8; g.fillText(text, sx(r.x + r.w / 2), sy(r.y + r.h / 2)); 
+    if (sub && h > 60) { g.font = `600 ${fs * 0.62}px JetBrains Mono, monospace`; g.fillStyle = "#C7CBE6"; g.fillText(sub, sx(r.x + r.w / 2), sy(r.y + r.h / 2) + fs * 0.95); }
+    g.shadowBlur = 0; g.globalAlpha = 1; g.textAlign = "left";
+  }
+  let showWires = true, heatOn = true;
+  function draw() {
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    // die, seal ring, and I/O pads
+    g.fillStyle = "#070914"; g.fillRect(sx(0), sy(0), DIE.w * cam.z, DIE.h * cam.z);
+    g.strokeStyle = "rgba(167,139,250,.5)"; g.lineWidth = 2; g.strokeRect(sx(6), sy(6), (DIE.w - 12) * cam.z, (DIE.h - 12) * cam.z);
+    const pads = 22; g.fillStyle = "rgba(203,213,225,.55)";
+    for (let i = 0; i < pads; i++) { const t = (i + 0.5) / pads, ps = 18 * cam.z;
+      g.fillRect(sx(t * DIE.w) - ps / 2, sy(12), ps, ps); g.fillRect(sx(t * DIE.w) - ps / 2, sy(DIE.h - 12) - ps, ps, ps);
+      g.fillRect(sx(12), sy(t * DIE.h) - ps / 2, ps, ps); g.fillRect(sx(DIE.w - 12) - ps, sy(t * DIE.h) - ps / 2, ps, ps); }
+    // routing texture in the channels
+    g.fillStyle = "rgba(255,255,255,.015)"; g.fillRect(sx(RING), sy(RING), DW * cam.z, DH * cam.z);
+    for (const r of rects) {
+      if (sx(r.x + r.w) < 0 || sx(r.x) > W || sy(r.y + r.h) < 0 || sy(r.y) > H) continue;
+      g.fillStyle = "#0A0C1A"; g.fillRect(sx(r.x), sy(r.y), r.w * cam.z, r.h * cam.z);
+      if (r.kind === "sram") sram(r);
+      else if (r.kind === "logic") stdcells(r.x, r.y, r.w, r.h, r.col, r.id.length * 13);
+      else if (r.kind === "array") pes.forEach((p, i) => {
+        p.parts.forEach((q, j) => stdcells(q.x, q.y, q.w, q.h, q.col, i * 17 + j));
+        g.strokeStyle = "rgba(167,139,250,.55)"; g.lineWidth = 1.2; g.strokeRect(sx(p.x), sy(p.y), p.w * cam.z, p.h * cam.z);
+        if (heatOn) glow(p.x, p.y, p.w, p.h, "#E879F9", p.heat);
+        if (p.w * cam.z > 90) { g.font = "700 12px JetBrains Mono, monospace"; g.fillStyle = "#fff"; g.fillText(`PE(${p.r},${p.c})`, sx(p.x) + 6, sy(p.y) + 16);
+          if (p.w * cam.z > 260) p.parts.forEach(q => { g.font = "600 11px JetBrains Mono, monospace"; g.fillStyle = q.col; g.fillText(q.name, sx(q.x) + 6, sy(q.y + q.h) - 8); }); }
+      });
+      g.strokeStyle = r.col; g.globalAlpha = 0.85; g.lineWidth = 1.6; g.strokeRect(sx(r.x), sy(r.y), r.w * cam.z, r.h * cam.z); g.globalAlpha = 1;
+      if (heatOn && r.kind !== "array") glow(r.x, r.y, r.w, r.h, r.col, r.heat);
+      if (!(r.kind === "array" && r.w * cam.z > 180)) label(r, r.name, `${Math.round(r.area).toLocaleString()} µm²${r.real ? " · synthesized" : " · estimated"}`);
+    }
+    if (showWires) wires();
+    // scale bar
+    const nice = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000], um = nice.find(v => v * cam.z > 80) || 1000;
+    $("bar").style.width = um * cam.z + "px"; $("barL").textContent = um >= 1000 ? um / 1000 + " mm" : um + " µm";
+    mini();
+  }
+  function mini() {
+    const m = $("mini"), c = m.getContext("2d"), s = Math.min(m.width / DIE.w, m.height / DIE.h) * 0.9, ox = (m.width - DIE.w * s) / 2, oy = (m.height - DIE.h * s) / 2;
+    c.clearRect(0, 0, m.width, m.height); c.fillStyle = "#070914"; c.fillRect(ox, oy, DIE.w * s, DIE.h * s);
+    rects.forEach(r => { c.fillStyle = r.col; c.globalAlpha = 0.35 + 0.5 * Math.min(1, r.heat); c.fillRect(ox + r.x * s, oy + r.y * s, r.w * s, r.h * s); });
+    c.globalAlpha = 1; c.strokeStyle = "#fff"; c.lineWidth = 2;
+    c.strokeRect(ox + wx(0) * s, oy + wy(0) * s, (W / cam.z) * s, (H / cam.z) * s);
+  }
+
+  // ------------------------------------------------ live heat: run the neural network on the cycle-exact model
+  let chip, clock = 0, cycle = 0;
+  function boot() {
+    chip = new TinyTPUCore.Chip(4);
+    TinyTPUCore.assemble("LDW w=0\nMMUL ub=0 rows=8 acc=0\nLDW w=4\nMMUL ub=8 rows=8 acc=0 accumulate\nLDW w=8\nACT acc=0 rows=8 ub=16 relu shift=3\nMMUL ub=16 rows=8 acc=8\nACT acc=8 rows=8 ub=24 shift=5\nHALT")
+      .words.forEach((w, i) => chip.imem[i] = w);
+    for (let i = 0; i < 16; i++) { chip.wmem[i] = [1, -2, 3, 1]; chip.ub[i] = [2, 1, -1, 3]; }
+  }
+  const R = id => rects.find(r => r.id === id);
+  function step() {
+    if (!chip || chip.done) boot();
+    const f = chip.fields(), st = chip.state, s = chip.tick() || chip.comb();
+    cycle = chip.cycles;
+    const bump = (id, v) => { const r = R(id); r.heat = Math.min(1.2, r.heat + v); };
+    if (st === 0) bump("imem", 0.9); bump("ctrl", st <= 1 ? 0.9 : 0.3);
+    if (s.wLoad) bump("wmem", 0.9);
+    if (s.inValid) { bump("ub", 0.8); bump("skew", 0.9); }
+    if (s.outValid) { bump("deskew", 0.9); bump("acc", 0.8); }
+    if (s.ubWrEn) { bump("act", 1); bump("ub", 0.6); bump("acc", 0.5); }
+    pes.forEach(p => { const v = chip.cnt - 1 - p.r - p.c; if (st === 3 && v >= 0 && v < f.B) p.heat = 1; });
+    $("hud").textContent = `cycle ${cycle} · ${chip.done ? "DONE" : chip.stateName}`;
+  }
+
+  // ------------------------------------------------ interaction
+  let drag = null, moved = 0;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; moved = 0; cv.classList.add("drag"); cv.setPointerCapture(e.pointerId); target = null; });
+  cv.addEventListener("pointermove", e => {
+    const rct = cv.getBoundingClientRect(), px = e.clientX - rct.left, py = e.clientY - rct.top;
+    if (drag) { cam.x -= (e.clientX - drag.x) / cam.z; cam.y -= (e.clientY - drag.y) / cam.z; moved += Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y); drag = { x: e.clientX, y: e.clientY }; }
+    tipAt(px, py);
+  });
+  cv.addEventListener("pointerup", e => { cv.classList.remove("drag");
+    if (drag && moved < 5) { const rct = cv.getBoundingClientRect(), x = wx(e.clientX - rct.left), y = wy(e.clientY - rct.top);
+      const p = pes.find(q => x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h), r = rects.find(q => x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);
+      const t = p && cam.z > 1.2 ? p : r; if (t) flyTo(t); }
+    drag = null; });
+  cv.addEventListener("wheel", e => { e.preventDefault(); const rct = cv.getBoundingClientRect(), px = e.clientX - rct.left, py = e.clientY - rct.top;
+    const bx = wx(px), by = wy(py); cam.z = Math.min(80, Math.max(0.05, cam.z * Math.exp(-e.deltaY * 0.0015)));
+    cam.x = bx - (px - W / 2) / cam.z; cam.y = by - (py - H / 2) / cam.z; target = null; }, { passive: false });
+  cv.addEventListener("pointerleave", () => $("tip").style.display = "none");
+  function tipAt(px, py) {
+    const x = wx(px), y = wy(py), tip = $("tip");
+    const p = pes.find(q => x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);
+    const part = p && p.parts.find(q => x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);
+    const r = rects.find(q => x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);
+    if (!r) { tip.style.display = "none"; return; }
+    tip.style.display = "block"; tip.style.left = Math.min(px + 18, W - 310) + "px"; tip.style.top = (py + 14) + "px";
+    tip.innerHTML = p ? `<b>PE(${p.r}, ${p.c})</b>${part ? ` · ${part.name}` : ""}<div class="m">≈ ${Math.round(62680 / 16).toLocaleString()} µm² · 48 flip-flops</div>One multiply-accumulate per cycle. Its weight never moves; inputs arrive from the left, sums from above.`
+      : `<b>${r.name}</b><div class="m">${Math.round(r.area).toLocaleString()} µm² · ${r.real ? "from real synthesis" : "estimate"} · ${(r.w).toFixed(0)} × ${(r.h).toFixed(0)} µm</div>${r.what}`;
+  }
+  function flyTo(t) { const pad = 1.25; target = { x: t.x + t.w / 2, y: t.y + t.h / 2, z: Math.min(80, Math.min(W / (t.w * pad), H / (t.h * pad))) }; }
+  $("fit").onclick = () => { const z0 = cam.z; fit(); target = { ...cam }; cam.z = z0; };
+  $("zin").onclick = () => target = { x: cam.x, y: cam.y, z: Math.min(80, cam.z * 2) };
+  $("zout").onclick = () => target = { x: cam.x, y: cam.y, z: Math.max(0.05, cam.z / 2) };
+  $("heat").onclick = e => { heatOn = !heatOn; e.target.setAttribute("aria-pressed", heatOn); };
+  $("wires").onclick = e => { showWires = !showWires; e.target.setAttribute("aria-pressed", showWires); };
+
+  // ------------------------------------------------ loop
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (target) { const k = 1 - Math.pow(0.001, dt); cam.x += (target.x - cam.x) * k; cam.y += (target.y - cam.y) * k;
+      cam.z *= Math.pow(target.z / cam.z, k); if (Math.abs(Math.log(target.z / cam.z)) < 0.002 && Math.hypot(target.x - cam.x, target.y - cam.y) * cam.z < 0.5) target = null; }
+    if (heatOn) { clock += dt; while (clock > 0.11) { clock -= 0.11; step(); } }
+    rects.forEach(r => r.heat *= Math.pow(0.18, dt)); pes.forEach(p => p.heat *= Math.pow(0.05, dt));
+    draw(); requestAnimationFrame(frame);
+  }
+  addEventListener("resize", () => { resize(); });
+  resize(); fit(); boot(); requestAnimationFrame(frame);
+  window.__xray = { jump: id => { const t = id === "pe" ? pes[5] : rects.find(r => r.id === id); flyTo(t); Object.assign(cam, target); target = null; }, flyTo: id => flyTo(id === "pe" ? pes[5] : rects.find(r => r.id === id)), cam, setZ: (x, y, z) => { cam.x = x; cam.y = y; cam.z = z; target = null; }, rects, pes };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

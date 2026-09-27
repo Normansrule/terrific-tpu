@@ -127,7 +127,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
 <!-- ============================================================ BENTO -->
 <section class="s wrap" id="explore">
   <div class="eyebrow" data-reveal>Explore</div>
-  <h2 class="big" data-reveal>Eight ways to <span class="grad-text">get your hands on it</span></h2>
+  <h2 class="big" data-reveal>Ten ways to <span class="grad-text">get your hands on it</span></h2>
   <p class="sub" data-reveal>Every page runs in your browser. The chip simulator and applications use a JavaScript model that is checked cycle-for-cycle against the Verilog on every commit.</p>
   <div class="bento">
     <a class="spot beam card" href="tour.html" style="grid-column: span 4; grid-row: span 2" data-reveal>
@@ -150,6 +150,26 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
       <span class="tag">3-D</span><span class="go">Open →</span>
       <div class="art"><canvas id="artArray" width="640" height="200"></canvas></div>
       <h3>Array in 3-D</h3><p>Spin a 24 × 24 array. Tower heights are live partial sums.</p></a>
+    <a class="spot beam card" href="xray.html" style="grid-column: span 3" data-reveal>
+      <span class="tag">new · zoomable</span><span class="go">Open →</span>
+      <div class="art"><svg viewBox="0 0 640 200" aria-hidden="true">
+        <rect x="150" y="14" width="340" height="170" rx="6" fill="#070914" stroke="rgba(167,139,250,.5)"/>
+        <rect x="162" y="26" width="150" height="146" fill="rgba(232,121,249,.28)" stroke="#E879F9"/>
+        <rect x="318" y="26" width="80" height="70" fill="rgba(96,165,250,.28)" stroke="#60A5FA"/>
+        <rect x="404" y="26" width="74" height="70" fill="rgba(251,191,36,.25)" stroke="#FBBF24"/>
+        <rect x="318" y="102" width="80" height="70" fill="rgba(148,163,184,.22)" stroke="#94A3B8"/>
+                <rect x="404" y="102" width="74" height="70" fill="rgba(167,139,250,.3)" stroke="#A78BFA"><animate attributeName="fill-opacity" values=".3;1;.3" dur="1.6s" repeatCount="indefinite"/></rect>
+      </svg></div>
+      <h3>Chip X-ray</h3><p>Zoom from the whole die down to single standard cells, and watch blocks heat up as the chip runs.</p></a>
+    <a class="spot beam card" href="race.html" style="grid-column: span 3" data-reveal="80">
+      <span class="tag">new · race</span><span class="go">Race →</span>
+      <div class="art"><svg viewBox="0 0 640 200" aria-hidden="true">
+        <g font-family="JetBrains Mono, monospace" font-size="15" fill="#8E95BA"><text x="60" y="58">CPU</text><text x="60" y="108">vector</text><text x="60" y="158">systolic</text></g>
+        <rect x="150" y="44" width="420" height="18" rx="9" fill="rgba(148,163,184,.15)"/><rect x="150" y="44" width="0" height="18" rx="9" fill="#60A5FA"><animate attributeName="width" values="0;40;40" dur="3s" repeatCount="indefinite"/></rect>
+        <rect x="150" y="94" width="420" height="18" rx="9" fill="rgba(148,163,184,.15)"/><rect x="150" y="94" width="0" height="18" rx="9" fill="#E879F9"><animate attributeName="width" values="0;300;300" dur="3s" repeatCount="indefinite"/></rect>
+        <rect x="150" y="144" width="420" height="18" rx="9" fill="rgba(148,163,184,.15)"/><rect x="150" y="144" width="0" height="18" rx="9" fill="#A78BFA"><animate attributeName="width" values="0;420;420" keyTimes="0;.55;1" dur="3s" repeatCount="indefinite"/></rect>
+      </svg></div>
+      <h3>The great matrix-multiply race</h3><p>A plain CPU, a vector unit, and the systolic array: same 16 multipliers, very different speed and energy.</p></a>
     <a class="spot card" href="playground.html" style="grid-column: span 3" data-reveal>
       <span class="tag">step by step</span><span class="go">Open →</span>
       <h3>Systolic array playground</h3><p>Edit the weights and inputs, step the clock, and see every multiply-accumulate with its numbers.</p></a>

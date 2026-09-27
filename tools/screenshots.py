@@ -70,6 +70,19 @@ async def main():
         await page("apps", h=1100)
         await page("array3d", action=arr)
         await page("challenges", action=chal)
+        async def race(pg):
+            await pg.click("#go")
+            await pg.wait_for_timeout(600)
+            await pg.evaluate("window.__race.finish()")
+            await pg.wait_for_timeout(1500)
+
+        async def xray(pg):
+            await pg.wait_for_timeout(1500)
+            await pg.evaluate("window.__xray.jump('mxu')")
+            await pg.wait_for_timeout(1500)
+
+        await page("race", h=1000, action=race)
+        await page("xray", action=xray)
         await page("playground")
         await page("explorers")
         await b.close()

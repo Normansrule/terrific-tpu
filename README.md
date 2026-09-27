@@ -6,7 +6,7 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-8%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-10%20interactive%20pages%20·%203--D-2563EB)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
 </div>
@@ -19,7 +19,7 @@ The goal: **understand a TPU first, then find new things to use it for.**
 
 <div align="center">
 
-### [▶ Open the live site](https://normansrule.github.io/terrific-tpu/web/) · [Take the 3-D tour](https://normansrule.github.io/terrific-tpu/web/tour.html) · [Try the challenges](https://normansrule.github.io/terrific-tpu/web/challenges.html)
+### [▶ Open the live site](https://normansrule.github.io/terrific-tpu/web/) · [Take the 3-D tour](https://normansrule.github.io/terrific-tpu/web/tour.html) · [Zoom into the silicon](https://normansrule.github.io/terrific-tpu/web/xray.html) · [Run the race](https://normansrule.github.io/terrific-tpu/web/race.html) · [Try the challenges](https://normansrule.github.io/terrific-tpu/web/challenges.html)
 
 <a href="https://normansrule.github.io/terrific-tpu/web/tour.html"><img src="docs/img/tour.png" alt="3-D chip tour: the TinyTPU running a neural network, with glowing processing elements and live memory screens" width="100%"></a>
 
@@ -48,12 +48,14 @@ Every diagram, every web page, and every lesson uses the same colors.
 
 ## Start here: the web pages
 
-Everything runs in the browser, on GitHub Pages or locally with `make serve`. The simulators use a JavaScript model that is checked cycle-for-cycle against the Verilog on every commit.
+Everything runs in the browser, on GitHub Pages or locally with `make serve`. Press **Ctrl K** (or **/**) on any page to jump anywhere. The simulators use a JavaScript model that is checked cycle-for-cycle against the Verilog on every commit.
 
 | | Page | What you do |
 |---|---|---|
 | <img src="docs/img/index.png" width="260"> | [**Home**](web/index.html) | an interactive systolic field, a scroll-driven story of the four beats of a matrix multiply, and every command you need |
 | <img src="docs/img/tour.png" width="260"> | [**3-D chip tour**](web/tour.html) | fly through the whole chip in 3-D while it runs a real neural network; 8 guided chapters, a 92-cycle scrubber, hover any PE to read its registers |
+| <img src="docs/img/xray.png" width="260"> | [**Chip X-ray**](web/xray.html) | a zoomable floor plan of the die in SkyWater 130 nm: scroll from the whole chip down to individual standard cells in 2.72 µm rows, and watch blocks glow as the chip runs a neural network |
+| <img src="docs/img/race.png" width="260"> | [**The race**](web/race.html) | a scalar CPU, a vector unit, and the systolic array compute the same matrix product; one prize for fastest, one for least energy |
 | <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock: controller, skew, array, every memory |
 | <img src="docs/img/challenges.png" width="260"> | [**Challenges**](web/challenges.html) | six programming puzzles, from "first light" to "the whole network"; beat the par for three stars |
 | <img src="docs/img/apps.png" width="260"> | [**Applications**](web/apps.html) | paint an image for 4 filters, pick the answer for Grover's search, draw a graph and count triangles |
@@ -167,7 +169,7 @@ make test            # all of the above (includes the three applications)
 make diagrams        # redraw every generated SVG (runs the Verilog)
 make synth           # sky130 area (set SKY130_LIB to your liberty file)
 make wave            # open the waveform in GTKWave
-make serve           # the website at http://localhost:8000/web/
+make serve           # the website at http://localhost:8000/web/  (make serve PORT=8080 if 8000 is busy)
 make screenshots     # re-capture docs/img/*.png (pip install playwright && playwright install chromium)
 ```
 
@@ -232,7 +234,7 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · tour · chip · challenges · apps · array3d · playground · explorers
+├── web/                  index · tour · xray · race · chip · challenges · apps · array3d · playground · explorers
 │   ├── tinytpu-core.js      cycle-exact JavaScript model of the chip + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages

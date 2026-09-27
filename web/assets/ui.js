@@ -12,21 +12,66 @@
 
   const REPO = "https://github.com/Normansrule/terrific-tpu";
   const PAGES = [
-    ["index.html", "Home"], ["tour.html", "3-D chip tour"], ["chip.html", "Chip simulator"],
-    ["playground.html", "Systolic array"], ["array3d.html", "Array in 3-D"], ["apps.html", "Applications"],
-    ["challenges.html", "Challenges"], ["explorers.html", "Numbers & roofline"]
+    ["index.html", "Home", "Start here: the story of a chip that only multiplies", "main"],
+    ["tour.html", "3-D tour", "Fly through the whole chip while it runs a neural network", "main"],
+    ["xray.html", "Chip X-ray", "Zoom from the die down to single standard cells", "main"],
+    ["race.html", "The race", "CPU vs vector unit vs systolic array: speed and energy", "main"],
+    ["challenges.html", "Challenges", "Program the chip, beat the par, earn stars", "main"],
+    ["chip.html", "Chip simulator", "Write assembly and step it clock by clock", "more"],
+    ["playground.html", "Systolic array", "Edit weights and inputs, watch every multiply", "more"],
+    ["array3d.html", "Array in 3-D", "Spin a 24 × 24 array with live partial sums", "more"],
+    ["apps.html", "Applications", "Image filters, quantum search, graph triangles", "more"],
+    ["explorers.html", "Numbers & roofline", "Quantization and the roofline model", "more"]
   ];
+  const DOCS = [["01-what-is-a-tpu", "Lesson 1 · What is a TPU?"], ["04-systolic-arrays", "Lesson 4 · Systolic arrays"], ["07-architecture", "Lesson 7 · Architecture"],
+    ["08-rtl-walkthrough", "Lesson 8 · RTL walkthrough"], ["10-pipelining-v2", "Lesson 10 · Pipelining v2"], ["12-rtl-to-silicon", "Lesson 12 · RTL to silicon"],
+    ["15-application-gallery", "Lesson 15 · Application gallery"], ["16-experiments", "Lesson 16 · Experiments"], ["17-labs", "Lesson 17 · Labs"], ["glossary", "Glossary"]];
   const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
     <stop offset="0" stop-color="#60A5FA"/><stop offset=".5" stop-color="#A78BFA"/><stop offset="1" stop-color="#E879F9"/></linearGradient></defs>
     <rect x="3" y="3" width="26" height="26" rx="7" fill="none" stroke="url(#lg)" stroke-width="2.4"/>
     ${[0,1,2].map(r => [0,1,2].map(c => `<rect x="${8.5 + c * 5.5}" y="${8.5 + r * 5.5}" width="4" height="4" rx="1.2" fill="${r + c === 2 ? "#E879F9" : "#A78BFA"}" opacity="${r + c === 2 ? 1 : .55}"/>`).join("")).join("")}</svg>`;
   const here = (location.pathname.split("/").pop() || "index.html");
+  const moreHere = PAGES.some(p => p[3] === "more" && p[0] === here);
   document.querySelectorAll("nav.site").forEach(nav => {
     nav.innerHTML = `<a class="brand" href="index.html">${LOGO}<span>terrific-tpu</span></a>` +
-      PAGES.map(([h, t]) => `<a href="${h}"${h === here ? ' aria-current="page"' : ""}>${t}</a>`).join("") +
-      `<span class="spacer"></span><button class="tt" id="tt" aria-label="Toggle light and dark theme">${theme === "dark" ? "☀" : "☾"}</button>` +
+      PAGES.filter(p => p[3] === "main").map(([h, t]) => `<a href="${h}"${h === here ? ' aria-current="page"' : ""}>${t}</a>`).join("") +
+      `<div class="more"><button class="morebtn" aria-expanded="false" aria-haspopup="true"${moreHere ? ' aria-current="page"' : ""}>Explore ▾</button><div class="menu" role="menu">` +
+      PAGES.filter(p => p[3] === "more").map(([h, t, d]) => `<a role="menuitem" href="${h}"${h === here ? ' aria-current="page"' : ""}><b>${t}</b><span>${d}</span></a>`).join("") + `</div></div>` +
+      `<span class="spacer"></span><button class="kbar" id="kbar" aria-label="Search pages and lessons">⌕ Search <kbd>Ctrl K</kbd></button>` +
+      `<button class="tt" id="tt" aria-label="Toggle light and dark theme">${theme === "dark" ? "☀" : "☾"}</button>` +
       `<a class="gh" href="${REPO}" aria-label="Source on GitHub">★ GitHub</a>`;
+    const mb = nav.querySelector(".morebtn"), menu = nav.querySelector(".menu");
+    mb.onclick = e => { e.stopPropagation(); const open = mb.getAttribute("aria-expanded") !== "true"; mb.setAttribute("aria-expanded", open); menu.classList.toggle("open", open);
+      if (open) { const r = mb.getBoundingClientRect(); menu.style.left = Math.min(r.left, innerWidth - 330) + "px"; menu.style.top = (r.bottom + 6) + "px"; } };
+    document.addEventListener("click", () => { mb.setAttribute("aria-expanded", "false"); menu.classList.remove("open"); });
   });
+
+  // ---------------- command palette (Ctrl/Cmd + K, or "/")
+  const pal = document.createElement("div"); pal.className = "palette"; pal.hidden = true;
+  pal.innerHTML = `<div class="pbox" role="dialog" aria-label="Search"><input placeholder="Jump to a page or lesson…" aria-label="Search"><ul></ul><div class="phint">↑ ↓ to move · Enter to open · Esc to close</div></div>`;
+  document.body.appendChild(pal);
+  const items = PAGES.map(([h, t, d]) => ({ href: h, t, d, k: "page" })).concat(DOCS.map(([f, t]) => ({ href: `${REPO}/blob/main/docs/${f}.md`, t, d: "on GitHub", k: "lesson" })),
+    [{ href: REPO, t: "Source code on GitHub", d: "Verilog, tools, lessons", k: "link" }]);
+  const pin = pal.querySelector("input"), pul = pal.querySelector("ul"); let sel = 0, shown = items;
+  const renderPal = () => { const q = pin.value.toLowerCase().trim();
+    shown = items.filter(i => !q || (i.t + " " + i.d).toLowerCase().split(/\s+/).some(w => w.startsWith(q)) || (i.t + i.d).toLowerCase().includes(q)).slice(0, 12);
+    sel = Math.min(sel, Math.max(0, shown.length - 1));
+    pul.innerHTML = shown.map((i, n) => `<li${n === sel ? ' class="sel"' : ""}><a href="${i.href}"><span class="k">${i.k}</span><b>${i.t}</b><span>${i.d}</span></a></li>`).join("") || `<li class="none">No match</li>`; };
+  const openPal = () => { pal.hidden = false; pin.value = ""; sel = 0; renderPal(); pin.focus(); };
+  const closePal = () => { pal.hidden = true; };
+  pin.addEventListener("input", () => { sel = 0; renderPal(); });
+  pin.addEventListener("keydown", e => { if (e.key === "ArrowDown") { sel = Math.min(shown.length - 1, sel + 1); renderPal(); e.preventDefault(); }
+    if (e.key === "ArrowUp") { sel = Math.max(0, sel - 1); renderPal(); e.preventDefault(); }
+    if (e.key === "Enter" && shown[sel]) location.href = shown[sel].href; if (e.key === "Escape") closePal(); });
+  pal.addEventListener("click", e => { if (e.target === pal) closePal(); });
+  addEventListener("keydown", e => { const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if ((e.key === "k" && (e.ctrlKey || e.metaKey)) || (e.key === "/" && !typing)) { e.preventDefault(); pal.hidden ? openPal() : closePal(); } });
+  const kb = document.getElementById("kbar"); if (kb) kb.onclick = openPal;
+
+  // ---------------- scroll progress bar
+  const prog = document.createElement("div"); prog.className = "progress"; document.body.appendChild(prog);
+  addEventListener("scroll", () => { const h = document.documentElement.scrollHeight - innerHeight; prog.style.transform = `scaleX(${h > 0 ? scrollY / h : 0})`; }, { passive: true });
+
   const tt = document.getElementById("tt");
   if (tt) tt.onclick = () => {
     theme = root.dataset.theme === "dark" ? "light" : "dark"; root.dataset.theme = theme;

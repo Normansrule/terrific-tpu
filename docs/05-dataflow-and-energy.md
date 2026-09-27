@@ -24,6 +24,8 @@ So a design that fetches each operand from DRAM for every multiply would spend o
 
 For a batch of M vectors, TinyTPU does `M × 16` multiplies but reads only `16` weights and `4M` input bytes. At M = 256 that is about 4,096 multiplies per 1,040 bytes read, and all of those reads come from nearby SRAM.
 
+Race it: the [matrix-multiply race](../web/race.html) runs a scalar CPU, a vector unit, and TinyTPU on the same product and prices every operation with these numbers. The vector unit is often faster, the systolic array always cheaper in energy.
+
 ## Three dataflows
 
 <img src="../diagrams/dataflows.svg" alt="Weight, output, and row stationary dataflows" width="880">

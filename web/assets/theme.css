@@ -117,3 +117,33 @@ footer.site a { color: var(--muted); }
   [data-reveal] { opacity: 1; transform: none; }
   .btn-shimmer::after, .beam::after, .marquee .track { animation: none; }
 }
+
+/* ------------------------------------------------ nav dropdown, command palette, progress, page transitions */
+nav.site .more { position: relative; }
+nav.site .morebtn { background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 8px; }
+nav.site .morebtn:hover, nav.site .morebtn[aria-current="page"] { background: var(--idle); color: var(--ink); transform: none; }
+nav.site .menu { position: fixed; display: none; width: 320px; padding: 8px; border-radius: 14px; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(16px); box-shadow: 0 30px 80px -20px rgba(0,0,0,.6); z-index: 80; }
+nav.site .menu.open { display: grid; gap: 2px; animation: drop .18s var(--ease); }
+@keyframes drop { from { opacity: 0; transform: translateY(-6px); } }
+nav.site .menu a { display: block; padding: 9px 12px; border-radius: 10px; white-space: normal; }
+nav.site .menu a b { display: block; color: var(--ink); font-size: 14px; }
+nav.site .menu a span { font-size: 12.5px; color: var(--muted); }
+nav.site .kbar { background: var(--idle); border: 1px solid var(--line); color: var(--muted); font-size: 13px; padding: 5px 10px; border-radius: 9px; display: flex; gap: 8px; align-items: center; }
+nav.site kbd { font: 600 11px "JetBrains Mono", monospace; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel); }
+@media (max-width: 860px) { nav.site .kbar kbd { display: none; } }
+.palette { position: fixed; inset: 0; z-index: 100; background: rgba(2,3,8,.55); backdrop-filter: blur(6px); display: grid; place-items: start center; padding-top: 12vh; }
+.palette[hidden] { display: none; }
+.pbox { width: min(620px, 92vw); border-radius: 18px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 96%, transparent);
+  box-shadow: 0 40px 120px -20px rgba(124,58,237,.45); overflow: hidden; animation: drop .2s var(--ease); }
+.pbox input { width: 100%; border: 0; outline: 0; padding: 18px 20px; font: 500 18px Archivo, sans-serif; background: transparent; color: var(--ink); border-bottom: 1px solid var(--line); }
+.pbox ul { list-style: none; margin: 0; padding: 8px; max-height: 50vh; overflow: auto; }
+.pbox li a { display: grid; grid-template-columns: 70px 1fr; gap: 0 12px; padding: 10px 12px; border-radius: 10px; text-decoration: none; color: var(--ink); }
+.pbox li a span:last-child { grid-column: 2; color: var(--muted); font-size: 13px; }
+.pbox li .k { grid-row: span 2; align-self: center; font: 600 11px "JetBrains Mono", monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--mxu); }
+.pbox li.sel a { background: var(--mxu-bg); }
+.pbox li.none { padding: 14px; color: var(--muted); }
+.phint { padding: 10px 16px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 90; transform-origin: 0 50%; transform: scaleX(0); background: var(--grad); pointer-events: none; }
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; }

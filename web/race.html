@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: the great matrix-multiply race</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+header.top { padding: 34px 0 10px; }
+h1 { font-size: clamp(34px, 5.4vw, 68px); margin: 0 0 10px; letter-spacing: -.045em; line-height: .95; font-weight: 900; }
+header.top p { margin: 0; color: var(--muted); max-width: 72ch; font-size: 17px; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; margin: 22px 0 18px; padding: 14px 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--glass); }
+.controls label { font-size: 14px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+.controls b { color: var(--ink); min-width: 3ch; display: inline-block; }
+.lanes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 980px) { .lanes { grid-template-columns: 1fr; } }
+.lane { position: relative; padding: 18px; border-radius: 20px; border: 1px solid var(--line); background: var(--glass); overflow: hidden; }
+.lane.win { border-color: var(--out); box-shadow: 0 0 0 1px var(--out), 0 20px 60px -20px rgba(52,211,153,.5); }
+.lane h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; display: flex; justify-content: space-between; align-items: baseline; }
+.lane h2 small { font: 600 12px "JetBrains Mono", monospace; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.lane p.how { color: var(--muted); font-size: 13.5px; margin: 6px 0 12px; min-height: 3.2em; }
+.lane canvas { width: 100%; aspect-ratio: 1; display: block; border-radius: 12px; background: rgba(0,0,0,.25); }
+.meter { height: 8px; border-radius: 4px; background: var(--idle); overflow: hidden; margin-top: 12px; }
+.meter i { display: block; height: 100%; width: 0; border-radius: 4px; }
+.nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.nums div { background: var(--idle); border-radius: 10px; padding: 8px 10px; }
+.nums .k { font-size: 11.5px; color: var(--muted); } .nums .v { font: 700 17px "JetBrains Mono", monospace; }
+.badge { position: absolute; top: 16px; right: 16px; font: 800 12px "JetBrains Mono", monospace; letter-spacing: .08em; padding: 5px 10px; border-radius: 999px; background: var(--out); color: #04110B; transform: scale(0); transition: transform .5s cubic-bezier(.2,1.6,.4,1); }
+.lane.fast .badge:not(.b2) { transform: scale(1); }
+.badge.b2 { top: 46px; background: var(--wt); color: #1A1204; }
+.lane.eff .badge.b2 { transform: scale(1); }
+.lane.fast { border-color: var(--act); }
+.results { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-top: 16px; }
+@media (max-width: 980px) { .results { grid-template-columns: 1fr; } }
+.bars { display: grid; gap: 16px; }
+.bar h3 { font-size: 14px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+.bar .row { display: grid; grid-template-columns: 120px 1fr 110px; gap: 10px; align-items: center; margin: 5px 0; font-size: 13.5px; }
+.bar .track { height: 14px; border-radius: 7px; background: var(--idle); overflow: hidden; }
+.bar .track i { display: block; height: 100%; border-radius: 7px; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.bar .row span:last-child { font-family: "JetBrains Mono", monospace; text-align: right; }
+.why p { color: var(--muted); font-size: 14.5px; }
+.why table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.why td, .why th { padding: 6px 8px; border-top: 1px solid var(--line); text-align: left; }
+.why th { color: var(--muted); font-weight: 600; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<nav class="site"></nav>
+<main class="wrap">
+  <header class="top">
+    <h1>The great <span class="grad-text">matrix-multiply race.</span></h1>
+    <p>Three machines with the same 16 multipliers compute the same matrix product. A plain processor does one multiply-accumulate (MAC) per clock; a vector unit does 16 in lockstep; the systolic array keeps 16 multipliers fed by passing numbers between neighbors. There are two prizes: <b>fastest</b> and <b>least energy</b>. They don't always go to the same machine, and that's the whole story of why TPUs exist.</p>
+  </header>
+  <div class="controls">
+    <label>matrix size n × n <input type="range" id="n" min="4" max="64" step="4" value="16" aria-label="matrix size"> <b id="nv" class="num">16</b></label>
+    <label>speed <input type="range" id="spd" min="1" max="8" value="4" aria-label="speed"></label>
+    <button class="primary" id="go">▶ Start the race</button>
+    <button id="reset">Reset</button>
+    <span style="color:var(--muted);font-size:13px" id="note"></span>
+  </div>
+  <div class="lanes">
+    <div class="lane" id="L0"><span class="badge">FASTEST</span><span class="badge b2">LEAST ENERGY</span><h2>Scalar CPU <small>1 MAC / cycle</small></h2>
+      <p class="how">One multiply-add per instruction. Every instruction is fetched, decoded, and reads its operands from the register file and cache.</p>
+      <canvas width="420" height="420"></canvas><div class="meter"><i style="background:var(--act)"></i></div>
+      <div class="nums"><div><div class="k">cycles</div><div class="v" data-f="cyc">0</div></div><div><div class="k">energy</div><div class="v" data-f="en">0</div></div><div><div class="k">memory reads</div><div class="v" data-f="rd">0</div></div></div></div>
+    <div class="lane" id="L1"><span class="badge">FASTEST</span><span class="badge b2">LEAST ENERGY</span><h2>Vector unit <small>16 lanes</small></h2>
+      <p class="how">One instruction drives 16 multipliers at once, like a GPU warp or a CPU vector extension. Operands still come from a register file.</p>
+      <canvas width="420" height="420"></canvas><div class="meter"><i style="background:var(--ps)"></i></div>
+      <div class="nums"><div><div class="k">cycles</div><div class="v" data-f="cyc">0</div></div><div><div class="k">energy</div><div class="v" data-f="en">0</div></div><div><div class="k">memory reads</div><div class="v" data-f="rd">0</div></div></div></div>
+    <div class="lane" id="L2"><span class="badge">FASTEST</span><span class="badge b2">LEAST ENERGY</span><h2>TinyTPU <small>4 × 4 systolic</small></h2>
+      <p class="how">Weights sit still in 16 processing elements; inputs and sums hop to the neighbor each cycle. Timing is TinyTPU v1's, checked against the Verilog.</p>
+      <canvas width="420" height="420"></canvas><div class="meter"><i style="background:var(--mxu)"></i></div>
+      <div class="nums"><div><div class="k">cycles</div><div class="v" data-f="cyc">0</div></div><div><div class="k">energy</div><div class="v" data-f="en">0</div></div><div><div class="k">memory reads</div><div class="v" data-f="rd">0</div></div></div></div>
+  </div>
+  <div class="results">
+    <section class="box bars" aria-label="Final comparison">
+      <div class="bar"><h3>Clock cycles (shorter is faster)</h3><div id="bCyc"></div></div>
+      <div class="bar"><h3>Energy, estimated (shorter is better)</h3><div id="bEn"></div></div>
+      <div class="bar"><h3>Energy per multiply-accumulate</h3><div id="bPer"></div></div>
+    </section>
+    <section class="box why">
+      <h2 style="font-size:18px;margin:0 0 8px">Why speed and energy tell different stories</h2>
+      <p>All three do exactly the same n³ multiply-accumulates with the same 16 multipliers. The idealized vector unit is often fastest here, because this model assumes its registers never run dry and TinyTPU's small 4 × 4 array pays 2N − 1 fill-and-drain cycles plus a weight load on every tile. But keeping those registers fed is exactly what costs energy:</p>
+      <table>
+        <tr><th>cost per MAC (45 nm estimates)</th><th>CPU</th><th>vector</th><th>systolic</th></tr>
+        <tr><td>the multiply-add itself</td><td>0.3 pJ</td><td>0.3 pJ</td><td>0.3 pJ</td></tr>
+        <tr><td>instruction fetch + decode</td><td>70 pJ</td><td>70 ÷ 16</td><td>≈ 0</td></tr>
+        <tr><td>operand reads</td><td>2 × 5 pJ</td><td>2 × 1 pJ</td><td>neighbor hop</td></tr>
+      </table>
+      <p style="margin-top:10px">Make the matrix bigger and watch the energy gap stay wide while the cycle gap shrinks. Real TPUs use 128 × 128 or 256 × 256 arrays, where fill and drain are tiny compared with the batch. Per-instruction overhead of about 70 pJ is from M. Horowitz, "Computing's Energy Problem," International Solid-State Circuits Conference (ISSCC) 2014. These are simplified models for intuition; <a href="https://github.com/Normansrule/terrific-tpu/blob/main/docs/16-experiments.md">experiment 3</a> measures TinyTPU's real event counts.</p>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  // ---------- the three machine models (cycles, energy in pJ, memory reads in words)
+  function models(n) {
+    const macs = n ** 3;
+    const tiles = (n / 4) ** 2, perTile = (2 + 4) + (2 + n + 7);                       // TinyTPU v1: LDW + MMUL
+    return [
+      { cycles: macs, energy: macs * (0.3 + 70 + 10), reads: 2 * macs },
+      { cycles: macs / 16, energy: macs * (0.3 + 70 / 16 + 2), reads: 2 * macs / 16 * 1 + 0 },
+      { cycles: tiles * perTile + 3, energy: macs * (0.3 + 0.2) + tiles * (4 * 5 + n * 5 + n * 40), reads: tiles * (4 + n) }
+    ].map(m => ({ ...m, macs }));
+  }
+  const effIdx = () => M.map(m => m.energy).indexOf(Math.min(...M.map(m => m.energy)));
+  const fmtE = pj => pj > 1e6 ? (pj / 1e6).toFixed(2) + " µJ" : pj > 1e3 ? (pj / 1e3).toFixed(1) + " nJ" : pj.toFixed(0) + " pJ";
+  const fmt = v => v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "k" : Math.round(v).toLocaleString();
+  const colors = () => [css("--act"), css("--ps"), css("--mxu")];
+  let n = 16, M, t = 0, running = false, last = 0, doneAt = [null, null, null];
+
+  // ---------- drawing: which output cells are finished after c cycles
+  function draw(k, c) {
+    const cv = document.querySelector(`#L${k} canvas`), g = cv.getContext("2d"), W = cv.width, s = W / n, col = colors()[k];
+    g.clearRect(0, 0, W, W);
+    const m = M[k], frac = Math.min(1, c / m.cycles);
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      let p;                                                   // progress of cell (i, j) in 0..1
+      if (k === 0) { const idx = i * n + j, per = n; p = (c - idx * per) / per; }                 // one cell at a time
+      else if (k === 1) { const idx = i * n + j; p = (c - Math.floor(idx / 16) * n) / n; }            // 16 cells at a time
+      else {                                                                                       // tiles, with a diagonal wavefront inside
+        const ct = Math.floor(j / 4), kt = n / 4, perTile = 6 + 2 + n + 7, tileStart = ct * kt * perTile;
+        const local = c - tileStart; p = local / (kt * perTile);
+        const wave = (local % perTile) - 8 - i - (j % 4);
+        if (local > 0 && local < kt * perTile && wave >= 0 && wave < 4) { g.fillStyle = "#fff"; g.globalAlpha = 0.9; g.fillRect(j * s + 1, i * s + 1, s - 2, s - 2); continue; }
+      }
+      p = Math.max(0, Math.min(1, p));
+      g.globalAlpha = p >= 1 ? 1 : 0.08 + 0.6 * p;
+      g.fillStyle = p > 0 ? col : "rgba(148,163,184,.12)";
+      g.fillRect(j * s + 1, i * s + 1, s - 2, s - 2);
+    }
+    g.globalAlpha = 1;
+    const lane = $(`L${k}`);
+    lane.querySelector(".meter i").style.width = (frac * 100) + "%";
+    lane.querySelector('[data-f="cyc"]').textContent = fmt(Math.min(c, m.cycles));
+    lane.querySelector('[data-f="en"]').textContent = fmtE(m.energy * frac);
+    lane.querySelector('[data-f="rd"]').textContent = fmt(m.reads * frac);
+  }
+  function bars() {
+    const names = ["Scalar CPU", "Vector unit", "TinyTPU"], cols = colors();
+    const mk = (id, vals, f) => { const mx = Math.max(...vals);
+      $(id).innerHTML = vals.map((v, i) => `<div class="row"><span>${names[i]}</span><div class="track"><i style="width:0;background:${cols[i]}"></i></div><span>${f(v)}</span></div>`).join("");
+      requestAnimationFrame(() => $(id).querySelectorAll("i").forEach((el, i) => el.style.width = Math.max(1.5, vals[i] / mx * 100) + "%")); };
+    mk("bCyc", M.map(m => m.cycles), fmt);
+    mk("bEn", M.map(m => m.energy), fmtE);
+    mk("bPer", M.map(m => m.energy / m.macs), v => v.toFixed(1) + " pJ");
+  }
+  function setup() {
+    n = +$("n").value; $("nv").textContent = n; M = models(n); t = 0; running = false; doneAt = [null, null, null];
+    document.querySelectorAll(".lane").forEach(l => l.classList.remove("win", "fast", "eff"));
+    $("go").textContent = "▶ Start the race"; $("note").textContent = `${(n ** 3).toLocaleString()} multiply-accumulates each`;
+    for (let k = 0; k < 3; k++) draw(k, 0); bars();
+  }
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (running) {
+      // time runs so the fastest machine takes about 3 s; the others keep going at the same clock rate
+      const fastest = Math.min(...M.map(m => m.cycles)), rate = fastest / 3 * (+$("spd").value / 4);
+      t += dt * rate;
+      for (let k = 0; k < 3; k++) { draw(k, t);
+        if (doneAt[k] === null && t >= M[k].cycles) { doneAt[k] = t; if (doneAt.filter(x => x !== null).length === 1) $(`L${k}`).classList.add("fast");
+          if (doneAt.every(x => x !== null) || k === effIdx()) $(`L${effIdx()}`).classList.add("eff", "win"); } }
+      const slowest = Math.max(...M.map(m => m.cycles));
+      if (t > slowest) { running = false; $("go").textContent = "▶ Race again"; }
+      else if (doneAt[2] !== null && t > M[2].cycles * 40) { $("note").textContent = `TinyTPU finished long ago… the CPU needs ${(M[0].cycles / M[2].cycles).toFixed(0)}× as many cycles. Skipping ahead.`; t = Math.max(t, slowest * 0.98); }
+    }
+    requestAnimationFrame(frame);
+  }
+  $("go").onclick = () => { if (!running && t > 0) setup(); running = !running; $("go").textContent = running ? "❚❚ Pause" : "▶ Resume"; };
+  $("reset").onclick = setup; $("n").oninput = setup;
+  addEventListener("themechange", () => { for (let k = 0; k < 3; k++) draw(k, t); bars(); });
+  setup(); requestAnimationFrame(t0 => { last = t0; requestAnimationFrame(frame); });
+  window.__race = { models, setup, finish: () => { running = false; t = Math.max(...M.map(m => m.cycles)) + 1; for (let k = 0; k < 3; k++) { draw(k, t); }
+    const f = M.map(m => m.cycles).indexOf(Math.min(...M.map(m => m.cycles))); $(`L${f}`).classList.add("fast"); $(`L${effIdx()}`).classList.add("eff", "win"); } };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

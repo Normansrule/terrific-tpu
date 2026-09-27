@@ -36,6 +36,10 @@ Things to notice:
 * **Synthesis is clever.** 16 PEs × 48 flip-flops would be 768, but the 4 × 4 array has only 640. Yosys noticed that some bits can never differ (for example, the top row's partial sums are just one 16-bit product, so their upper bits are all copies of the sign bit) and merged them. Also, the right-most column's outgoing activations go nowhere, so those registers were removed.
 * **Scaling to TPU v1 size in 130 nm is absurd**: 65,536 PEs × 6,867 µm² ≈ 450 mm² for the array alone. TPU v1 used a 28 nm process, where each transistor is roughly 20x smaller in area, and a more optimized multiplier.
 
+## Zoom into it
+
+The [chip X-ray](../web/xray.html) turns these numbers into a floor plan you can zoom into: the systolic array is sized from the synthesis above, the memories are estimated as SRAM macros, and at full zoom you see individual standard cells in sky130's 2.72 µm rows.
+
 ## Run it on your machine
 
 ```bash
