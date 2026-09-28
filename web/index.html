@@ -103,7 +103,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
       <div class="stat"><div class="n num" data-count="400">0</div><div class="k">random programs verified</div></div>
       <div class="stat"><div class="n num">92→<span data-count="77">0</span></div><div class="k">cycles, v1 → pipelined v2</div></div>
       <div class="stat"><div class="n num" data-count="0.063">0</div><div class="k">mm² in SkyWater 130 nm</div></div>
-      <div class="stat"><div class="n num" data-count="18">0</div><div class="k">illustrated lessons</div></div>
+      <div class="stat"><div class="n num" data-count="20">0</div><div class="k">illustrated lessons</div></div>
     </div>
   </div>
 </section>
@@ -127,7 +127,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
 <!-- ============================================================ BENTO -->
 <section class="s wrap" id="explore">
   <div class="eyebrow" data-reveal>Explore</div>
-  <h2 class="big" data-reveal>Ten ways to <span class="grad-text">get your hands on it</span></h2>
+  <h2 class="big" data-reveal>Eleven ways to <span class="grad-text">get your hands on it</span></h2>
   <p class="sub" data-reveal>Every page runs in your browser. The chip simulator and applications use a JavaScript model that is checked cycle-for-cycle against the Verilog on every commit.</p>
   <div class="bento">
     <a class="spot beam card" href="tour.html" style="grid-column: span 4; grid-row: span 2" data-reveal>
@@ -170,6 +170,14 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
         <rect x="150" y="144" width="420" height="18" rx="9" fill="rgba(148,163,184,.15)"/><rect x="150" y="144" width="0" height="18" rx="9" fill="#A78BFA"><animate attributeName="width" values="0;420;420" keyTimes="0;.55;1" dur="3s" repeatCount="indefinite"/></rect>
       </svg></div>
       <h3>The great matrix-multiply race</h3><p>A plain CPU, a vector unit, and the systolic array: same 16 multipliers, very different speed and energy.</p></a>
+    <a class="spot beam card" href="research.html" style="grid-column: span 6; grid-row: span 1" data-reveal>
+      <span class="tag">new · research</span><span class="go">Browse →</span>
+      <div class="art"><svg viewBox="0 0 1200 200" aria-hidden="true"><line x1="60" y1="130" x2="1140" y2="130" stroke="rgba(142,149,186,.4)" stroke-width="2"/>
+        <g font-family="JetBrains Mono, monospace" font-size="14" fill="#8E95BA" text-anchor="middle"><text x="100" y="158">1978</text><text x="420" y="158">1990s</text><text x="760" y="158">2014</text><text x="960" y="158">2017</text><text x="1110" y="158">2023</text></g>
+        <circle cx="100" cy="112" r="9" fill="#A78BFA"/><circle cx="195" cy="112" r="9" fill="#A78BFA"/><circle cx="740" cy="112" r="9" fill="#FBBF24"/><circle cx="780" cy="112" r="9" fill="#F87171"/>
+        <circle cx="850" cy="112" r="9" fill="#FBBF24"/><circle cx="850" cy="92" r="9" fill="#F87171"/><circle cx="960" cy="112" r="11" fill="#E879F9"><animate attributeName="r" values="9;14;9" dur="2s" repeatCount="indefinite"/></circle><circle cx="960" cy="90" r="9" fill="#FBBF24"/>
+        <circle cx="1000" cy="112" r="9" fill="#60A5FA"/><circle cx="1000" cy="92" r="9" fill="#60A5FA"/><circle cx="1050" cy="112" r="9" fill="#E879F9"/><circle cx="1070" cy="112" r="9" fill="#A78BFA"/><circle cx="1110" cy="112" r="9" fill="#E879F9"/></svg></div>
+      <h3>Research library</h3><p>28 papers on a clickable timeline, from Kung's systolic arrays to TPU v4's optical pods, each mapped to the lesson or file where the idea runs.</p></a>
     <a class="spot card" href="playground.html" style="grid-column: span 3" data-reveal>
       <span class="tag">step by step</span><span class="go">Open →</span>
       <h3>Systolic array playground</h3><p>Edit the weights and inputs, step the clock, and see every multiply-accumulate with its numbers.</p></a>
@@ -237,7 +245,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
 <!-- ============================================================ LESSONS -->
 <section class="s wrap" id="learn">
   <div class="eyebrow" data-reveal>Learn</div>
-  <h2 class="big" data-reveal>Eighteen lessons, <span class="grad-text">zero hand-waving.</span></h2>
+  <h2 class="big" data-reveal>Twenty lessons, <span class="grad-text">zero hand-waving.</span></h2>
   <div class="lessons" id="lessons" data-reveal></div>
 </section>
 </main>
@@ -389,7 +397,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
   const L = [["Understand", [["01-what-is-a-tpu", "What is a TPU?", "one job, done absurdly well"], ["02-why-matrix-math", "Why matrix math?", "multiply, add, squash"], ["03-numbers-and-quantization", "Numbers", "why 8 bits are enough"], ["04-systolic-arrays", "Systolic arrays", "the bucket brigade"], ["05-dataflow-and-energy", "Dataflow & energy", "data movement dominates"], ["06-tiling", "Tiling", "small grid, big matrices"]]],
     ["Build", [["07-architecture", "Architecture", "every block, every wire"], ["08-rtl-walkthrough", "RTL walkthrough", "the Verilog, file by file"], ["09-instruction-set", "Instructions", "from assembly to JAX"], ["10-pipelining-v2", "Pipelining v2", "double buffers, hazards"]]],
     ["Measure", [["11-performance", "Performance", "roofline, utilization"], ["12-rtl-to-silicon", "RTL to silicon", "real sky130 numbers"], ["13-real-tpus", "Real TPUs", "v1 to TPU 8, pods"]]],
-    ["New ideas", [["14-new-applications", "New applications", "what fits the grid?"], ["15-application-gallery", "Application gallery", "images, qubits, graphs"], ["16-experiments", "Experiments", "five questions, answered"], ["17-labs", "Labs", "build it further"], ["18-references", "References", "papers, videos, tools"]]]];
+    ["New ideas", [["14-new-applications", "New applications", "what fits the grid?"], ["15-application-gallery", "Application gallery", "images, qubits, graphs"], ["16-experiments", "Experiments", "five questions, answered"], ["17-labs", "Labs", "build it further"], ["18-references", "References", "papers, videos, tools"], ["19-research-frontiers", "Research frontiers", "sparsity, bits, dataflow, scale"], ["20-reading-the-tpu-paper", "Reading the TPU paper", "section by section"]]]];
   document.getElementById("lessons").innerHTML = L.map(([grp, ls]) => `<div class="grp">${grp}</div>` + ls.map(([f, t, s]) => `<a href="${REPO}${f}.md">${t}<span>${s}</span></a>`).join("")).join("");
 
   // ------------------------------------------------ one animation loop, paused when off-screen

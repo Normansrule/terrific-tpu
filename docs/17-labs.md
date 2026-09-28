@@ -115,4 +115,4 @@ Write `pe_os.v` and `systolic_array_os.v` and a testbench that compares against 
 
 **Done when:** `make` passes with your demo, and you have written one paragraph: would this be fast on a real TPU, and why or why not?
 
-**Next → [18 · References](18-references.md)**
+**Next → [18 · References](18-references.md)** · For bigger projects, see [19 · Research frontiers](19-research-frontiers.md).

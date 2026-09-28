@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: research library</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+header.top { padding: 38px 0 6px; }
+h1 { font-size: clamp(36px, 5.6vw, 72px); margin: 0 0 12px; letter-spacing: -.045em; line-height: .95; font-weight: 900; }
+header.top p { margin: 0; color: var(--muted); max-width: 74ch; font-size: 17px; }
+.eyebrow { font: 600 13px "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--mxu); margin-top: 56px; }
+h2.sec { font-size: clamp(26px, 3vw, 38px); letter-spacing: -.03em; margin: 8px 0 14px; }
+/* timeline */
+.tl { position: relative; margin-top: 26px; padding: 18px; border-radius: 20px; border: 1px solid var(--line); background: var(--glass); }
+#tlsvg { width: 100%; height: 190px; display: block; }
+#tlsvg .dot { cursor: pointer; transition: r .2s; }
+#tlsvg .dot:hover { r: 9; }
+/* filters */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 22px 0 14px; }
+.chipf { font-size: 13px; padding: 6px 12px; border-radius: 999px; background: var(--idle); color: var(--muted); border: 1px solid var(--line); }
+.chipf[aria-pressed="true"] { background: var(--mxu-bg); color: var(--ink); border-color: var(--mxu); }
+.chipf i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--c); }
+.search { flex: 1; min-width: 220px; padding: 9px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; }
+.count { font-size: 13px; color: var(--muted); }
+/* cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; }
+.paper { padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.paper .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.yr { font: 800 13px "JetBrains Mono", monospace; padding: 2px 8px; border-radius: 7px; background: var(--c); color: #07080F; }
+.venue { font-family: "JetBrains Mono", monospace; }
+.paper h3 { margin: 0; font-size: 17.5px; line-height: 1.3; letter-spacing: -.01em; }
+.paper .au { font-size: 13px; color: var(--muted); }
+.paper p { margin: 0; font-size: 14px; color: var(--ink); opacity: .9; }
+.paper .repo { font-size: 13px; color: var(--muted); border-left: 3px solid var(--c); padding-left: 10px; }
+.paper .repo a { color: var(--ink); }
+.links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
+.links a { font-size: 12.5px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); text-decoration: none; color: var(--ink); background: var(--idle); }
+.links a:hover { border-color: var(--mxu); }
+.paper.flash { animation: flash 1.4s var(--ease); }
+@keyframes flash { 0%, 40% { box-shadow: 0 0 0 2px var(--c), 0 0 40px -6px var(--c); } }
+/* reading path */
+.path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; counter-reset: s; }
+@media (max-width: 900px) { .path { grid-template-columns: 1fr 1fr; } }
+.path > div { padding: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--glass); counter-increment: s; }
+.path > div::before { content: "0" counter(s); font: 800 28px "JetBrains Mono", monospace; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.path h3 { margin: 6px 0; font-size: 17px; } .path p { margin: 0; color: var(--muted); font-size: 14px; }
+.videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.video { display: flex; gap: 12px; align-items: center; padding: 14px; text-decoration: none; color: var(--ink); }
+.video .play { flex: 0 0 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--grad); color: #07080F; font-size: 18px; }
+.video b { display: block; font-size: 14.5px; } .video span { font-size: 12.5px; color: var(--muted); }
+.cite { font-size: 12.5px; color: var(--muted); margin-top: 20px; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<nav class="site"></nav>
+<main class="wrap">
+  <header class="top">
+    <h1>The research <span class="grad-text">behind the chip.</span></h1>
+    <p>Forty-plus years of papers, from the first systolic arrays to optically switched TPU pods. Every entry says what it contributed and where you can see that idea running in this repo. Filter by topic, search, or click a dot on the timeline.</p>
+  </header>
+
+  <div class="tl"><svg id="tlsvg" viewBox="0 0 1200 190" role="img" aria-label="Timeline of papers"></svg></div>
+
+  <div class="filters" id="filters" role="group" aria-label="Filter by topic"></div>
+  <div class="filters"><input class="search" id="q" placeholder="Search titles, authors, ideas… (try 'dataflow', 'bfloat16', 'Jouppi')" aria-label="Search papers"><span class="count" id="count"></span></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="eyebrow">Where to start</div>
+  <h2 class="sec">A four-paper <span class="grad-text">reading path</span></h2>
+  <div class="path" data-reveal>
+    <div><h3>Why systolic?</h3><p>Kung, 1982. Eight pages that explain the whole idea: pump data through a grid of simple cells so every number is used many times.</p></div>
+    <div><h3>The first TPU</h3><p>Jouppi et al., 2017. Read it next to the <a href="tour.html">3-D tour</a>: the block diagram is the same one TinyTPU copies.</p></div>
+    <div><h3>Energy is the budget</h3><p>Sze et al., 2017 (survey) and Horowitz, 2014. Why dataflow and data movement decide everything. Then run the <a href="race.html">race</a>.</p></div>
+    <div><h3>Scaling out</h3><p>TPU v4, 2023. Pods of 4,096 chips wired by optical switches. The same "neighbors pass data" idea, at building scale.</p></div>
+  </div>
+
+  <div class="eyebrow">Watch</div>
+  <h2 class="sec">Lectures and talks <span class="grad-text">(English)</span></h2>
+  <div class="videos" id="videos"></div>
+  <p class="cite">Paper links go to arXiv when a free preprint exists, otherwise to a Google Scholar search, which usually finds a free author copy. Video links open a YouTube search for the talk, so they keep working if uploads move. Full citations are in <a href="https://github.com/Normansrule/terrific-tpu/blob/main/docs/18-references.md">lesson 18</a>.</p>
+</main>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const REPO = "https://github.com/Normansrule/terrific-tpu/blob/main/";
+  const TOPICS = { sys: ["Systolic arrays", "--mxu"], tpu: ["Google TPUs", "--ps"], df: ["Dataflow & energy", "--wt"], num: ["Number formats", "--act"],
+                   perf: ["Performance models", "--out"], acc: ["Other accelerators", "--red"], sil: ["Open-source silicon & tools", "--ctl"] };
+  const sch = q => "https://scholar.google.com/scholar?q=" + encodeURIComponent(q);
+  const arx = id => "https://arxiv.org/abs/" + id;
+  const P = [
+    { y: 1978, t: "sys", title: "Systolic Arrays (for VLSI)", au: "H. T. Kung, C. E. Leiserson", v: "Sparse Matrix Proceedings (SIAM)",
+      why: "Introduced the systolic array: a grid of identical cells that rhythmically pass data to neighbors, computing matrix products with only local wires.",
+      repo: [["Systolic array playground", "web/playground.html"], ["Lesson 4", "docs/04-systolic-arrays.md"]], links: [["Scholar", sch("Kung Leiserson Systolic arrays for VLSI 1978")]] },
+    { y: 1982, t: "sys", title: "Why Systolic Architectures?", au: "H. T. Kung", v: "IEEE Computer 15(1)",
+      why: "The classic, readable argument: fetch each number once and use it many times, so compute is no longer limited by memory bandwidth.",
+      repo: [["Lesson 4", "docs/04-systolic-arrays.md"], ["rtl/v1_simple/pe.v", "rtl/v1_simple/pe.v"]], links: [["Scholar", sch("Kung Why systolic architectures 1982")]] },
+    { y: 2014, t: "df", title: "Computing's Energy Problem (and what we can do about it)", au: "M. Horowitz", v: "ISSCC 2014",
+      why: "The energy-per-operation table everyone cites: a DRAM read costs hundreds of times more than an 8-bit multiply. Data movement, not math, is the budget.",
+      repo: [["Lesson 5", "docs/05-dataflow-and-energy.md"], ["The race", "web/race.html"], ["Experiment 3", "docs/16-experiments.md"]], links: [["Scholar", sch("Horowitz Computing's energy problem and what we can do about it ISSCC 2014")]] },
+    { y: 2014, t: "acc", title: "DianNao: A Small-Footprint High-Throughput Accelerator for Ubiquitous Machine-Learning", au: "T. Chen, Z. Du, N. Sun, et al.", v: "ASPLOS 2014",
+      why: "An early dedicated neural-network accelerator that showed how much on-chip buffering matters; it started a long line of research chips.",
+      repo: [["Lesson 5", "docs/05-dataflow-and-energy.md"]], links: [["Scholar", sch("DianNao small-footprint high-throughput accelerator ASPLOS 2014")]] },
+    { y: 2016, t: "df", title: "Eyeriss: A Spatial Architecture for Energy-Efficient Dataflow for Convolutional Neural Networks", au: "Y.-H. Chen, J. Emer, V. Sze", v: "ISCA 2016",
+      why: "Defined the dataflow taxonomy (weight-, output-, row-stationary) and showed row-stationary minimizes energy for convolutions.",
+      repo: [["Dataflows diagram", "docs/05-dataflow-and-energy.md"], ["Lab 7: output-stationary", "docs/17-labs.md"]], links: [["Scholar", sch("Eyeriss spatial architecture energy-efficient dataflow ISCA 2016")]] },
+    { y: 2016, t: "acc", title: "EIE: Efficient Inference Engine on Compressed Deep Neural Network", au: "S. Han, X. Liu, H. Mao, et al.", v: "ISCA 2016",
+      why: "Skipped the zeros: a sparse accelerator that runs pruned, compressed networks directly, trading regular dataflow for less work.",
+      repo: [["Experiment 6: sparsity", "docs/16-experiments.md"], ["Lesson 19", "docs/19-research-frontiers.md"]], links: [["arXiv", arx("1602.01528")]] },
+    { y: 2017, t: "tpu", title: "In-Datacenter Performance Analysis of a Tensor Processing Unit", au: "N. P. Jouppi, C. Young, N. Patil, D. Patterson, et al.", v: "ISCA 2017",
+      why: "TPU v1: a 256 × 256 systolic array of 8-bit multipliers, 92 TOPS, with roofline analysis of real production networks. The paper this repo follows.",
+      repo: [["3-D chip tour", "web/tour.html"], ["Lesson 20: reading this paper", "docs/20-reading-the-tpu-paper.md"], ["Lesson 13", "docs/13-real-tpus.md"]], links: [["arXiv", arx("1704.04760")]] },
+    { y: 2017, t: "df", title: "Efficient Processing of Deep Neural Networks: A Tutorial and Survey", au: "V. Sze, Y.-H. Chen, T.-J. Yang, J. Emer", v: "Proceedings of the IEEE",
+      why: "The best single overview of accelerator design: dataflows, reuse, precision, sparsity, and how to evaluate a design honestly.",
+      repo: [["Lesson 5", "docs/05-dataflow-and-energy.md"], ["Lesson 19", "docs/19-research-frontiers.md"]], links: [["arXiv", arx("1703.09039")]] },
+    { y: 2018, t: "num", title: "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference", au: "B. Jacob, S. Kligys, B. Chen, et al.", v: "CVPR 2018",
+      why: "The standard int8 scheme: integer multiplies, 32-bit accumulators, and a fixed-point rescale. Exactly TinyTPU's datapath, minus the 32-bit multiplier.",
+      repo: [["Lesson 3", "docs/03-numbers-and-quantization.md"], ["Experiment 2", "docs/16-experiments.md"]], links: [["arXiv", arx("1712.05877")]] },
+    { y: 2018, t: "num", title: "Mixed Precision Training", au: "P. Micikevicius, S. Narang, J. Alben, et al.", v: "ICLR 2018",
+      why: "Showed networks can train in 16-bit floating point with a 32-bit master copy and loss scaling: the recipe behind modern tensor hardware.",
+      repo: [["Lesson 3", "docs/03-numbers-and-quantization.md"]], links: [["arXiv", arx("1710.03740")]] },
+    { y: 2018, t: "sys", title: "SCALE-Sim: Systolic CNN Accelerator Simulator", au: "A. Samajdar, Y. Zhu, P. Whatmough, et al.", v: "arXiv 2018",
+      why: "A cycle-level simulator for systolic arrays of any size and dataflow; the research-grade cousin of this repo's JavaScript model.",
+      repo: [["Experiment 5: scaling", "docs/16-experiments.md"], ["web/tinytpu-core.js", "web/tinytpu-core.js"]], links: [["arXiv", arx("1811.02883")]] },
+    { y: 2018, t: "perf", title: "A New Golden Age in Computer Architecture: Empowering the Machine-Learning Revolution", au: "J. Dean, D. Patterson, C. Young", v: "IEEE Micro",
+      why: "Why domain-specific architectures like the TPU are the path forward now that general-purpose performance gains have slowed.",
+      repo: [["Lesson 1", "docs/01-what-is-a-tpu.md"]], links: [["Scholar", sch("Dean Patterson Young new golden age computer architecture machine learning revolution IEEE Micro")]] },
+    { y: 2019, t: "perf", title: "A New Golden Age for Computer Architecture", au: "J. L. Hennessy, D. A. Patterson", v: "Communications of the ACM",
+      why: "The Turing Award lecture as an article: the end of Dennard scaling and Moore's law, and why domain-specific hardware is the answer.",
+      repo: [["Lesson 1", "docs/01-what-is-a-tpu.md"]], links: [["Scholar", sch("Hennessy Patterson A new golden age for computer architecture CACM 2019")]] },
+    { y: 2019, t: "num", title: "A Study of BFLOAT16 for Deep Learning Training", au: "D. Kalamkar, D. Mudigere, N. Mellempudi, et al.", v: "arXiv 2019",
+      why: "Evidence that bfloat16 (FP32's exponent, 7-bit mantissa) trains as well as FP32 across many models, without loss scaling.",
+      repo: [["Lesson 3", "docs/03-numbers-and-quantization.md"]], links: [["arXiv", arx("1905.12322")]] },
+    { y: 2019, t: "df", title: "Understanding Reuse, Performance, and Hardware Cost of DNN Dataflows: A Data-Centric Approach (MAESTRO)", au: "H. Kwon, P. Chatarasi, M. Pellauer, et al.", v: "MICRO 2019",
+      why: "An analytical model that predicts reuse, runtime, and energy for any dataflow, so you can search the design space without building each chip.",
+      repo: [["Lesson 19", "docs/19-research-frontiers.md"]], links: [["Scholar", sch("MAESTRO data-centric approach DNN dataflows MICRO 2019 Kwon")]] },
+    { y: 2019, t: "sil", title: "Toward an Open-Source Digital Flow: First Learnings from the OpenROAD Project", au: "T. Ajayi, V. A. Chhabria, M. Fogaça, et al.", v: "DAC 2019",
+      why: "An automated, open-source path from Verilog to a manufacturable layout; the engine behind OpenLane and Tiny Tapeout.",
+      repo: [["Lesson 12", "docs/12-rtl-to-silicon.md"], ["Chip X-ray", "web/xray.html"]], links: [["Scholar", sch("Toward an open-source digital flow first learnings from the OpenROAD project DAC 2019")]] },
+    { y: 2020, t: "tpu", title: "A Domain-Specific Supercomputer for Training Deep Neural Networks", au: "N. P. Jouppi, D. H. Yoon, G. Kurian, et al.", v: "Communications of the ACM",
+      why: "TPU v2 and v3: bfloat16, High Bandwidth Memory, and chips wired into a 2-D torus to train one model across a whole pod.",
+      repo: [["Pod torus diagram", "docs/13-real-tpus.md"]], links: [["Scholar", sch("A domain-specific supercomputer for training deep neural networks Jouppi CACM 2020")]] },
+    { y: 2021, t: "tpu", title: "The Design Process for Google's Training Chips: TPUv2 and TPUv3", au: "T. Norrie, N. Patil, D. H. Yoon, et al.", v: "IEEE Micro",
+      why: "How the team turned an inference chip into a training chip under schedule pressure: the engineering choices, not just the specs.",
+      repo: [["Lesson 13", "docs/13-real-tpus.md"]], links: [["Scholar", sch("design process for Google's training chips TPUv2 and TPUv3 IEEE Micro")]] },
+    { y: 2021, t: "tpu", title: "Ten Lessons From Three Generations Shaped Google's TPUv4i", au: "N. P. Jouppi, D. H. Yoon, M. Ashcraft, et al.", v: "ISCA 2021",
+      why: "Hard-won lessons: compiler compatibility, energy over peak performance, backward-compatible numerics, designing for the workloads of tomorrow.",
+      repo: [["Lesson 19", "docs/19-research-frontiers.md"]], links: [["Scholar", sch("Ten lessons from three generations shaped Google's TPUv4i ISCA 2021")]] },
+    { y: 2021, t: "sys", title: "Gemmini: Enabling Systematic Deep-Learning Architecture Evaluation via Full-Stack Integration", au: "H. Genc, S. Kim, A. Amid, et al.", v: "DAC 2021",
+      why: "An open-source systolic-array generator attached to a RISC-V SoC, evaluated with real software. The natural next step after TinyTPU.",
+      repo: [["Lesson 19", "docs/19-research-frontiers.md"], ["Lab 6", "docs/17-labs.md"]], links: [["arXiv", arx("1911.09925")]] },
+    { y: 2021, t: "acc", title: "NVIDIA A100 Tensor Core GPU: Performance and Innovation", au: "J. Choquette, W. Gandhi, O. Giroux, et al.", v: "IEEE Micro",
+      why: "How a GPU embeds small matrix engines (Tensor Cores) inside its cores, including 2:4 structured sparsity. The GPU answer to the systolic array.",
+      repo: [["The race", "web/race.html"], ["Experiment 6", "docs/16-experiments.md"]], links: [["Scholar", sch("NVIDIA A100 Tensor Core GPU performance and innovation IEEE Micro")]] },
+    { y: 2021, t: "acc", title: "Accelerating Sparse Deep Neural Networks", au: "A. Mishra, J. A. Latorre, J. Pool, et al.", v: "arXiv 2021",
+      why: "2:4 structured sparsity: prune 2 of every 4 weights in a pattern hardware can exploit, doubling math throughput with little accuracy loss.",
+      repo: [["Experiment 6", "docs/16-experiments.md"], ["Lesson 19", "docs/19-research-frontiers.md"]], links: [["arXiv", arx("2104.08378")]] },
+    { y: 2022, t: "num", title: "FP8 Formats for Deep Learning", au: "P. Micikevicius, D. Stosic, N. Burgess, et al.", v: "arXiv 2022",
+      why: "Two 8-bit floating-point formats (E4M3 and E5M2) for training and inference; now used by the newest tensor hardware, including TPUs.",
+      repo: [["Lesson 3", "docs/03-numbers-and-quantization.md"], ["Lesson 19", "docs/19-research-frontiers.md"]], links: [["arXiv", arx("2209.05433")]] },
+    { y: 2023, t: "tpu", title: "TPU v4: An Optically Reconfigurable Supercomputer for Machine Learning with Hardware Support for Embeddings", au: "N. P. Jouppi, G. Kurian, S. Li, et al.", v: "ISCA 2023",
+      why: "4,096-chip pods whose 3-D torus is rewired on demand by optical circuit switches, plus SparseCores for embedding lookups.",
+      repo: [["Pod torus diagram", "docs/13-real-tpus.md"], ["Lesson 19", "docs/19-research-frontiers.md"]], links: [["arXiv", arx("2304.01433")]] },
+    { y: 2009, t: "perf", title: "Roofline: An Insightful Visual Performance Model for Multicore Architectures", au: "S. Williams, A. Waterman, D. Patterson", v: "Communications of the ACM",
+      why: "One chart that tells you whether a program is limited by compute or by memory bandwidth. The TPU v1 paper uses it to explain its results.",
+      repo: [["Numbers & roofline", "web/explorers.html"], ["Lesson 11", "docs/11-performance.md"]], links: [["Scholar", sch("Roofline an insightful visual performance model for multicore architectures")]] },
+    { y: 2018, t: "perf", title: "TVM: An Automated End-to-End Optimizing Compiler for Deep Learning", au: "T. Chen, T. Moreau, Z. Jiang, et al.", v: "OSDI 2018",
+      why: "A compiler that tiles, reorders, and schedules neural networks for many kinds of hardware, the job this repo's lesson on tiling does by hand.",
+      repo: [["Lesson 6: tiling", "docs/06-tiling.md"], ["Lesson 9", "docs/09-instruction-set.md"]], links: [["arXiv", arx("1802.04799")]] },
+    { y: 2020, t: "sil", title: "SkyWater SKY130 open-source Process Design Kit", au: "SkyWater Technology and Google", v: "documentation",
+      why: "The first production-worthy open-source manufacturing kit: the cell library this repo synthesizes to, and the process Tiny Tapeout uses.",
+      repo: [["Lesson 12", "docs/12-rtl-to-silicon.md"], ["tools/synth_report.sh", "tools/synth_report.sh"]], links: [["Docs", "https://skywater-pdk.readthedocs.io/"]] },
+    { y: 2013, t: "sil", title: "Yosys Open SYnthesis Suite", au: "C. Wolf (Claire Xenia Wolf)", v: "open-source tool",
+      why: "Open-source logic synthesis: turns Verilog into gates and maps them onto a cell library. Every area number in this repo comes from it.",
+      repo: [["data/synth.csv", "data/synth.csv"], ["Lesson 12", "docs/12-rtl-to-silicon.md"]], links: [["Website", "https://yosyshq.net/yosys/"]] }
+  ].sort((a, b) => a.y - b.y || a.title.localeCompare(b.title));
+
+  const col = t => css(TOPICS[t][1]);
+  let active = new Set(Object.keys(TOPICS)), q = "";
+  $("filters").innerHTML = Object.entries(TOPICS).map(([k, [n, v]]) => `<button class="chipf" data-t="${k}" aria-pressed="true" style="--c:var(${v})"><i></i>${n}</button>`).join("");
+  $("filters").querySelectorAll("button").forEach(b => b.onclick = () => {
+    const k = b.dataset.t; if (active.size === Object.keys(TOPICS).length) active = new Set([k]); else active.has(k) ? active.delete(k) : active.add(k);
+    if (!active.size) active = new Set(Object.keys(TOPICS));
+    $("filters").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", active.has(x.dataset.t))); render(); });
+  $("q").oninput = e => { q = e.target.value.toLowerCase(); render(); };
+  const visible = () => P.filter(p => active.has(p.t) && (!q || (p.title + p.au + p.why + p.v + p.y).toLowerCase().includes(q)));
+  function render() {
+    const vs = visible();
+    $("count").textContent = `${vs.length} of ${P.length}`;
+    $("grid").innerHTML = vs.map((p, i) => `<article class="spot paper" id="p${P.indexOf(p)}" style="--c:var(${TOPICS[p.t][1]})">
+      <div class="meta"><span class="yr">${p.y}</span><span class="venue">${p.v}</span><span>· ${TOPICS[p.t][0]}</span></div>
+      <h3>${p.title}</h3><div class="au">${p.au}</div><p>${p.why}</p>
+      <div class="repo">In this repo: ${p.repo.map(([n, h]) => `<a href="${h.startsWith("web/") ? h.slice(4) : REPO + h}">${n}</a>`).join(" · ")}</div>
+      <div class="links">${p.links.map(([n, h]) => `<a href="${h}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div></article>`).join("");
+    document.querySelectorAll(".paper").forEach(el => el.addEventListener("pointermove", e => { const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", (e.clientX - r.left) + "px"); el.style.setProperty("--my", (e.clientY - r.top) + "px"); }));
+    timeline();
+  }
+  function timeline() {
+    const svg = $("tlsvg"), x0 = 40, x1 = 1160, y0 = 1976, y1 = 2025, X = y => x0 + (y - y0) / (y1 - y0) * (x1 - x0), base = 150;
+    let h = `<line x1="${x0}" y1="${base}" x2="${x1}" y2="${base}" stroke="${css("--line")}" stroke-width="2"/>`;
+    for (let y = 1980; y <= 2025; y += 5) h += `<line x1="${X(y)}" x2="${X(y)}" y1="${base - 4}" y2="${base + 4}" stroke="${css("--muted")}"/><text x="${X(y)}" y="${base + 24}" text-anchor="middle" font-size="12" fill="${css("--muted")}" font-family="JetBrains Mono, monospace">${y}</text>`;
+    const stack = {}, vs = new Set(visible());
+    P.forEach((p, i) => { const k = p.y; stack[k] = (stack[k] || 0) + 1; const cy = base - 14 - (stack[k] - 1) * 17, on = vs.has(p);
+      h += `<circle class="dot" data-i="${i}" cx="${X(p.y)}" cy="${cy}" r="7" fill="${col(p.t)}" opacity="${on ? 1 : .15}"><title>${p.y} · ${p.title}</title></circle>`; });
+    [[1978, "systolic arrays"], [2017, "TPU v1"], [2023, "TPU v4 pods"]].forEach(([y, t]) => h += `<text x="${X(y)}" y="18" text-anchor="middle" font-size="12.5" font-weight="700" fill="${css("--ink")}">${t}</text><line x1="${X(y)}" x2="${X(y)}" y1="24" y2="${base - 60}" stroke="${css("--line")}" stroke-dasharray="3 4"/>`);
+    svg.innerHTML = h;
+    svg.querySelectorAll(".dot").forEach(d => d.onclick = () => { const el = $("p" + d.dataset.i);
+      if (!el) { active = new Set(Object.keys(TOPICS)); q = ""; $("q").value = ""; render(); }
+      const t = $("p" + d.dataset.i); t.scrollIntoView({ behavior: "smooth", block: "center" }); t.classList.remove("flash"); void t.offsetWidth; t.classList.add("flash"); });
+  }
+  const V = [["A New Golden Age for Computer Architecture", "John Hennessy & David Patterson, Turing Award lecture", "Hennessy Patterson Turing lecture new golden age computer architecture"],
+    ["Systolic arrays (Computer Architecture lecture)", "Onur Mutlu, ETH Zürich course lectures", "Onur Mutlu systolic arrays lecture computer architecture"],
+    ["Efficient processing of deep neural networks", "Vivienne Sze, MIT lecture and tutorials", "Vivienne Sze efficient processing of deep neural networks lecture"],
+    ["Google's TPU at Hot Chips", "TPU architects' conference talks", "Hot Chips Google TPU talk"],
+    ["What is a TPU?", "Google Cloud overview videos", "Google Cloud what is a TPU"],
+    ["Tiny Tapeout: make your own chip", "Matt Venn and the Tiny Tapeout project", "Tiny Tapeout Matt Venn"]];
+  $("videos").innerHTML = V.map(([t, s, qq]) => `<a class="spot video" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${encodeURIComponent(qq)}"><span class="play">▶</span><span><b>${t}</b><span>${s}</span></span></a>`).join("");
+  addEventListener("themechange", render);
+  render();
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

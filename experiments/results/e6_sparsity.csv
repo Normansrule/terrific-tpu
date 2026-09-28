@@ -1,0 +1,5 @@
+app,macs,useful,zero_weight_only,zero_input_only,both_zero
+Neural net,384,299,17,61,7
+Image filter,3072,771,301,893,1107
+Quantum search,320,176,96,48,0
+Graph triangles,1024,216,360,168,280

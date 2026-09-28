@@ -6,14 +6,15 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-10%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-11%20interactive%20pages%20·%203--D-2563EB)
+![Research](https://img.shields.io/badge/research-28%20papers%20mapped%20to%20code-E879F9)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
 </div>
 
 **terrific-tpu** teaches how a **Tensor Processing Unit (TPU)** works by building one you can read in an afternoon, then pushing it into places a TPU was never meant to go.
 
-**TinyTPU** has the same blocks as Google's first TPU, shrunk from a 256 × 256 grid of multipliers to 4 × 4. It comes in two versions: a simple one, and a pipelined one with TPU v1's double-buffered weights. Both are tested against a shared answer key, synthesized onto real 130 nm cells, and mirrored in a cycle-exact browser simulator. On top of that: **five applications** (a neural network, a Fourier transform, image filtering, Grover's quantum search, and graph triangle counting) and **five experiments** you can rerun and extend.
+**TinyTPU** has the same blocks as Google's first TPU, shrunk from a 256 × 256 grid of multipliers to 4 × 4. It comes in two versions: a simple one, and a pipelined one with TPU v1's double-buffered weights. Both are tested against a shared answer key, synthesized onto real 130 nm cells, and mirrored in a cycle-exact browser simulator. On top of that: **five applications** (a neural network, a Fourier transform, image filtering, Grover's quantum search, and graph triangle counting) and **six experiments** you can rerun and extend, and a **research library** mapping 28 papers to the code.
 
 The goal: **understand a TPU first, then find new things to use it for.**
 
@@ -56,6 +57,7 @@ Everything runs in the browser, on GitHub Pages or locally with `make serve`. Pr
 | <img src="docs/img/tour.png" width="260"> | [**3-D chip tour**](web/tour.html) | fly through the whole chip in 3-D while it runs a real neural network; 8 guided chapters, a 92-cycle scrubber, hover any PE to read its registers |
 | <img src="docs/img/xray.png" width="260"> | [**Chip X-ray**](web/xray.html) | a zoomable floor plan of the die in SkyWater 130 nm: scroll from the whole chip down to individual standard cells in 2.72 µm rows, and watch blocks glow as the chip runs a neural network |
 | <img src="docs/img/race.png" width="260"> | [**The race**](web/race.html) | a scalar CPU, a vector unit, and the systolic array compute the same matrix product; one prize for fastest, one for least energy |
+| <img src="docs/img/research.png" width="260"> | [**Research library**](web/research.html) | 28 papers from Kung's 1978 systolic arrays to TPU v4's optical pods, on a clickable timeline, each mapped to the lesson or file where the idea lives |
 | <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock: controller, skew, array, every memory |
 | <img src="docs/img/challenges.png" width="260"> | [**Challenges**](web/challenges.html) | six programming puzzles, from "first light" to "the whole network"; beat the par for three stars |
 | <img src="docs/img/apps.png" width="260"> | [**Applications**](web/apps.html) | paint an image for 4 filters, pick the answer for Grover's search, draw a graph and count triangles |
@@ -87,7 +89,7 @@ flowchart LR
       M11["11 Performance"] --> M12["12 Silicon"] --> M13["13 Real TPUs"]
     end
     subgraph N["New ideas"]
-      N14["14 Applications"] --> N15["15 Gallery"] --> N16["16 Experiments"] --> N17["17 Labs"]
+      N14["14 Applications"] --> N15["15 Gallery"] --> N16["16 Experiments"] --> N17["17 Labs"] --> N19["19 Frontiers"] --> N20["20 TPU paper"]
     end
     U --> B --> M --> N
     classDef u fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
@@ -97,7 +99,7 @@ flowchart LR
     class A1,A2,A3,A4,A5,A6 u
     class B7,B8,B9,B10 b
     class M11,M12,M13 m
-    class N14,N15,N16,N17 n
+    class N14,N15,N16,N17,N19,N20 n
 ```
 
 | # | Lesson | You'll see |
@@ -117,9 +119,11 @@ flowchart LR
 | 13 | [Real TPUs](docs/13-real-tpus.md) | TPU v1 to TPU 8t/8i, pods, die area, a photo tour |
 | 14 | [New applications](docs/14-new-applications.md) | a fit checklist, published science uses, an idea bank |
 | 15 | [Application gallery](docs/15-application-gallery.md) | **image filtering, Grover's quantum search, graph triangles**, drawn from the chip's own memory |
-| 16 | [Experiments](docs/16-experiments.md) | **five experiments**: speedup, bits, energy, space-time, scaling |
+| 16 | [Experiments](docs/16-experiments.md) | **six experiments**: speedup, bits, energy, space-time, scaling, sparsity |
 | 17 | [Hands-on labs](docs/17-labs.md) | eight labs, from "grow the array" to "your own application" |
 | 18 | [References](docs/18-references.md) | papers, books, English-language videos, tools |
+| 19 | [Research frontiers](docs/19-research-frontiers.md) | sparsity, fewer bits, dataflow search, memory, compilers, open silicon; a project for each |
+| 20 | [Reading the TPU v1 paper](docs/20-reading-the-tpu-paper.md) | the original paper, section by section, mapped to this repo |
 | 📖 | [Glossary](docs/glossary.md) | every acronym spelled out |
 
 ---
@@ -159,7 +163,7 @@ cd terrific-tpu
 make                 # neural network demo on both chips
 make dft             # a Fourier transform on the same hardware
 make apps            # image filter, quantum search, graph triangles
-make experiments     # 5 experiments -> experiments/results/*.csv + charts
+make experiments     # 6 experiments -> experiments/results/*.csv + charts
 make fuzz            # 200 random programs per chip vs the instruction-level model
 make scale           # array sizes 2, 4, 8, 16
 make jscheck         # the browser simulator must match the Verilog cycle for cycle
@@ -234,13 +238,13 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · tour · xray · race · chip · challenges · apps · array3d · playground · explorers
+├── web/                  index · tour · xray · race · challenges · research · chip · apps · array3d · playground · explorers
 │   ├── tinytpu-core.js      cycle-exact JavaScript model of the chip + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages
 ├── diagrams/             32 SVGs (hand-drawn, concept, measured, application, experiment)
 ├── data/synth.csv        synthesis results
-├── docs/                 18 lessons + glossary
+├── docs/                 20 lessons + glossary
 └── sim/tpu.gtkw          GTKWave layout
 ```
 

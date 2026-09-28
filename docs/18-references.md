@@ -20,6 +20,26 @@ Everything here is in English. Links go to the original source. Where a stable l
 | Google Cloud, [TPU system architecture](https://cloud.google.com/tpu/docs/system-architecture-tpu-vm) and [release notes](https://docs.cloud.google.com/tpu/docs/release-notes) | current versions, chips, slices, pods |
 | ServeTheHome, [Google's TPU v8s for Training and Inference at Hot Chips 2026](https://www.servethehome.com/googles-tpuv8s-for-training-and-inference-at-hot-chips-2026/) | TPU 8t / 8i with slides and package photos |
 
+## Research library
+
+The [research library page](../web/research.html) has every paper below, and more, on a filterable timeline, each mapped to the lesson or file where the idea lives. Additional papers used in lessons 19 and 20:
+
+| Resource | Why |
+|---|---|
+| Y.-H. Chen, J. Emer, V. Sze, "Eyeriss: A Spatial Architecture for Energy-Efficient Dataflow for Convolutional Neural Networks," ISCA 2016. [Scholar](https://scholar.google.com/scholar?q=Eyeriss+spatial+architecture+energy-efficient+dataflow) | the dataflow taxonomy ([lesson 5](05-dataflow-and-energy.md)) |
+| V. Sze, Y.-H. Chen, T.-J. Yang, J. Emer, "Efficient Processing of Deep Neural Networks: A Tutorial and Survey," Proceedings of the IEEE, 2017. [arXiv 1703.09039](https://arxiv.org/abs/1703.09039) | the standard survey of accelerator design |
+| S. Han et al., "EIE: Efficient Inference Engine on Compressed Deep Neural Network," ISCA 2016. [arXiv 1602.01528](https://arxiv.org/abs/1602.01528) | sparse acceleration ([lesson 19](19-research-frontiers.md)) |
+| A. Mishra et al., "Accelerating Sparse Deep Neural Networks," 2021. [arXiv 2104.08378](https://arxiv.org/abs/2104.08378) | 2:4 structured sparsity |
+| P. Micikevicius et al., "Mixed Precision Training," ICLR 2018. [arXiv 1710.03740](https://arxiv.org/abs/1710.03740) | 16-bit training |
+| P. Micikevicius et al., "FP8 Formats for Deep Learning," 2022. [arXiv 2209.05433](https://arxiv.org/abs/2209.05433) | E4M3 and E5M2 |
+| A. Samajdar et al., "SCALE-Sim: Systolic CNN Accelerator Simulator," 2018. [arXiv 1811.02883](https://arxiv.org/abs/1811.02883) | cycle-level systolic simulation |
+| H. Kwon et al., "Understanding Reuse, Performance, and Hardware Cost of DNN Dataflows: A Data-Centric Approach," MICRO 2019. [Scholar](https://scholar.google.com/scholar?q=MAESTRO+data-centric+approach+DNN+dataflows) | analytical dataflow modeling |
+| H. Genc et al., "Gemmini: Enabling Systematic Deep-Learning Architecture Evaluation via Full-Stack Integration," DAC 2021. [arXiv 1911.09925](https://arxiv.org/abs/1911.09925) | an open-source systolic generator |
+| N. P. Jouppi et al., "Ten Lessons From Three Generations Shaped Google's TPUv4i," ISCA 2021. [Scholar](https://scholar.google.com/scholar?q=Ten+lessons+from+three+generations+shaped+Google%27s+TPUv4i) | design lessons across generations |
+| N. P. Jouppi et al., "TPU v4: An Optically Reconfigurable Supercomputer for Machine Learning with Hardware Support for Embeddings," ISCA 2023. [arXiv 2304.01433](https://arxiv.org/abs/2304.01433) | optical circuit switches, SparseCores |
+| T. Chen et al., "TVM: An Automated End-to-End Optimizing Compiler for Deep Learning," OSDI 2018. [arXiv 1802.04799](https://arxiv.org/abs/1802.04799) | compiler scheduling |
+| T. Ajayi et al., "Toward an Open-Source Digital Flow: First Learnings from the OpenROAD Project," DAC 2019. [Scholar](https://scholar.google.com/scholar?q=Toward+an+open-source+digital+flow+OpenROAD) | open-source RTL-to-layout |
+
 ## Energy, numbers, silicon
 
 | Resource | Why |
@@ -69,4 +89,4 @@ Rather than risk dead links, these are channels plus exact searches that find th
 | University lectures | [`systolic array lecture computer architecture`](https://www.youtube.com/results?search_query=systolic+array+lecture+computer+architecture) | whiteboard derivations of the wavefront timing |
 | Onur Mutlu lectures (ETH Zürich / CMU) | [`Onur Mutlu systolic arrays`](https://www.youtube.com/results?search_query=Onur+Mutlu+systolic+arrays) | full university lectures on systolic arrays and accelerators |
 
-**Next → [Glossary](glossary.md)**
+**Next → [19 · Research frontiers](19-research-frontiers.md)**

@@ -17,6 +17,7 @@
     ["xray.html", "Chip X-ray", "Zoom from the die down to single standard cells", "main"],
     ["race.html", "The race", "CPU vs vector unit vs systolic array: speed and energy", "main"],
     ["challenges.html", "Challenges", "Program the chip, beat the par, earn stars", "main"],
+    ["research.html", "Research", "Papers behind every idea, mapped to the code", "main"],
     ["chip.html", "Chip simulator", "Write assembly and step it clock by clock", "more"],
     ["playground.html", "Systolic array", "Edit weights and inputs, watch every multiply", "more"],
     ["array3d.html", "Array in 3-D", "Spin a 24 × 24 array with live partial sums", "more"],
@@ -25,7 +26,7 @@
   ];
   const DOCS = [["01-what-is-a-tpu", "Lesson 1 · What is a TPU?"], ["04-systolic-arrays", "Lesson 4 · Systolic arrays"], ["07-architecture", "Lesson 7 · Architecture"],
     ["08-rtl-walkthrough", "Lesson 8 · RTL walkthrough"], ["10-pipelining-v2", "Lesson 10 · Pipelining v2"], ["12-rtl-to-silicon", "Lesson 12 · RTL to silicon"],
-    ["15-application-gallery", "Lesson 15 · Application gallery"], ["16-experiments", "Lesson 16 · Experiments"], ["17-labs", "Lesson 17 · Labs"], ["glossary", "Glossary"]];
+    ["15-application-gallery", "Lesson 15 · Application gallery"], ["16-experiments", "Lesson 16 · Experiments"], ["17-labs", "Lesson 17 · Labs"], ["19-research-frontiers", "Lesson 19 · Research frontiers"], ["20-reading-the-tpu-paper", "Lesson 20 · Reading the TPU paper"], ["glossary", "Glossary"]];
   const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
     <stop offset="0" stop-color="#60A5FA"/><stop offset=".5" stop-color="#A78BFA"/><stop offset="1" stop-color="#E879F9"/></linearGradient></defs>
     <rect x="3" y="3" width="26" height="26" rx="7" fill="none" stroke="url(#lg)" stroke-width="2.4"/>

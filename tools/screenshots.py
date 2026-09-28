@@ -83,6 +83,7 @@ async def main():
 
         await page("race", h=1000, action=race)
         await page("xray", action=xray)
+        await page("research", h=1100)
         await page("playground")
         await page("explorers")
         await b.close()

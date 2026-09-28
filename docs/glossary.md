@@ -20,6 +20,7 @@ Every acronym in this repo, spelled out.
 | **Double Data Rate 3 (DDR3)** | a type of off-chip memory; TPU v1 kept its weights there |
 | **Edge TPU** | Google's small, low-power TPU for devices (sold as Coral) |
 | **Field-Programmable Gate Array (FPGA)** | a chip whose logic can be reconfigured; a common way to test RTL in hardware |
+| **FP8** | 8-bit floating point, in two variants (E4M3 and E5M2) used by recent tensor hardware |
 | **Fuzzing** | testing with many randomly generated inputs (here: random programs) |
 | **Golden model** | a simple, trusted software version of the math used to check the hardware |
 | **Graphics Processing Unit (GPU)** | a processor with thousands of small cores running in lockstep groups |
@@ -34,6 +35,7 @@ Every acronym in this repo, spelled out.
 | **Matrix Multiply Unit (MXU)** | Google's name for the systolic array inside a TPU |
 | **Multiply-Accumulate (MAC)** | `total = total + a × b`; the one operation a TPU is built around |
 | **Mutation testing** | planting deliberate bugs to prove a test would catch them |
+| **Optical circuit switch** | a switch that steers light beams with tiny mirrors; TPU v4 uses them to rewire its pods |
 | **Peripheral Component Interconnect Express (PCIe)** | the slot/bus that connects TPU v1 to its host server |
 | **Pod** | many TPU chips networked into one machine |
 | **Process Design Kit (PDK)** | a chip factory's rules and cell libraries; SkyWater's sky130 PDK is open source |
@@ -51,12 +53,15 @@ Every acronym in this repo, spelled out.
 | **SparseCore** | a unit in TPU v4 and later for embedding lookups |
 | **Standard cell** | a pre-designed logic gate or flip-flop from a PDK's library, placed by the synthesis tools |
 | **Static Random-Access Memory (SRAM)** | fast on-chip memory; the Unified Buffer is SRAM |
+| **Structured sparsity** | zeros in a fixed pattern (such as 2 of every 4 weights) that hardware can skip cheaply |
 | **Synthesis** | converting RTL into a network of standard cells (Yosys does this here) |
 | **Systolic array** | a grid of PEs that pass data only to neighbors, in rhythm with the clock |
+| **Tail latency** | the response time of the slowest requests (for example the 99th percentile), which limits batch size in serving |
 | **Tapeout** | sending a finished chip layout to be manufactured |
 | **Tensor Processing Unit (TPU)** | Google's family of chips specialized for tensor (matrix) math |
 | **Tensor** | a grid of numbers with any number of dimensions |
 | **Tera-operations per second (TOPS)** | trillions of operations per second; teraFLOPS counts floating-point operations |
+| **Total cost of ownership (TCO)** | purchase price plus power and operating costs over a machine's lifetime |
 | **Unified Buffer** | TPU v1's big on-chip memory for activations; TinyTPU keeps the name |
 | **Unitary matrix** | the kind of matrix every quantum gate is; it preserves total probability |
 | **Utilization** | the fraction of the multipliers doing useful work |
