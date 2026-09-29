@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: neural-network compiler</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px; }
+header.top { padding: 34px 0 8px; }
+h1 { font-size: clamp(34px, 5.2vw, 66px); margin: 0 0 10px; letter-spacing: -.045em; line-height: .95; font-weight: 900; }
+header.top p { margin: 0; color: var(--muted); max-width: 78ch; font-size: 17px; }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 0; }
+.steps span { font: 600 12.5px "JetBrains Mono", monospace; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--muted); }
+.steps b { color: var(--mxu); }
+.grid3 { display: grid; grid-template-columns: 330px 1fr 320px; gap: 16px; margin-top: 20px; align-items: start; }
+@media (max-width: 1150px) { .grid3 { grid-template-columns: 1fr; } }
+.box h2 { font-size: 16px; margin: 0 0 10px; }
+.layers { display: grid; gap: 8px; }
+.layer { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--idle); border: 1px solid var(--line); font-size: 14px; }
+.layer b { font-family: "JetBrains Mono", monospace; }
+.layer button { padding: 3px 9px; font-size: 13px; }
+.layer label { font-size: 12px; color: var(--muted); display: flex; gap: 4px; align-items: center; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; font-size: 14px; color: var(--muted); }
+.row input[type=range] { flex: 1; }
+svg#net { width: 100%; height: auto; display: block; border-radius: 14px; background: rgba(0,0,0,.18); }
+.asm { font: 12.5px/1.65 "JetBrains Mono", monospace; max-height: 430px; overflow: auto; margin-top: 12px; border-radius: 12px; border: 1px solid var(--line); background: #05060C; }
+.asm div { display: grid; grid-template-columns: 34px 1fr 90px; gap: 8px; padding: 1px 10px; align-items: center; color: #D6DAF5; }
+.asm div:hover { background: rgba(167,139,250,.12); }
+.asm div.cur { background: rgba(232,121,249,.22); }
+.asm .n { color: #4B5275; text-align: right; }
+.asm .op-LDW { color: #FBBF24; } .asm .op-MMUL { color: #A78BFA; } .asm .op-ACT { color: #34D399; } .asm .op-HALT { color: #F87171; }
+.asm .cost { height: 8px; border-radius: 4px; background: rgba(167,139,250,.35); }
+.asm .note { grid-column: 2 / 4; color: #6B7394; font-size: 11.5px; margin-top: -3px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat { background: var(--idle); border-radius: 10px; padding: 8px 10px; }
+.stat .k { font-size: 11.5px; color: var(--muted); } .stat .v { font: 700 19px "JetBrains Mono", monospace; }
+.ok { color: var(--out); } .bad { color: var(--red); }
+.mem { margin-top: 12px; }
+.mem .lab { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin: 10px 0 4px; }
+.mem .bar { position: relative; height: 26px; border-radius: 8px; background: var(--idle); overflow: hidden; }
+.mem .bar i { position: absolute; top: 0; bottom: 0; border-right: 1px solid rgba(0,0,0,.4); font: 700 10.5px "JetBrains Mono", monospace; color: #07080F; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.warn { color: var(--wt); font-size: 13px; margin-top: 8px; }
+.errs { color: var(--red); font-size: 14px; margin-top: 8px; font-weight: 600; }
+#tl { width: 100%; height: 34px; display: block; border-radius: 8px; margin-top: 12px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.actions a, .actions button { font-size: 13px; }
+.cli { margin-top: 12px; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<nav class="site"></nav>
+<main class="wrap">
+  <header class="top">
+    <h1>Compile a network. <span class="grad-text">Watch it run.</span></h1>
+    <p>Describe a small neural network and this page does what XLA or TVM does for a real TPU: it tiles every weight matrix into 4 × 4 pieces, finds a home for every tensor in the chip's memories, schedules the instructions, and calibrates each layer's shift. Then it runs the program on the cycle-exact chip model and checks the answer.</p>
+    <div class="steps"><span><b>1</b> tile</span><span><b>2</b> allocate</span><span><b>3</b> schedule</span><span><b>4</b> calibrate</span><span><b>5</b> run + verify</span></div>
+  </header>
+  <div class="grid3">
+    <section class="box" aria-label="Network">
+      <h2>Network</h2>
+      <div class="layers" id="layers"></div>
+      <div class="actions"><button id="addL">＋ layer</button><button id="rmL">－ layer</button></div>
+      <div class="row">batch <input type="range" id="M" min="1" max="48" value="16" aria-label="batch size"><b class="num" id="Mv">16</b></div>
+      <div class="row">data seed <input type="range" id="seed" min="1" max="50" value="5" aria-label="random seed"><b class="num" id="seedv">5</b></div>
+      <div class="row"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hoist"> hoist LDW above ACT <span style="font-size:12px">(hides the drain on the v2 chip)</span></label></div>
+      <div class="errs" id="errs" role="alert"></div>
+      <div class="warn" id="warns"></div>
+    </section>
+    <section class="box" aria-label="Program">
+      <svg id="net" viewBox="0 0 760 260" role="img" aria-label="Network diagram with weight tiles"></svg>
+      <canvas id="tl" width="1400" height="60" aria-label="Execution timeline"></canvas>
+      <div class="asm" id="asm"></div>
+    </section>
+    <aside class="box" aria-label="Results">
+      <h2>Result</h2>
+      <div class="stats">
+        <div class="stat"><div class="k">instructions</div><div class="v" id="sI">0</div></div>
+        <div class="stat"><div class="k">clock cycles (v1)</div><div class="v" id="sC">0</div></div>
+        <div class="stat"><div class="k">useful MACs</div><div class="v" id="sM">0</div></div>
+        <div class="stat"><div class="k">utilization</div><div class="v" id="sU">0</div></div>
+      </div>
+      <div class="stat" style="margin-top:8px"><div class="k">answer check (chip vs plain math)</div><div class="v" id="sOK">…</div></div>
+      <div class="mem" id="mem"></div>
+      <div class="actions">
+        <a class="btn-shimmer" id="open" href="chip.html" style="padding:9px 14px">Open in chip simulator →</a>
+        <a class="btn-ghost" id="wave" href="wave.html" style="padding:8px 12px">〰 Waveforms</a>
+        <button id="dl">⬇ .asm</button>
+      </div>
+      <pre class="cmd cli"><code><span class="c"># same compiler, run on both Verilog chips</span>
+<span id="cli"></span></code></pre>
+    </aside>
+  </div>
+</main>
+<script src="tinytpu-core.js"></script>
+<script src="assets/compiler.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const { assemble, Chip } = window.TinyTPUCore, C = window.TinyTPUCompiler;
+  let widths = [8, 12, 8, 4], relu = [true, true, false], last = null;
+  const b64e = s => btoa(unescape(encodeURIComponent(s)));
+  function drawLayers() {
+    $("layers").innerHTML = widths.map((w, i) => `<div class="layer"><span>${i === 0 ? "input" : i === widths.length - 1 ? "output" : "hidden " + i} <b>${w}</b></span>
+      <button data-i="${i}" data-d="-4" aria-label="narrower">−</button><button data-i="${i}" data-d="4" aria-label="wider">＋</button>
+      ${i ? `<label><input type="checkbox" data-r="${i - 1}" ${relu[i - 1] ? "checked" : ""}> ReLU</label>` : "<span></span>"}</div>`).join("");
+    $("layers").querySelectorAll("button").forEach(b => b.onclick = () => { const i = +b.dataset.i; widths[i] = Math.max(4, Math.min(32, widths[i] + +b.dataset.d)); go(); });
+    $("layers").querySelectorAll("input").forEach(c => c.onchange = () => { relu[+c.dataset.r] = c.checked; go(); });
+  }
+  $("addL").onclick = () => { if (widths.length < 6) { widths.splice(widths.length - 1, 0, 8); relu.splice(relu.length - 1, 0, true); go(); } };
+  $("rmL").onclick = () => { if (widths.length > 2) { widths.splice(widths.length - 2, 1); relu.splice(relu.length - 2, 1); go(); } };
+  ["M", "seed"].forEach(id => $(id).oninput = () => { $(id + "v").textContent = $(id).value; go(); });
+  $("hoist").onchange = go;
+
+  function go() {
+    drawLayers();
+    const M = +$("M").value, seed = +$("seed").value, hoist = $("hoist").checked;
+    const d = C.makeData(widths, M, seed);
+    const c = C.compile({ widths, M, relu, hoist, X: d.X, Ws: d.Ws });
+    $("errs").textContent = c.errors.join(" · "); $("warns").textContent = (c.warnings || []).join(" · ");
+    $("cli").textContent = `$ python3 tools/tpu_compile.py --layers ${widths.join(",")} --batch ${M} --seed ${seed}${hoist ? " --hoist" : ""} --out build\n$ make build/v2_pipelined.vvp && vvp -n build/v2_pipelined.vvp +novcd`;
+    if (c.errors.length) { $("asm").innerHTML = ""; drawNet(null); return; }
+    // run on the cycle-exact chip model, noting when each instruction starts
+    const chip = new Chip(4), words = assemble(c.prog.join("\n")).words;
+    words.forEach((w, i) => chip.imem[i] = w); c.wmem.forEach((r, i) => chip.wmem[i] = r); c.ub.forEach((r, i) => { if (r) chip.ub[i] = r; });
+    const start = [], states = [];
+    while (!chip.done) { if (chip.state === 0) start.push(chip.cycles); states.push(chip.state); chip.tick(); }
+    const ok = JSON.stringify(C.readOutput(chip.ub, c)) === JSON.stringify(c.ref[c.ref.length - 1]);
+    last = { c, chip, start, states, hoist };
+    $("sI").textContent = words.length; $("sC").textContent = chip.cycles; $("sM").textContent = c.macs.toLocaleString();
+    $("sU").textContent = Math.round(100 * c.macs / (16 * chip.cycles)) + "%";
+    $("sOK").innerHTML = ok ? `<span class="ok">✓ PASS · all ${M * c.NO} outputs</span>` : `<span class="bad">✗ mismatch</span>`;
+    const cost = start.map((s, i) => (start[i + 1] || chip.cycles) - s), mx = Math.max(...cost);
+    $("asm").innerHTML = c.prog.map((line, i) => { const op = line.split(/\s+/)[0];
+      return `<div data-i="${i}"><span class="n">${i}</span><span class="op-${op}">${line}</span><span title="${cost[i]} cycles"><i class="cost" style="display:block;width:${cost[i] / mx * 100}%"></i></span>${c.notes[i] ? `<span class="note">${c.notes[i]}</span>` : ""}</div>`; }).join("");
+    drawMem(c); drawNet(c); drawTL(states, start);
+    const d64 = b64e(JSON.stringify({ w: c.wmem, u: [...Array(256)].map((_, i) => c.ub[i] || [0, 0, 0, 0]).slice(0, Math.max(...Object.keys(c.ub).map(Number)) + 1) }));
+    $("open").href = "chip.html#p=" + b64e(c.prog.join("\n")) + "&d=" + d64;
+    $("wave").href = "wave.html#p=" + b64e(c.prog.join("\n")) + "&d=" + d64;
+  }
+  const COLS = ["#60A5FA", "#E879F9", "#34D399", "#FBBF24", "#A78BFA", "#F87171"];
+  function drawMem(c) {
+    const bar = (title, regs) => `<div class="lab"><span>${title}</span><span>${Math.max(0, ...regs.map(r => r.to + 1))} / 256 rows</span></div><div class="bar">` +
+      regs.map((r, k) => `<i style="left:${r.from / 256 * 100}%;width:${(r.to - r.from + 1) / 256 * 100}%;background:${COLS[(r.layer + 1) % COLS.length]}" title="${r.name}: rows ${r.from}-${r.to}">${r.name}</i>`).join("") + `</div>`;
+    const accMax = c.regions.acc.reduce((m, r) => r.to > m.to ? r : m, c.regions.acc[0]);
+    $("mem").innerHTML = bar("Weight memory", c.regions.wmem) + bar("Unified Buffer", c.regions.ub) + bar("Accumulators (reused by every layer)", [{ ...accMax, name: "partial sums" }]);
+  }
+  function drawNet(c) {
+    const svg = $("net"), L = widths.length, W = 760, H = 260, xs = i => 60 + i * (W - 120) / (L - 1);
+    let h = "";
+    for (let i = 0; i < L - 1; i++) {                                  // weight tiles between layers
+      const kt = widths[i] / 4, ct = widths[i + 1] / 4, x = (xs(i) + xs(i + 1)) / 2, cell = Math.min(18, 150 / Math.max(kt, ct));
+      for (let a = 0; a < kt; a++) for (let b = 0; b < ct; b++)
+        h += `<rect class="tile" data-l="${i}" data-k="${a}" data-c="${b}" x="${x - ct * cell / 2 + b * cell}" y="${H / 2 - kt * cell / 2 + a * cell}" width="${cell - 2}" height="${cell - 2}" rx="3" fill="${COLS[(i + 1) % COLS.length]}" opacity=".35"/>`;
+      h += `<text x="${x}" y="${H / 2 + kt * cell / 2 + 18}" text-anchor="middle" font-size="11" fill="${css("--muted")}" font-family="JetBrains Mono, monospace">W${i + 1}: ${kt}×${ct} tiles</text>`;
+    }
+    widths.forEach((w, i) => { const n = w, gap = Math.min(12, 200 / n);
+      for (let k = 0; k < n; k++) h += `<circle cx="${xs(i)}" cy="${H / 2 - (n - 1) * gap / 2 + k * gap}" r="${Math.min(4.5, gap / 2.4)}" fill="${COLS[i % COLS.length]}"/>`;
+      h += `<text x="${xs(i)}" y="${H - 8}" text-anchor="middle" font-size="12" font-weight="700" fill="${css("--ink")}">${i === 0 ? "X" : i === L - 1 ? "Y" : "H" + i} · ${w}</text>`; });
+    svg.innerHTML = h;
+  }
+  function drawTL(states, start) {
+    const cv = $("tl"), g = cv.getContext("2d"), w = cv.width, n = states.length;
+    const col = { 0: "#3A3F66", 1: "#3A3F66", 2: "#FBBF24", 3: "#A78BFA", 4: "#34D399", 5: "#F87171" };
+    g.clearRect(0, 0, w, cv.height);
+    states.forEach((s, i) => { g.fillStyle = col[s]; g.fillRect(i / n * w, 0, w / n + 1, cv.height); });
+  }
+  // animate: sweep through the run, highlighting the current instruction and weight tile
+  let t0 = performance.now();
+  function frame(now) {
+    if (last && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const { chip, start, c } = last, total = chip.cycles, cyc = ((now - t0) / 1000 * total / 6) % total;
+      let i = start.findIndex((s, k) => s <= cyc && (start[k + 1] || total) > cyc);
+      document.querySelectorAll("#asm div").forEach(d => d.classList.toggle("cur", +d.dataset.i === i));
+      // which tile is in use: the most recent LDW at or before instruction i
+      let tile = null, seen = 0;
+      for (let k = 0; k <= i; k++) if (c.prog[k].startsWith("LDW")) tile = +c.prog[k].split("=")[1];
+      document.querySelectorAll("#net .tile").forEach(r => r.setAttribute("opacity", ".3"));
+      if (tile !== null) { const reg = c.regions.wmem.find(r => tile >= r.from && tile <= r.to);
+        if (reg) { const l = reg.layer, K = widths[l], N = widths[l + 1], idx = (tile - reg.from) / 4, kt = Math.floor(idx / (N / 4)), ct = idx % (N / 4);
+          const el = document.querySelector(`#net .tile[data-l="${l}"][data-k="${kt}"][data-c="${ct}"]`); if (el) el.setAttribute("opacity", "1"); } }
+      const cv = $("tl"), g = cv.getContext("2d"); drawTL(last.states, start);
+      g.fillStyle = "#fff"; g.fillRect(cyc / total * cv.width - 2, 0, 4, cv.height);
+    }
+    requestAnimationFrame(frame);
+  }
+  $("dl").onclick = () => { if (!last) return; const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([last.c.prog.join("\n") + "\n"], { type: "text/plain" })); a.download = `net_${widths.join("-")}.asm`; a.click(); };
+  addEventListener("themechange", go);
+  go(); requestAnimationFrame(frame);
+  window.__compile = { go, get last() { return last; } };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: waveform viewer</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+html, body { height: 100%; } body { display: flex; flex-direction: column; overflow: hidden; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.bar h1 { font-size: 20px; margin: 0 12px 0 0; letter-spacing: -.02em; }
+.bar select, .bar button { font-size: 13px; padding: 6px 10px; }
+.bar .spacer { flex: 1; }
+.bar .info { font: 600 12.5px "JetBrains Mono", monospace; color: var(--muted); }
+.main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 280px; }
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } .side { display: none; } }
+.view { position: relative; min-height: 0; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+.side { border-left: 1px solid var(--line); padding: 16px; overflow: auto; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+.side h2 { font-size: 14px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+.vals { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font: 12.5px "JetBrains Mono", monospace; }
+.vals span:nth-child(odd) { color: var(--muted); }
+.vals b { color: var(--ink); }
+.big { font: 800 28px "JetBrains Mono", monospace; margin-bottom: 6px; }
+.help { font-size: 12.5px; color: var(--muted); margin-top: 16px; line-height: 1.6; }
+kbd { font: 600 11px "JetBrains Mono", monospace; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line); background: var(--idle); }
+footer.site { display: none; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body data-nofooter>
+<nav class="site"></nav>
+<div class="bar">
+  <h1>〰 Waveform viewer</h1>
+  <select id="preset" aria-label="Program"><option value="mlp">Neural net (9 instructions)</option><option value="tiny">One MMUL</option><option value="custom" hidden>From link</option></select>
+  <button id="fit">Fit</button><button id="zin" aria-label="Zoom in">＋</button><button id="zout" aria-label="Zoom out">－</button>
+  <button id="radix">dec</button>
+  <button id="vcd" title="Download a VCD file for GTKWave">⬇ VCD</button>
+  <span class="spacer"></span>
+  <span class="info" id="info"></span>
+</div>
+<div class="main">
+  <div class="view"><canvas id="cv" aria-label="Waveforms of the TinyTPU chip, one row per signal"></canvas></div>
+  <aside class="side">
+    <h2>cursor</h2>
+    <div class="big" id="cur">cycle —</div>
+    <div class="vals" id="vals"></div>
+    <div class="help">Hover to read every signal at a cycle. <kbd>click</kbd> drops marker A, <kbd>shift</kbd>+<kbd>click</kbd> marker B; the distance appears on top.
+      Scroll to zoom, drag to pan. Every value comes from the cycle-exact model that is checked against the Verilog, so this matches GTKWave on <code>build/tpu.vcd</code>.</div>
+  </aside>
+</div>
+<script src="tinytpu-core.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const { assemble, disassemble, Chip, STATE } = window.TinyTPUCore;
+  function lcg(seed) { let s = seed >>> 0; return (lo, hi) => { s = (s * 1664525 + 1013904223) >>> 0; return lo + ((s >>> 16) % (hi - lo + 1)); }; }
+  const b64d = s => decodeURIComponent(escape(atob(s)));
+  const PRESETS = {
+    mlp: { src: "LDW w=0\nMMUL ub=0 rows=8 acc=0\nLDW w=4\nMMUL ub=8 rows=8 acc=0 accumulate\nLDW w=8\nACT acc=0 rows=8 ub=16 relu shift=3\nMMUL ub=16 rows=8 acc=8\nACT acc=8 rows=8 ub=24 shift=5\nHALT",
+           data(c) { const r = lcg(7); for (let i = 0; i < 12; i++) c.wmem[i] = [0,0,0,0].map(() => r(-8, 7)); for (let i = 0; i < 16; i++) c.ub[i] = [0,0,0,0].map(() => r(-8, 7)); } },
+    tiny: { src: "LDW w=0\nMMUL ub=0 rows=3 acc=0\nACT acc=0 rows=3 ub=8 shift=0\nHALT",
+            data(c) { [[1,2,0,-1],[0,1,3,2],[2,0,1,1],[1,-1,2,0]].forEach((r, i) => c.wmem[i] = r); [[1,2,3,4],[2,0,1,1],[-1,1,0,2]].forEach((r, i) => c.ub[i] = r); } },
+    custom: { src: "", data(c) { (CUSTOM.w || []).forEach((r, i) => c.wmem[i] = r.slice()); (CUSTOM.u || []).forEach((r, i) => { if (r) c.ub[i] = r.slice(); }); } }
+  };
+  let CUSTOM = {};
+  // signals: [name, width, kind, color, getter(chip, comb)]
+  const SIG = [
+    ["clk", 1, "clk", "--ctl"],
+    ["state", 3, "enum", "--mxu", (c, s) => c.done ? 5 : c.state],
+    ["pc", 8, "bus", "--ctl", c => c.pc],
+    ["cnt", 9, "bus", "--ctl", c => c.cnt],
+    ["w_load", 1, "bit", "--wt", (c, s) => s.wLoad],
+    ["wmem_addr", 8, "bus", "--wt", (c, s) => s.wLoad ? s.wmemAddr : null],
+    ["in_valid", 1, "bit", "--act", (c, s) => s.inValid],
+    ["ub_rd_addr", 8, "bus", "--act", (c, s) => s.inValid ? s.ubRd : null],
+    ["a_skewed[0]", 8, "bus", "--act", (c, s) => s.skewed[0]], ["a_skewed[1]", 8, "bus", "--act", (c, s) => s.skewed[1]],
+    ["a_skewed[2]", 8, "bus", "--act", (c, s) => s.skewed[2]], ["a_skewed[3]", 8, "bus", "--act", (c, s) => s.skewed[3]],
+    ["valid_pipe", 7, "pipe", "--ps", c => c.validPipe.slice()],
+    ["out_valid", 1, "bit", "--ps", (c, s) => s.outValid],
+    ["acc_wr_addr", 8, "bus", "--ps", (c, s) => s.outValid ? c.accWr : null],
+    ["result[0]", 32, "bus", "--ps", (c, s) => s.outValid ? s.result[0] : null], ["result[3]", 32, "bus", "--ps", (c, s) => s.outValid ? s.result[3] : null],
+    ["ub_wr_en", 1, "bit", "--out", (c, s) => s.ubWrEn],
+    ["ub_wr_addr", 8, "bus", "--out", (c, s) => s.ubWrEn ? s.ubWr : null],
+    ["act_out[0]", 8, "bus", "--out", (c, s) => s.ubWrEn ? s.actOut[0] : null],
+    ["done", 1, "bit", "--red", c => c.done ? 1 : 0]
+  ];
+  let trace = [], instr = [], N = 0, hex = false;
+  function run(src, dataFn) {
+    const chip = new Chip(4), words = assemble(src).words; words.forEach((w, i) => chip.imem[i] = w); dataFn(chip);
+    trace = []; instr = [];
+    let cur = null;
+    for (let guard = 0; guard < 20000; guard++) {
+      const s = chip.comb(), row = SIG.map(([, , k, , f]) => f ? f(chip, s) : null);
+      trace.push(row);
+      if (chip.state === 0 && !chip.done) { cur = { at: trace.length - 1, pc: chip.pc, text: disassemble(chip.imem[chip.pc]) }; instr.push(cur); }
+      if (chip.done) break;
+      chip.tick();
+    }
+    N = trace.length; $("info").textContent = `${N - 1} cycles · ${words.length} instructions · cycle-exact model of rtl/v1_simple`;
+    fit();
+  }
+  // ---------------------------------------------------------------- view
+  const cv = $("cv"), g = cv.getContext("2d"), NAMEW = 150, TOP = 40, RH = 30;
+  let W = 0, H = 0, dpr = 1, px = 20, x0 = 0, hover = null, mA = null, mB = null;
+  function resize() { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; draw(); }
+  function fit() { px = Math.max(3, (W - NAMEW - 20) / Math.max(1, N)); x0 = 0; draw(); }
+  const X = c => NAMEW + (c - x0) * px;
+  const fmt = v => v === null || v === undefined ? "" : hex ? (v < 0 ? "-" : "") + "0x" + Math.abs(v).toString(16) : String(v);
+  function draw() {
+    if (!W) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const ink = css("--ink"), muted = css("--muted"), line = css("--line");
+    const c0 = Math.max(0, Math.floor(x0)), c1 = Math.min(N, Math.ceil(x0 + (W - NAMEW) / px) + 1);
+    // grid + cycle numbers
+    g.font = "11px JetBrains Mono, monospace"; g.textAlign = "center";
+    const step = [1, 2, 5, 10, 20, 50, 100].find(s => s * px >= 34) || 100;
+    for (let c = Math.ceil(c0 / step) * step; c < c1; c += step) { g.fillStyle = line; g.fillRect(X(c), TOP - 6, 1, H); g.fillStyle = muted; g.fillText(c, X(c), TOP - 10); }
+    // instruction ribbon
+    instr.forEach((it, k) => { const a = X(it.at), b = X(k + 1 < instr.length ? instr[k + 1].at : N); if (b < NAMEW || a > W) return;
+      const op = it.text.split(" ")[0], col = { LDW: "--wt", MMUL: "--mxu", ACT: "--out", HALT: "--red" }[op] || "--ctl";
+      g.fillStyle = css(col + "-bg") || "rgba(255,255,255,.08)"; g.fillRect(Math.max(NAMEW, a), 4, b - Math.max(NAMEW, a) - 1, 16);
+      g.fillStyle = css(col); g.textAlign = "left"; g.save(); g.beginPath(); g.rect(Math.max(NAMEW, a), 4, b - Math.max(NAMEW, a) - 2, 16); g.clip();
+      g.fillText(it.text, Math.max(NAMEW, a) + 4, 16); g.restore(); });
+    // signals
+    SIG.forEach(([name, width, kind, col], r) => {
+      const y = TOP + 8 + r * RH, c = css(col) || ink, mid = y + RH / 2 - 3;
+      g.fillStyle = r % 2 ? "rgba(255,255,255,.02)" : "transparent"; g.fillRect(0, y - 2, W, RH);
+      g.textAlign = "left"; g.fillStyle = c; g.font = "600 12px JetBrains Mono, monospace"; g.fillText(name, 12, mid + 4);
+      g.fillStyle = muted; g.font = "10px JetBrains Mono, monospace"; if (width > 1) g.fillText(`[${width - 1}:0]`, 12 + name.length * 7.4 + 4, mid + 4);
+      g.save(); g.beginPath(); g.rect(NAMEW, y - 2, W - NAMEW, RH); g.clip();
+      g.strokeStyle = c; g.lineWidth = 1.6; g.font = "11px JetBrains Mono, monospace";
+      const hi = y + 3, lo = y + RH - 9;
+      if (kind === "clk") { g.beginPath(); for (let k = c0; k < c1; k++) { g.moveTo(X(k), lo); g.lineTo(X(k), hi); g.lineTo(X(k + .5), hi); g.lineTo(X(k + .5), lo); g.lineTo(X(k + 1), lo); } g.stroke(); }
+      else if (kind === "bit") { g.beginPath(); for (let k = c0; k < c1; k++) { const v = trace[k][r] ? hi : lo; if (k === c0) g.moveTo(X(k), v); else g.lineTo(X(k), v); g.lineTo(X(k + 1), v); } g.stroke();
+        g.globalAlpha = .18; g.fillStyle = c; for (let k = c0; k < c1; k++) if (trace[k][r]) g.fillRect(X(k), hi, px, lo - hi); g.globalAlpha = 1; }
+      else if (kind === "pipe") { for (let k = c0; k < c1; k++) trace[k][r].forEach((v, j) => { g.fillStyle = v ? c : "rgba(148,163,184,.18)"; g.fillRect(X(k) + 1, hi + j * ((lo - hi) / 7), Math.max(1, px - 2), (lo - hi) / 7 - 1); }); }
+      else { // bus / enum: segments of equal value, drawn as hexagons
+        let k = c0; while (k < c1) { let e = k; while (e < c1 && trace[e][r] === trace[k][r]) e++;
+          const v = trace[k][r], a = X(k), b = X(e);
+          if (v === null) { g.strokeStyle = "rgba(148,163,184,.35)"; g.beginPath(); g.moveTo(a, mid); g.lineTo(b, mid); g.stroke(); }
+          else { const sl = Math.min(4, (b - a) / 4); g.strokeStyle = c; g.fillStyle = c; g.globalAlpha = .14;
+            g.beginPath(); g.moveTo(a, mid); g.lineTo(a + sl, hi); g.lineTo(b - sl, hi); g.lineTo(b, mid); g.lineTo(b - sl, lo); g.lineTo(a + sl, lo); g.closePath(); g.fill(); g.globalAlpha = 1; g.stroke();
+            const txt = kind === "enum" ? STATE[v] || "DONE" : fmt(v); if (g.measureText(txt).width < b - a - 8) { g.fillStyle = ink; g.textAlign = "center"; g.fillText(txt, (a + b) / 2, mid + 4); } }
+          k = e; } }
+      g.restore();
+    });
+    g.fillStyle = line; g.fillRect(NAMEW - 1, 0, 1, H);
+    // markers and cursor
+    const vline = (c, col, lab) => { if (c === null) return; const x = X(c + .5); if (x < NAMEW) return; g.fillStyle = col; g.fillRect(x - 1, TOP - 4, 2, H); g.font = "700 11px JetBrains Mono, monospace"; g.textAlign = "center"; g.fillText(lab, x, H - 6); };
+    vline(mA, css("--wt"), "A"); vline(mB, css("--act"), "B");
+    if (mA !== null && mB !== null) { g.fillStyle = ink; g.textAlign = "center"; g.font = "700 12px JetBrains Mono, monospace"; g.fillText(`Δ = ${Math.abs(mB - mA)} cycles`, (X(mA + .5) + X(mB + .5)) / 2, TOP + 2 + SIG.length * RH + 20); }
+    if (hover !== null) { g.fillStyle = "rgba(232,121,249,.8)"; g.fillRect(X(hover + .5) - .5, TOP - 4, 1, H); }
+  }
+  function showVals(c) {
+    $("cur").textContent = `cycle ${c}`;
+    $("vals").innerHTML = SIG.slice(1).map(([n, , k], i) => { const v = trace[c][i + 1];
+      const s = k === "enum" ? (STATE[v] || "DONE") : k === "pipe" ? v.join("") : v === null ? "—" : fmt(v);
+      return `<span>${n}</span><b>${s}</b>`; }).join("");
+  }
+  // ---------------------------------------------------------------- interaction
+  let drag = null;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, x0, moved: 0 }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(), mx = e.clientX - r.left;
+    if (drag) { drag.moved += Math.abs(e.movementX); x0 = Math.max(0, drag.x0 - (e.clientX - drag.x) / px); }
+    const c = Math.floor(x0 + (mx - NAMEW) / px); hover = mx > NAMEW && c >= 0 && c < N ? c : null; if (hover !== null) showVals(hover); draw(); });
+  cv.addEventListener("pointerup", e => { if (drag && drag.moved < 4 && hover !== null) { if (e.shiftKey) mB = hover; else mA = hover; draw(); } drag = null; });
+  cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, c = x0 + (mx - NAMEW) / px;
+    px = Math.max(2, Math.min(80, px * Math.exp(-e.deltaY * .0015))); x0 = Math.max(0, c - (mx - NAMEW) / px); draw(); }, { passive: false });
+  $("fit").onclick = fit;
+  $("zin").onclick = () => { px = Math.min(80, px * 1.6); draw(); };
+  $("zout").onclick = () => { px = Math.max(2, px / 1.6); draw(); };
+  $("radix").onclick = () => { hex = !hex; $("radix").textContent = hex ? "hex" : "dec"; draw(); if (hover !== null) showVals(hover); };
+  $("preset").onchange = () => { const p = PRESETS[$("preset").value]; run(p.src, p.data); showVals(0); };
+  $("vcd").onclick = () => {
+    const ids = SIG.map((_, i) => String.fromCharCode(33 + i));
+    let v = `$date ${new Date().toISOString()} $end\n$version terrific-tpu wave.html $end\n$timescale 1ns $end\n$scope module tinytpu $end\n`;
+    SIG.forEach(([n, w, k], i) => { if (k !== "pipe" && k !== "enum") v += `$var wire ${w} ${ids[i]} ${n.replace(/\[|\]/g, "_")} $end\n`; else if (k === "enum") v += `$var wire 3 ${ids[i]} state $end\n`; });
+    v += "$upscope $end\n$enddefinitions $end\n";
+    const bin = (x, w) => ((x < 0 ? (2 ** w + x) : x) >>> 0).toString(2).padStart(w, "0").slice(-w);
+    trace.forEach((row, t) => { v += `#${t * 10}\n`; SIG.forEach(([, w, k], i) => { if (k === "pipe") return; const x = k === "clk" ? 1 : row[i];
+      v += w === 1 ? `${x ? 1 : 0}${ids[i]}\n` : `b${x === null ? "x".repeat(w) : bin(x, w)} ${ids[i]}\n`; }); v += `#${t * 10 + 5}\n0${ids[0]}\n`; });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([v], { type: "text/plain" })); a.download = "tinytpu.vcd"; a.click();
+  };
+  addEventListener("resize", resize); addEventListener("themechange", draw);
+  const hp = new URLSearchParams(location.hash.slice(1));
+  resize();
+  if (hp.get("p")) { try { CUSTOM = hp.get("d") ? JSON.parse(b64d(hp.get("d"))) : {}; PRESETS.custom.src = b64d(hp.get("p"));
+      const o = $("preset").querySelector('[value="custom"]'); o.hidden = false; $("preset").value = "custom"; } catch (e) {} }
+  const p = PRESETS[$("preset").value]; run(p.src, p.data); showVals(0);
+  window.__wave = { get N() { return N; }, setMarkers: (a, b) => { mA = a; mB = b; draw(); }, hoverAt: c => { hover = c; showVals(c); draw(); }, zoom: (p0, x) => { px = p0; x0 = x; draw(); } };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

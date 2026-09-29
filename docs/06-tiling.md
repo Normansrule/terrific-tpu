@@ -41,6 +41,15 @@ There are two loop orders, and they trade memory for reloads:
 
 When the batch M is too big for the Unified Buffer, it gets tiled too, and then weight tiles might have to be reloaded. Choosing tile sizes and loop orders that fit the memories is one of the main jobs of the XLA compiler on real TPUs.
 
+## Let a compiler do it
+
+The [compiler page](../web/compile.html) applies exactly this recipe to any small network you design, and shows the tiles, the memory map, and the generated program. The same compiler runs from the command line and on the Verilog:
+
+```bash
+python3 tools/tpu_compile.py --layers 8,12,8,4 --batch 16 -v
+make compile-test
+```
+
 ## In TinyTPU
 
 The demo program [`programs/mlp_demo.asm`](../programs/mlp_demo.asm) tiles its first layer (K = 8) into two K-tiles:

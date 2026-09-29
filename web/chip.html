@@ -81,7 +81,7 @@ table.mem tr.rd td { background: var(--act-bg); } table.mem tr.wr td { backgroun
       <button data-preset="tiny" aria-pressed="false">One MMUL</button>
     </div>
     <textarea id="src" spellcheck="false" aria-label="Assembly source"></textarea>
-    <button id="assemble" class="primary" style="margin-top:8px">Load program</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="assemble" class="primary">Load program</button><button id="share" title="Copy a link that opens this exact program and data">🔗 Share link</button><a class="btn-ghost" id="toWave" href="wave.html" style="padding:7px 12px;font-size:14px">〰 Waveforms</a></div>
     <div class="err" id="err" role="alert"></div>
     <ol class="listing num" id="listing"></ol>
   </section>
@@ -160,6 +160,7 @@ HALT`,
       data(chip) { const Cm = [[1,1,1,1],[1,0,-1,0],[1,-1,1,-1],[1,0,-1,0]], Sm = [[0,0,0,0],[0,-1,0,1],[0,0,0,0],[0,1,0,-1]];
                    Cm.concat(Sm).forEach((row, i) => chip.wmem[i] = row);
                    const r = lcg(3); for (let i = 0; i < 8; i++) chip.ub[i] = [0,0,0,0].map(() => r(-31, 31)); } },
+    custom: { src: "", data(chip) { (CUSTOM.w || []).forEach((r, i) => chip.wmem[i] = r.slice()); (CUSTOM.u || []).forEach((r, i) => { if (r) chip.ub[i] = r.slice(); }); } },
     tiny: {
       src: `; the smallest useful program: 3 vectors times one weight tile
 LDW   w=0
@@ -280,7 +281,24 @@ HALT`,
     document.querySelectorAll("[data-mem]").forEach(x => x.setAttribute("aria-selected", x === b));
     renderMem(chip.comb());
   });
-  $("src").value = PRESETS.mlp.src; load();
+  // ---- share links: #p=<program>&d=<data>, both base64 (made by the compiler page, or the Share button)
+  const b64e = str => btoa(unescape(encodeURIComponent(str))), b64d = str => decodeURIComponent(escape(atob(str)));
+  var CUSTOM = {};
+  function currentData() { const c = new Chip(N); PRESETS[preset].data(c);
+    const trim = a => { let n = a.length; while (n && a[n - 1].every(v => v === 0)) n--; return a.slice(0, n); };
+    return { w: trim(c.wmem), u: trim(c.ub) }; }
+  $("share").onclick = () => {
+    const url = location.href.split("#")[0] + "#p=" + b64e($("src").value) + "&d=" + b64e(JSON.stringify(currentData()));
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => { $("share").textContent = "✓ Link copied"; setTimeout(() => $("share").textContent = "🔗 Share link", 1600); },
+      () => prompt("Copy this link:", url));
+  };
+  $("toWave").onclick = e => { e.preventDefault(); location.href = "wave.html#p=" + b64e($("src").value) + "&d=" + b64e(JSON.stringify(currentData())); };
+  const hp = new URLSearchParams(location.hash.slice(1));
+  if (hp.get("p")) {
+    try { CUSTOM = hp.get("d") ? JSON.parse(b64d(hp.get("d"))) : {}; preset = "custom"; $("src").value = b64d(hp.get("p"));
+      document.querySelectorAll("[data-preset]").forEach(x => x.setAttribute("aria-pressed", "false")); load(); }
+    catch (e) { $("err").textContent = "Could not read the shared link."; $("src").value = PRESETS.mlp.src; load(); }
+  } else { $("src").value = PRESETS.mlp.src; load(); }
 })();
 </script>
 <script src="assets/ui.js"></script>

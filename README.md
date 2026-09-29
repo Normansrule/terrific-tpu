@@ -6,7 +6,7 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-11%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-13%20interactive%20pages%20·%203--D-2563EB)
 ![Research](https://img.shields.io/badge/research-28%20papers%20mapped%20to%20code-E879F9)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
@@ -57,6 +57,8 @@ Everything runs in the browser, on GitHub Pages or locally with `make serve`. Pr
 | <img src="docs/img/tour.png" width="260"> | [**3-D chip tour**](web/tour.html) | fly through the whole chip in 3-D while it runs a real neural network; 8 guided chapters, a 92-cycle scrubber, hover any PE to read its registers |
 | <img src="docs/img/xray.png" width="260"> | [**Chip X-ray**](web/xray.html) | a zoomable floor plan of the die in SkyWater 130 nm: scroll from the whole chip down to individual standard cells in 2.72 µm rows, and watch blocks glow as the chip runs a neural network |
 | <img src="docs/img/race.png" width="260"> | [**The race**](web/race.html) | a scalar CPU, a vector unit, and the systolic array compute the same matrix product; one prize for fastest, one for least energy |
+| <img src="docs/img/compile.png" width="260"> | [**Compiler**](web/compile.html) | design a neural network with buttons; the page tiles it, allocates memory, schedules instructions, calibrates shifts, runs it on the chip model, and checks every output; one click opens it in the simulator or the waveform viewer |
+| <img src="docs/img/wave.png" width="260"> | [**Waveform viewer**](web/wave.html) | GTKWave in the browser: every signal on every cycle, zoom, markers with cycle distances, and a VCD download |
 | <img src="docs/img/research.png" width="260"> | [**Research library**](web/research.html) | 28 papers from Kung's 1978 systolic arrays to TPU v4's optical pods, on a clickable timeline, each mapped to the lesson or file where the idea lives |
 | <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock: controller, skew, array, every memory |
 | <img src="docs/img/challenges.png" width="260"> | [**Challenges**](web/challenges.html) | six programming puzzles, from "first light" to "the whole network"; beat the par for three stars |
@@ -163,12 +165,14 @@ cd terrific-tpu
 make                 # neural network demo on both chips
 make dft             # a Fourier transform on the same hardware
 make apps            # image filter, quantum search, graph triangles
+make compile-test    # compile 4 neural networks and run them on both Verilog chips
+python3 tools/tpu_compile.py --layers 8,12,8,4 --batch 16 --hoist -v   # the compiler by itself
 make experiments     # 6 experiments -> experiments/results/*.csv + charts
 make fuzz            # 200 random programs per chip vs the instruction-level model
 make scale           # array sizes 2, 4, 8, 16
 make jscheck         # the browser simulator must match the Verilog cycle for cycle
 make mutants         # plant 16 bugs; every one must be caught
-make test            # all of the above (includes the three applications)
+make test            # all of the above (includes the applications and compiled networks)
 
 make diagrams        # redraw every generated SVG (runs the Verilog)
 make synth           # sky130 area (set SKY130_LIB to your liberty file)
@@ -232,13 +236,14 @@ terrific-tpu/
 │   ├── tpu_isa_sim.py       instruction-level model (the meaning of every program)
 │   ├── golden_model.py      demos + dependency-biased random-program generator
 │   ├── apps.py              application data + independent reference math
+│   ├── tpu_compile.py       neural-network compiler: tiling, allocation, scheduling, calibration
 │   ├── trace_js.js          per-cycle trace of the browser model
 │   ├── mutation_test.sh     16 planted bugs
 │   ├── check_js_sim.js      browser model vs Verilog
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · tour · xray · race · challenges · research · chip · apps · array3d · playground · explorers
+├── web/                  index · tour · xray · race · compile · challenges · research · chip · wave · apps · array3d · playground · explorers
 │   ├── tinytpu-core.js      cycle-exact JavaScript model of the chip + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages

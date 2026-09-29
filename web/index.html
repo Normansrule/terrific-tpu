@@ -170,6 +170,19 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
         <rect x="150" y="144" width="420" height="18" rx="9" fill="rgba(148,163,184,.15)"/><rect x="150" y="144" width="0" height="18" rx="9" fill="#A78BFA"><animate attributeName="width" values="0;420;420" keyTimes="0;.55;1" dur="3s" repeatCount="indefinite"/></rect>
       </svg></div>
       <h3>The great matrix-multiply race</h3><p>A plain CPU, a vector unit, and the systolic array: same 16 multipliers, very different speed and energy.</p></a>
+    <a class="spot beam card" href="compile.html" style="grid-column: span 3" data-reveal>
+      <span class="tag">new · compiler</span><span class="go">Compile →</span>
+      <div class="art"><svg viewBox="0 0 640 200" aria-hidden="true"><g font-family="JetBrains Mono, monospace" font-size="15">
+        <text x="120" y="50" fill="#FBBF24">LDW   w=8</text><text x="120" y="78" fill="#A78BFA">MMUL  ub=0 rows=16 acc=0</text><text x="120" y="106" fill="#FBBF24">LDW   w=12</text>
+        <text x="120" y="134" fill="#A78BFA">MMUL  ub=16 rows=16 acc=0 accumulate</text><text x="120" y="162" fill="#34D399">ACT   acc=0 rows=16 ub=48 relu</text></g>
+        <rect x="112" y="60" width="420" height="24" rx="6" fill="rgba(232,121,249,.18)"><animate attributeName="y" values="32;60;88;116;144;32" dur="4s" repeatCount="indefinite"/></rect></svg></div>
+      <h3>Neural-network compiler</h3><p>Design a network with buttons; it's tiled, scheduled, and run on the chip, and every output is checked.</p></a>
+    <a class="spot card" href="wave.html" style="grid-column: span 3" data-reveal="80">
+      <span class="tag">new · waveforms</span><span class="go">Open →</span>
+      <div class="art"><svg viewBox="0 0 640 200" aria-hidden="true" fill="none" stroke-width="2.5">
+        <path d="M60 60 h40 v-24 h40 v24 h40 v-24 h40 v24 h40 v-24 h40 v24 h40 v-24 h40 v24 h40 v-24 h40 v24" stroke="#94A3B8"/>
+        <path d="M60 110 h120 v-24 h160 v24 h240" stroke="#FBBF24"/><path d="M60 160 h200 v-24 h200 v24 h100" stroke="#E879F9"/></svg></div>
+      <h3>Waveform viewer</h3><p>Every signal on every cycle, with markers and VCD export. GTKWave in your browser.</p></a>
     <a class="spot beam card" href="research.html" style="grid-column: span 6; grid-row: span 1" data-reveal>
       <span class="tag">new · research</span><span class="go">Browse →</span>
       <div class="art"><svg viewBox="0 0 1200 200" aria-hidden="true"><line x1="60" y1="130" x2="1140" y2="130" stroke="rgba(142,149,186,.4)" stroke-width="2"/>

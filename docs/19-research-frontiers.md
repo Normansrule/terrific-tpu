@@ -52,7 +52,7 @@ Each section below says what the problem is, what the key papers found, and a co
 
 **What research found.** XLA compiles TensorFlow, JAX, and PyTorch for TPUs; TVM (Chen et al., 2018) automatically searches schedules for many hardware targets. "Ten Lessons From Three Generations Shaped Google's TPUv4i" (Jouppi et al., 2021) lists compiler compatibility as a first-class design constraint.
 
-**Try it here.** Write a tiny scheduler in `tools/`: given M, K, N, emit the LDW / MMUL / ACT program for TinyTPU, with an option to hoist `LDW`s early (the trick in `mlp_demo.asm`). Measure its v2 speedup across shapes with experiment 1's harness.
+**Built for you.** [`tools/tpu_compile.py`](../tools/tpu_compile.py) and the [compiler page](../web/compile.html) already do tiling, allocation, scheduling and calibration. Its `--hoist` option moves each `ACT` after the next `LDW`, which v2 turns into real time: the 8-12-8-4 network drops from 483 to 453 cycles on the v2 Verilog (545 on v1 either way). **Try it here:** add a loop-order option (K-tile outer vs column-tile outer), or teach the scheduler to batch several column tiles' `ACT`s, and measure with `make compile-test`.
 
 ## 6 · Open-source silicon
 

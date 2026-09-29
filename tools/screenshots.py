@@ -83,7 +83,17 @@ async def main():
 
         await page("race", h=1000, action=race)
         await page("xray", action=xray)
+        async def comp(pg):
+            await pg.check("#hoist")
+            await pg.wait_for_timeout(1200)
+
+        async def wave(pg):
+            await pg.evaluate("window.__wave.setMarkers(13, 20); window.__wave.hoverAt(17)")
+            await pg.wait_for_timeout(300)
+
         await page("research", h=1100)
+        await page("compile", h=1000, action=comp)
+        await page("wave", action=wave)
         await page("playground")
         await page("explorers")
         await b.close()

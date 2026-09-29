@@ -4,6 +4,7 @@
 #   make                 neural-network demo on both chip versions
 #   make V=v1_simple     ... or just one version (v1_simple | v2_pipelined)
 #   make dft             4-point Fourier transform on both versions
+#   make compile-test    compile 4 networks, run them on both Verilog chips
 #   make apps            image filter, quantum search, graph triangles on both versions
 #   make experiments     run the 5 experiments (CSV + charts)
 #   make fuzz            200 random programs on both versions
@@ -23,7 +24,7 @@ FUZZ     ?= 200
 COMMON   := $(wildcard rtl/common/*.v)
 PY       := python3
 
-.PHONY: serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
+.PHONY: compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
 
 all: sim
 
@@ -53,6 +54,16 @@ apps:
 
 experiments:
 	$(PY) experiments/run_all.py
+
+compile-test:
+	@for net in "8,12,8,4 16" "16,16,8 24" "4,4 1" "12,8,8,8 20"; do set -- $$net; \
+	  for h in "" "--hoist"; do \
+	    $(PY) tools/tpu_compile.py --layers $$1 --batch $$2 $$h --out build > build/compile.log || { cat build/compile.log; exit 1; }; \
+	    for v in $(V); do $(MAKE) -s build/$$v.vvp; \
+	      printf "%-12s batch %-3s %-8s %-13s" $$1 $$2 "$${h:-plain}" $$v; \
+	      vvp -n build/$$v.vvp +novcd | grep -E "cycles|PASS|FAIL" | tr -s ' ' | tr '\n' ' '; echo; \
+	      vvp -n build/$$v.vvp +novcd | grep -q PASS || exit 1; \
+	    done; done; done
 
 fuzz:
 	@for v in $(V); do \
@@ -86,7 +97,7 @@ jscheck:
 	  node tools/check_js_sim.js build $$(vvp -n build/v1_simple.vvp +novcd | grep -o "in [0-9]* clock" | grep -o "[0-9]*") > /dev/null || { echo "fuzz seed $$s"; exit 1; }; \
 	done; echo "browser simulator: 40 random programs cycle-exact with the RTL"
 
-test: sim dft apps fuzz scale jscheck mutants
+test: sim dft apps compile-test fuzz scale jscheck mutants
 	@echo; echo "  ALL TESTS PASSED"
 
 diagrams:
