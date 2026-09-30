@@ -92,7 +92,7 @@ flowchart LR
       M11["11 Performance"] --> M12["12 Silicon"] --> M13["13 Real TPUs"]
     end
     subgraph N["New ideas"]
-      N14["14 Applications"] --> N15["15 Gallery"] --> N16["16 Experiments"] --> N17["17 Labs"] --> N19["19 Frontiers"] --> N20["20 TPU paper"]
+      N14["14 Applications"] --> N15["15 Gallery"] --> N16["16 Experiments"] --> N17["17 Labs"] --> N19["19 Frontiers"] --> N20["20 TPU paper"] --> N21["21 FPGA"]
     end
     U --> B --> M --> N
     classDef u fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
@@ -102,7 +102,7 @@ flowchart LR
     class A1,A2,A3,A4,A5,A6 u
     class B7,B8,B9,B10 b
     class M11,M12,M13 m
-    class N14,N15,N16,N17,N19,N20 n
+    class N14,N15,N16,N17,N19,N20,N21 n
 ```
 
 | # | Lesson | You'll see |
@@ -127,6 +127,7 @@ flowchart LR
 | 18 | [References](docs/18-references.md) | papers, books, English-language videos, tools |
 | 19 | [Research frontiers](docs/19-research-frontiers.md) | sparsity, fewer bits, dataflow search, memory, compilers, open silicon; a project for each |
 | 20 | [Reading the TPU v1 paper](docs/20-reading-the-tpu-paper.md) | the original paper, section by section, mapped to this repo |
+| 21 | [Running TinyTPU on a real FPGA](docs/21-fpga.md) | a serial-port wrapper, a laptop host program, ECP5 resource numbers, the bitstream flow |
 | 📖 | [Glossary](docs/glossary.md) | every acronym spelled out |
 
 ---
@@ -167,6 +168,9 @@ make                 # neural network demo on both chips
 make dft             # a Fourier transform on the same hardware
 make apps            # image filter, quantum search, graph triangles
 make compile-test    # compile 4 neural networks and run them on both Verilog chips
+make uart            # load, run and read back over a simulated serial port
+make fpga-synth      # Lattice ECP5 resources for the serial-port TPU (Yosys)
+python3 tools/tpu_host.py --fake --demo conv   # the laptop side, with a virtual board
 python3 tools/tpu_compile.py --layers 8,12,8,4 --batch 16 --hoist -v   # the compiler by itself
 make experiments     # 6 experiments -> experiments/results/*.csv + charts
 make fuzz            # 200 random programs per chip vs the instruction-level model
@@ -229,8 +233,9 @@ terrific-tpu/
 ├── rtl/
 │   ├── common/           skew.v · accumulators.v · activation.v
 │   ├── v1_simple/        pe.v · systolic_array.v · controller.v · tpu_top.v
-│   └── v2_pipelined/     pe_db.v · systolic_array_db.v · controller_pipe.v · tpu_top.v
-├── tb/                   tb_tpu_top.v (any program, any version) · tb_scale.v (N = 2..16)
+│   ├── v2_pipelined/     pe_db.v · systolic_array_db.v · controller_pipe.v · tpu_top.v
+│   └── fpga/             uart_rx.v · uart_tx.v · tpu_uart_top.v · boards/ulx3s.lpf
+├── tb/                   tb_tpu_top.v (any program, any version) · tb_scale.v (N = 2..16) · tb_uart.v (serial port)
 ├── programs/             mlp_demo · dft4 · conv2d · grover2 · graph_paths (.asm)
 ├── tools/
 │   ├── tpu_asm.py           assembler + disassembler
@@ -238,6 +243,7 @@ terrific-tpu/
 │   ├── golden_model.py      demos + dependency-biased random-program generator
 │   ├── apps.py              application data + independent reference math
 │   ├── tpu_compile.py       neural-network compiler: tiling, allocation, scheduling, calibration
+│   ├── tpu_host.py          drive a TinyTPU on an FPGA over USB serial (or a virtual board)
 │   ├── trace_js.js          per-cycle trace of the browser model
 │   ├── mutation_test.sh     16 planted bugs
 │   ├── check_js_sim.js      browser model vs Verilog
@@ -250,7 +256,7 @@ terrific-tpu/
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages
 ├── diagrams/             32 SVGs (hand-drawn, concept, measured, application, experiment)
 ├── data/synth.csv        synthesis results
-├── docs/                 20 lessons + glossary
+├── docs/                 21 lessons + glossary
 └── sim/tpu.gtkw          GTKWave layout
 ```
 

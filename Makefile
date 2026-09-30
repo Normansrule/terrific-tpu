@@ -5,6 +5,8 @@
 #   make V=v1_simple     ... or just one version (v1_simple | v2_pipelined)
 #   make dft             4-point Fourier transform on both versions
 #   make compile-test    compile 4 networks, run them on both Verilog chips
+#   make uart            load, run and read back programs over the simulated serial port
+#   make fpga-synth      how much of a Lattice ECP5 FPGA the serial-port TPU needs (Yosys)
 #   make apps            image filter, quantum search, graph triangles on both versions
 #   make experiments     run the 5 experiments (CSV + charts)
 #   make fuzz            200 random programs on both versions
@@ -24,7 +26,7 @@ FUZZ     ?= 200
 COMMON   := $(wildcard rtl/common/*.v)
 PY       := python3
 
-.PHONY: compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
+.PHONY: uart fpga-synth compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
 
 all: sim
 
@@ -54,6 +56,18 @@ apps:
 
 experiments:
 	$(PY) experiments/run_all.py
+
+uart:
+	@mkdir -p build
+	@for v in $(V); do \
+	  iverilog -g2012 -o build/uart_$$v.vvp tb/tb_uart.v rtl/fpga/*.v $(COMMON) rtl/$$v/*.v || exit 1; \
+	  for d in mlp conv; do $(PY) tools/golden_model.py --demo $$d --seed $(SEED) --out build > /dev/null; \
+	    printf "%-14s %-5s" $$v $$d; vvp -n build/uart_$$v.vvp | grep -E "cycles|PASS|FAIL" | tr -s ' ' | tr '\n' ' '; echo; \
+	    vvp -n build/uart_$$v.vvp | grep -q PASS || exit 1; done; done
+	@$(PY) tools/tpu_host.py --fake --demo mlp | tail -1
+
+fpga-synth:
+	./tools/fpga_report.sh
 
 compile-test:
 	@for net in "8,12,8,4 16" "16,16,8 24" "4,4 1" "12,8,8,8 20"; do set -- $$net; \
@@ -99,7 +113,7 @@ jscheck:
 	  done; echo "browser model of $$v: 40 random programs cycle-exact with the RTL"; \
 	done
 
-test: sim dft apps compile-test fuzz scale jscheck mutants
+test: sim dft apps compile-test uart fuzz scale jscheck mutants
 	@echo; echo "  ALL TESTS PASSED"
 
 diagrams:

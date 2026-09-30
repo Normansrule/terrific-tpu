@@ -34,4 +34,4 @@ Read the paper with this page open next to it. Each row says what to look for, a
 
 Read the successors in order: "A Domain-Specific Supercomputer for Training Deep Neural Networks" (TPU v2/v3, 2020), "Ten Lessons From Three Generations Shaped Google's TPUv4i" (2021), and "TPU v4: An Optically Reconfigurable Supercomputer" (2023). All are in the research library with links.
 
-**Next → [Glossary](glossary.md)**
+**Next → [21 · Running TinyTPU on a real FPGA](21-fpga.md)**

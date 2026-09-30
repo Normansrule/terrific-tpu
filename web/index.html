@@ -103,7 +103,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
       <div class="stat"><div class="n num" data-count="400">0</div><div class="k">random programs verified</div></div>
       <div class="stat"><div class="n num">92→<span data-count="77">0</span></div><div class="k">cycles, v1 → pipelined v2</div></div>
       <div class="stat"><div class="n num" data-count="0.063">0</div><div class="k">mm² in SkyWater 130 nm</div></div>
-      <div class="stat"><div class="n num" data-count="20">0</div><div class="k">illustrated lessons</div></div>
+      <div class="stat"><div class="n num" data-count="21">0</div><div class="k">illustrated lessons</div></div>
     </div>
   </div>
 </section>
@@ -248,17 +248,20 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
 <span class="p">$ </span>python3 tools/golden_model.py --demo grover --marked 1
 <span class="c"># five experiments: CSV files + charts</span>
 <span class="p">$ </span>make experiments</code></pre></div>
-    <div data-reveal="80"><h3>4 · Take it toward silicon</h3>
+    <div data-reveal="80"><h3>4 · Take it toward hardware</h3>
 <pre class="cmd"><code><span class="c"># real SkyWater 130 nm area with Yosys</span>
 <span class="p">$ </span>export SKY130_LIB=~/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-<span class="p">$ </span>make synth && make diagrams</code></pre></div>
+<span class="p">$ </span>make synth && make diagrams
+<span class="c"># or put it on an FPGA board and drive it over USB serial</span>
+<span class="p">$ </span>make uart && make fpga-synth
+<span class="p">$ </span>python3 tools/tpu_host.py --port /dev/ttyUSB0 --demo mlp</code></pre></div>
   </div>
 </section>
 
 <!-- ============================================================ LESSONS -->
 <section class="s wrap" id="learn">
   <div class="eyebrow" data-reveal>Learn</div>
-  <h2 class="big" data-reveal>Twenty lessons, <span class="grad-text">zero hand-waving.</span></h2>
+  <h2 class="big" data-reveal>Twenty-one lessons, <span class="grad-text">zero hand-waving.</span></h2>
   <div class="lessons" id="lessons" data-reveal></div>
 </section>
 </main>
@@ -410,7 +413,7 @@ p.sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 36px;
   const L = [["Understand", [["01-what-is-a-tpu", "What is a TPU?", "one job, done absurdly well"], ["02-why-matrix-math", "Why matrix math?", "multiply, add, squash"], ["03-numbers-and-quantization", "Numbers", "why 8 bits are enough"], ["04-systolic-arrays", "Systolic arrays", "the bucket brigade"], ["05-dataflow-and-energy", "Dataflow & energy", "data movement dominates"], ["06-tiling", "Tiling", "small grid, big matrices"]]],
     ["Build", [["07-architecture", "Architecture", "every block, every wire"], ["08-rtl-walkthrough", "RTL walkthrough", "the Verilog, file by file"], ["09-instruction-set", "Instructions", "from assembly to JAX"], ["10-pipelining-v2", "Pipelining v2", "double buffers, hazards"]]],
     ["Measure", [["11-performance", "Performance", "roofline, utilization"], ["12-rtl-to-silicon", "RTL to silicon", "real sky130 numbers"], ["13-real-tpus", "Real TPUs", "v1 to TPU 8, pods"]]],
-    ["New ideas", [["14-new-applications", "New applications", "what fits the grid?"], ["15-application-gallery", "Application gallery", "images, qubits, graphs"], ["16-experiments", "Experiments", "five questions, answered"], ["17-labs", "Labs", "build it further"], ["18-references", "References", "papers, videos, tools"], ["19-research-frontiers", "Research frontiers", "sparsity, bits, dataflow, scale"], ["20-reading-the-tpu-paper", "Reading the TPU paper", "section by section"]]]];
+    ["New ideas", [["14-new-applications", "New applications", "what fits the grid?"], ["15-application-gallery", "Application gallery", "images, qubits, graphs"], ["16-experiments", "Experiments", "five questions, answered"], ["17-labs", "Labs", "build it further"], ["18-references", "References", "papers, videos, tools"], ["19-research-frontiers", "Research frontiers", "sparsity, bits, dataflow, scale"], ["20-reading-the-tpu-paper", "Reading the TPU paper", "section by section"], ["21-fpga", "Running on an FPGA", "serial port, real hardware"]]]];
   document.getElementById("lessons").innerHTML = L.map(([grp, ls]) => `<div class="grp">${grp}</div>` + ls.map(([f, t, s]) => `<a href="${REPO}${f}.md">${t}<span>${s}</span></a>`).join("")).join("");
 
   // ------------------------------------------------ one animation loop, paused when off-screen

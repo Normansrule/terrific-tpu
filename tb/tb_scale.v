@@ -12,7 +12,8 @@ module tb_scale;
     localparam ROWS = 5;
     reg clk = 0, rst = 1;
     wire done; wire [31:0] cycles;
-    tpu_top #(.N(N)) dut (.clk(clk), .rst(rst), .done(done), .cycles(cycles));
+    tpu_top #(.N(N)) dut (.clk(clk), .rst(rst), .done(done), .cycles(cycles),
+                  .host_we(1'b0), .host_sel(2'd0), .host_addr(8'd0), .host_wdata(), .host_ub_rdata(), .host_acc_rdata());
     always #5 clk = ~clk;
 
     reg signed [7:0] X [0:ROWS-1][0:N-1];

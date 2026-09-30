@@ -14,7 +14,8 @@ module tb_tpu_top;
     wire done;
     wire [31:0] cycles;
 
-    tpu_top #(.N(N)) dut (.clk(clk), .rst(rst), .done(done), .cycles(cycles));
+    tpu_top #(.N(N)) dut (.clk(clk), .rst(rst), .done(done), .cycles(cycles),
+                  .host_we(1'b0), .host_sel(2'd0), .host_addr(8'd0), .host_wdata(), .host_ub_rdata(), .host_acc_rdata());
     always #5 clk = ~clk;
 
     reg [N*8-1:0]  expect_ub  [0:255];

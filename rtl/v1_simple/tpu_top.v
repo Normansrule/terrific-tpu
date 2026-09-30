@@ -30,12 +30,21 @@
 module tpu_top #(
     parameter N  = 4,
     parameter DW = 8,
-    parameter AW = 32
+    parameter AW = 32,
+    parameter HW = (N * DW > 32) ? N * DW : 32    // host data width
 )(
     input  wire        clk,
     input  wire        rst,
     output wire        done,
-    output wire [31:0] cycles
+    output wire [31:0] cycles,
+    // ---- host port: lets a wrapper (UART, SPI, a CPU) load memories and read
+    //      results. Write while the TPU is held in reset. Testbenches tie host_we = 0.
+    input  wire                 host_we,
+    input  wire [1:0]           host_sel,     // 0 = instruction, 1 = weight memory, 2 = Unified Buffer
+    input  wire [7:0]           host_addr,
+    input  wire [HW-1:0]        host_wdata,
+    output wire [N*DW-1:0]      host_ub_rdata,
+    output wire [N*AW-1:0]      host_acc_rdata
 );
     localparam LAT = 2*N - 1;
 
@@ -95,7 +104,8 @@ module tpu_top #(
         .clk(clk),
         .wr_en(out_valid), .accumulate(acc_accumulate),
         .wr_addr(acc_wr_addr), .wr_data(result_vec),
-        .rd_addr(acc_rd_addr), .rd_data(acc_rd_data)
+        .rd_addr(acc_rd_addr), .rd_data(acc_rd_data),
+        .rd2_addr(host_addr), .rd2_data(host_acc_rdata)
     );
 
     // ------------------ activation -> back into the Unified Buffer ----
@@ -106,6 +116,13 @@ module tpu_top #(
 
     always @(posedge clk)
         if (ub_wr_en) ub[ub_wr_addr] <= act_out;
+        else if (host_we && host_sel == 2'd2) ub[host_addr] <= host_wdata[N*DW-1:0];
+
+    always @(posedge clk) begin
+        if (host_we && host_sel == 2'd0) imem[host_addr] <= host_wdata[31:0];
+        if (host_we && host_sel == 2'd1) wmem[host_addr] <= host_wdata[N*DW-1:0];
+    end
+    assign host_ub_rdata = ub[host_addr];
 
     // start every memory at zero so unused locations are clean
     integer i;

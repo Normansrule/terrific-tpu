@@ -12,6 +12,7 @@ Every acronym in this repo, spelled out.
 | **Arithmetic intensity** | operations performed per byte moved from memory |
 | **Batch** | many inputs processed together; bigger batches keep a systolic array busier |
 | **bfloat16 (brain floating point, 16-bit)** | a 16-bit number format with the same range as 32-bit float but less precision; introduced with TPU v2 |
+| **Bitstream** | the configuration file that programs an FPGA |
 | **Central Processing Unit (CPU)** | a general-purpose processor |
 | **Complex Instruction Set Computer (CISC)** | an instruction style where one instruction does a lot of work; TPU v1 used it |
 | **De-skew** | delaying earlier output columns so a result vector comes out all at once |
@@ -20,6 +21,7 @@ Every acronym in this repo, spelled out.
 | **Double Data Rate 3 (DDR3)** | a type of off-chip memory; TPU v1 kept its weights there |
 | **Edge TPU** | Google's small, low-power TPU for devices (sold as Coral) |
 | **Field-Programmable Gate Array (FPGA)** | a chip whose logic can be reconfigured; a common way to test RTL in hardware |
+| **Field-programmable gate array (FPGA)** | a chip whose logic can be rewired after manufacture; lets you run RTL as real hardware without a tapeout |
 | **FP8** | 8-bit floating point, in two variants (E4M3 and E5M2) used by recent tensor hardware |
 | **Fuzzing** | testing with many randomly generated inputs (here: random programs) |
 | **Golden model** | a simple, trusted software version of the math used to check the hardware |
@@ -28,6 +30,7 @@ Every acronym in this repo, spelled out.
 | **Hazard** | a situation where overlapped instructions would read data before it is ready |
 | **High Bandwidth Memory (HBM)** | stacked memory placed right next to the processor die; used since TPU v2 |
 | **High Level Operations (HLO)** | the XLA compiler's intermediate representation of a program |
+| **Host port** | extra memory ports that let an outside controller load programs and read results |
 | **im2col (image to columns)** | turning every sliding window of an image into a matrix row, so a convolution becomes a matrix multiply |
 | **im2col** | "image to columns": rearranging image patches so a convolution becomes a matrix multiply |
 | **Instruction-level model** | a simulator that knows what each instruction means but nothing about clock cycles (`tools/tpu_isa_sim.py`) |
@@ -64,6 +67,7 @@ Every acronym in this repo, spelled out.
 | **Total cost of ownership (TCO)** | purchase price plus power and operating costs over a machine's lifetime |
 | **Unified Buffer** | TPU v1's big on-chip memory for activations; TinyTPU keeps the name |
 | **Unitary matrix** | the kind of matrix every quantum gate is; it preserves total probability |
+| **Universal asynchronous receiver-transmitter (UART)** | a simple serial link (start bit, 8 data bits, stop bit); how tools/tpu_host.py talks to the FPGA |
 | **Utilization** | the fraction of the multipliers doing useful work |
 | **Weight** | a learned number in a neural network; stays inside the PE in a weight-stationary design |
 | **Weight-stationary** | a dataflow where weights stay still in the array and data moves |

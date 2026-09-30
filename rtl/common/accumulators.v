@@ -21,7 +21,9 @@ module accumulators #(
     input  wire [7:0]        wr_addr,
     input  wire [N*AW-1:0]   wr_data,
     input  wire [7:0]        rd_addr,
-    output wire [N*AW-1:0]   rd_data
+    output wire [N*AW-1:0]   rd_data,
+    input  wire [7:0]        rd2_addr,     // second read port, for the host
+    output wire [N*AW-1:0]   rd2_data
 );
     reg  [N*AW-1:0] mem [0:DEPTH-1];
     wire [N*AW-1:0] old = mem[wr_addr];
@@ -38,7 +40,8 @@ module accumulators #(
     always @(posedge clk)
         if (wr_en) mem[wr_addr] <= sum;
 
-    assign rd_data = mem[rd_addr];
+    assign rd_data  = mem[rd_addr];
+    assign rd2_data = mem[rd2_addr];
 
     integer i;
     initial for (i = 0; i < DEPTH; i = i + 1) mem[i] = 0;

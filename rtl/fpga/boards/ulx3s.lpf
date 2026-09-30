@@ -1,0 +1,12 @@
+# ULX3S (Lattice ECP5) pin constraints for tpu_uart_top - TEMPLATE.
+# Check every SITE against the official ulx3s_v20.lpf from the board's
+# repository (github.com/emard/ulx3s) before programming your board.
+LOCATE COMP "clk"      SITE "G2";   # 25 MHz oscillator
+IOBUF  PORT "clk"      IO_TYPE=LVCMOS33;
+LOCATE COMP "uart_tx"  SITE "L4";   # FPGA -> USB serial (ftdi_rxd on the schematic)
+IOBUF  PORT "uart_tx"  IO_TYPE=LVCMOS33;
+LOCATE COMP "uart_rx"  SITE "M1";   # USB serial -> FPGA (ftdi_txd on the schematic)
+IOBUF  PORT "uart_rx"  IO_TYPE=LVCMOS33;
+LOCATE COMP "led_busy" SITE "B2";   # led[0]
+IOBUF  PORT "led_busy" IO_TYPE=LVCMOS33;
+FREQUENCY PORT "clk" 25 MHZ;
