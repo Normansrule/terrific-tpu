@@ -3,8 +3,8 @@
 // the same final memories as the answer key and the same cycle count
 // as the Verilog simulation.   usage: node tools/check_js_sim.js build <rtl_cycles>
 const fs = require("fs"), path = require("path");
-const { Chip } = require(path.join(__dirname, "..", "web", "tinytpu-core.js"));
-const dir = process.argv[2] || "build", rtlCycles = parseInt(process.argv[3]);
+const { Chip, ChipV2 } = require(path.join(__dirname, "..", "web", "tinytpu-core.js"));
+const dir = process.argv[2] || "build", rtlCycles = parseInt(process.argv[3]), V2 = process.argv[4] === "v2";
 const N = 4;
 const lines = f => fs.readFileSync(path.join(dir, f), "utf8").trim().split(/\s+/);
 const unpack = (hex, bits) => {
@@ -16,7 +16,7 @@ const unpack = (hex, bits) => {
   }
   return out;
 };
-const chip = new Chip(N);
+const chip = V2 ? new ChipV2(N) : new Chip(N);
 chip.imem = lines("imem.hex").map(h => parseInt(h, 16) >>> 0);
 chip.wmem = lines("wmem.hex").map(h => unpack(h, 8));
 chip.ub = lines("ub.hex").map(h => unpack(h, 8));
@@ -33,4 +33,4 @@ if (bad || (cyc !== "?" && chip.cycles !== rtlCycles)) {
   console.log(`JS sim MISMATCH: ${bad} memory words differ, cycles js=${chip.cycles} rtl=${cyc}`);
   process.exit(1);
 }
-console.log(`JS sim matches RTL: 512 memory words, ${chip.cycles} cycles`);
+console.log(`JS sim (${chip.version}) matches RTL: 512 memory words, ${chip.cycles} cycles`);

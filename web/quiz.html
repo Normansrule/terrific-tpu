@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: check your understanding</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+header.top { padding: 34px 0 10px; }
+h1 { font-size: clamp(34px, 5vw, 62px); margin: 0 0 10px; letter-spacing: -.045em; line-height: .95; font-weight: 900; }
+header.top p { margin: 0; color: var(--muted); max-width: 72ch; font-size: 17px; }
+.layout { display: grid; grid-template-columns: 300px 1fr; gap: 18px; margin-top: 22px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+.units { display: grid; gap: 8px; }
+.unit { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; text-align: left; padding: 12px; border-radius: 14px; background: var(--glass); border: 1px solid var(--line); color: var(--ink); }
+.unit[aria-current="true"] { border-color: var(--mxu); background: var(--mxu-bg); }
+.unit b { display: block; font-size: 14.5px; } .unit span { font-size: 12.5px; color: var(--muted); }
+.ring { width: 44px; height: 44px; }
+.total { margin-top: 12px; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--glass); text-align: center; }
+.total .big { font: 800 34px "JetBrains Mono", monospace; }
+.card { padding: 26px; border-radius: 20px; border: 1px solid var(--line); background: var(--glass); min-height: 420px; }
+.qhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; font: 600 12.5px "JetBrains Mono", monospace; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.dots { display: flex; gap: 6px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.dots i.ok { background: var(--out); } .dots i.bad { background: var(--red); } .dots i.cur { outline: 2px solid var(--mxu); outline-offset: 2px; }
+.q { font-size: clamp(20px, 2.2vw, 26px); letter-spacing: -.02em; line-height: 1.3; margin: 16px 0 18px; font-weight: 700; }
+.q code, .expl code { font-size: .85em; background: var(--idle); padding: 1px 6px; border-radius: 6px; }
+.opts { display: grid; gap: 10px; }
+.opt { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; text-align: left; padding: 14px 16px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); font-size: 15.5px; font-weight: 500; }
+.opt kbd { font: 700 13px "JetBrains Mono", monospace; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: var(--idle); }
+.opt.ok { border-color: var(--out); background: var(--out-bg); } .opt.bad { border-color: var(--red); background: var(--red-bg); }
+.opt:disabled { cursor: default; opacity: 1; }
+.expl { margin-top: 16px; padding: 14px 16px; border-radius: 14px; border-left: 4px solid var(--mxu); background: var(--idle); font-size: 15px; display: none; }
+.expl.show { display: block; animation: drop .25s var(--ease); }
+.expl a { color: var(--ink); }
+.nav { display: flex; gap: 10px; justify-content: space-between; margin-top: 18px; }
+.done { text-align: center; padding: 30px 10px; }
+.done .big { font: 900 64px Archivo, sans-serif; letter-spacing: -.04em; }
+@media print {
+  nav.site, .layout > aside, .card .nav, .progress, footer.site, header.top p, .printbtn { display: none !important; }
+  body, body::before, body::after { background: #fff !important; color: #000 !important; }
+  .card { border: 0; background: none; } #printable { display: block !important; } #live { display: none; }
+  #printable h3 { page-break-after: avoid; } #printable li { margin-bottom: 4px; }
+}
+#printable { display: none; }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<nav class="site"></nav>
+<main class="wrap">
+  <header class="top">
+    <h1>Check your <span class="grad-text">understanding.</span></h1>
+    <p>Twenty-four questions in six units, each answered with an explanation and a link to the lesson or page that teaches it. Your progress stays in this browser. Teaching a class? <button class="printbtn" id="print" style="font-size:13px;padding:4px 10px">🖨 Print a worksheet + answer key</button></p>
+  </header>
+  <div class="layout">
+    <aside><div class="units" id="units"></div><div class="total"><div class="big" id="score">0 / 24</div><div style="color:var(--muted);font-size:13px">answered correctly · <a href="#" id="resetAll">reset</a></div></div></aside>
+    <section class="card" id="live" aria-live="polite"></section>
+  </div>
+  <section id="printable"></section>
+</main>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const G = "https://github.com/Normansrule/terrific-tpu/blob/main/docs/";
+  const U = [
+    { t: "Systolic basics", s: "PEs, skew, latency", q: [
+      ["In TinyTPU (and TPU v1), which value stays still inside each processing element (PE) during a matrix multiply?", ["The input activations", "The weights", "The partial sums", "The instructions"], 1,
+       "Weight-stationary dataflow: each weight is loaded once and reused by every vector in the batch; inputs flow right and partial sums flow down.", [["Lesson 4", G + "04-systolic-arrays.md"]]],
+      ["A vector enters row 0 of a 4 × 4 array. How many cycles later does its finished result come out of the de-skew?", ["4", "7", "8", "16"], 1,
+       "2N − 1 = 7 cycles: the wavefront must cross N rows and N − 1 columns of delay. You can measure it with the markers in the waveform viewer.", [["Waveform viewer", "wave.html"]]],
+      ["Why does the input skew delay row k by k cycles?", ["To save power in the lower rows", "So each input reaches a PE on the same cycle as the partial sum coming down that column", "Because the Unified Buffer can only read one row at a time", "To give the controller time to decode"], 1,
+       "Partial sums move down one row per cycle, so input k must arrive k cycles later to meet them. The staircase is visible in the 3-D tour and the waveforms.", [["3-D tour", "tour.html"]]],
+      ["TinyTPU multiplies 8-bit numbers. Why are its accumulators 32 bits wide?", ["For compatibility with CPUs", "Sums of many 16-bit products grow beyond 16 bits", "To store floating-point numbers", "Because SRAM only comes in 32-bit words"], 1,
+       "Each int8 × int8 product needs 16 bits; adding K of them needs 16 + log₂K bits. Chains of accumulated tiles quickly pass 24 bits.", [["Lesson 3", G + "03-numbers-and-quantization.md"]]]] },
+    { t: "Numbers & energy", s: "bits, rounding, picojoules", q: [
+      ["Using Horowitz's 45 nm figures, one 32-bit read from off-chip DRAM costs about as much energy as how many 8-bit multiplies?", ["About 3", "About 30", "About 300", "About 3,000"], 3,
+       "640 pJ ÷ 0.2 pJ ≈ 3,200. That's why accelerators are designed around reusing every number fetched.", [["Lesson 5", G + "05-dataflow-and-energy.md"], ["The race", "race.html"]]],
+      ["bfloat16 keeps which part of a 32-bit float unchanged?", ["The 23-bit mantissa", "The 8-bit exponent, so the range stays the same", "Nothing; it is a new format", "The sign bit only"], 1,
+       "bfloat16 = FP32's sign and 8-bit exponent plus a 7-bit mantissa. Same range, less precision, so training rarely overflows.", [["Lesson 3", G + "03-numbers-and-quantization.md"]]],
+      ["When an activation result is too large for 8 bits, TinyTPU clamps it to 127 instead of letting it wrap around. Why?", ["Clamping uses fewer gates", "A wrapped value turns a big positive into a big negative, which is far worse than being slightly wrong", "The Verilog standard requires it", "It makes the chip faster"], 1,
+       "Saturation keeps the sign and order of values. One of the 16 planted bugs removes the clamp, and the tests catch it.", [["Lesson 3", G + "03-numbers-and-quantization.md"]]],
+      ["In experiment 2, why does TinyTPU's error jump at 8 bits when an ideal rescale does not?", ["The multiplier overflows", "The ACT instruction's shift field is only 3 bits, so it can't scale results down enough and they saturate", "The accumulators are too small", "ReLU removes too many values"], 1,
+       "Full-range 8-bit data needs a shift of about 9, but ACT allows 0 to 7. Real int8 hardware rescales with a 32-bit multiplier plus shift.", [["Experiment 2", G + "16-experiments.md"]]]] },
+    { t: "Programming the chip", s: "LDW, MMUL, ACT, tiling", q: [
+      ["What does <code>MMUL ub=8 rows=8 acc=0 accumulate</code> do?", ["Loads 8 weight rows starting at address 8", "Multiplies Unified Buffer rows 8–15 by the loaded weights and adds the results into accumulator rows 0–7", "Copies accumulator rows 0–7 into the Unified Buffer", "Multiplies 8 by 8 and stores it at address 0"], 1,
+       "ub = first input row, rows = how many vectors, acc = first accumulator row; accumulate means add instead of overwrite (how K-tiles combine).", [["Lesson 9", G + "09-instruction-set.md"]]],
+      ["A layer has 12 inputs per neuron (K = 12). How many weight tiles deep (K-tiles) is it on a 4-wide array?", ["1", "2", "3", "12"], 2,
+       "12 ÷ 4 = 3 K-tiles; the three MMULs add into the same accumulator rows. The compiler page shows the tiles.", [["Lesson 6", G + "06-tiling.md"], ["Compiler", "compile.html"]]],
+      ["Why does the neural-network demo put <code>LDW w=8</code> before the first <code>ACT</code>?", ["ACT needs the new weights", "ACT doesn't use the array, so on v2 the next weights load while earlier results are still draining", "LDW must always come before ACT", "It saves memory"], 1,
+       "Reordering independent instructions to hide latency. On v1 it changes nothing; on v2 it saves cycles. The compiler's hoist option does this automatically.", [["Lesson 10", G + "10-pipelining-v2.md"]]],
+      ["On chip v1, how many clock cycles does one <code>LDW</code> take?", ["1", "4", "6", "8"], 2,
+       "FETCH + DECODE (2) plus N = 4 cycles to shift four weight rows in.", [["Chip simulator", "chip.html"]]]] },
+    { t: "Pipelining (v2)", s: "shadow weights, hazards", q: [
+      ["In v2, what does the swap flag do?", ["Swaps the rows of the Unified Buffer", "Rides with the first vector of an MMUL so each PE switches to its new weights exactly when that vector arrives", "Tells the host that results are ready", "Swaps the order of two instructions"], 1,
+       "The flag travels through the skew like data, so the switch sweeps the array as a diagonal wavefront; older vectors keep the old weights.", [["Lesson 10", G + "10-pipelining-v2.md"]]],
+      ["Why must a v2 LDW wait until swap_wait reaches zero?", ["To save power", "Otherwise it would overwrite the shadow weights before the far-corner PE has swapped, giving old vectors half-new weights", "Because the weight memory is busy", "It doesn't need to; it's only a debug feature"], 1,
+       "A planted bug removes this rule, and the dependency-biased random programs catch it.", [["Lesson 10", G + "10-pipelining-v2.md"]]],
+      ["Why does v2 carry each result's accumulator address down a pipeline next to the data?", ["To make the chip bigger", "Because the controller has already moved on to other instructions by the time the result arrives", "Because the accumulators are slow", "To double-check the result"], 1,
+       "With overlap, the controller can't remember where each result goes. Metadata that travels with the data is a classic pipelining trick.", [["rtl/v2_pipelined/tpu_top.v", "https://github.com/Normansrule/terrific-tpu/blob/main/rtl/v2_pipelined/tpu_top.v"]]],
+      ["How many cycles does the neural-network demo take on v1 and on v2?", ["92 and 92", "92 and 77", "77 and 92", "384 and 92"], 1,
+       "Same results, 15 cycles saved by overlapping. Toggle the chip version in the simulator to watch it.", [["Chip simulator", "chip.html"]]]] },
+    { t: "Performance & silicon", s: "roofline, area", q: [
+      ["TPU v1 peaks at 92 TOPS with 34 GB/s of weight bandwidth. Roughly where is its roofline ridge point?", ["About 3 ops/byte", "About 27 ops/byte", "About 2,700 ops/byte", "About 92,000 ops/byte"], 2,
+       "92 × 10¹² ÷ 34 × 10⁹ ≈ 2,700 operations per byte, far to the right, which is why several of its workloads were memory-bound.", [["Roofline explorer", "explorers.html"]]],
+      ["Why does utilization rise with batch size?", ["Bigger batches use bigger numbers", "Fill, drain, and weight loading cost the same no matter how many vectors are streamed, so more vectors spread that cost thinner", "The clock gets faster", "The compiler switches dataflow"], 1,
+       "Measured on the RTL: 20 % at 4 vectors per tile up to 94 % at 255 on v1.", [["Lesson 11", G + "11-performance.md"]]],
+      ["About how large is one TinyTPU processing element after synthesis in SkyWater 130 nm?", ["About 70 µm²", "About 700 µm²", "About 7,000 µm²", "About 70,000 µm²"], 2,
+       "6,867 µm² for v1 (808 cells, 48 flip-flops), mostly the multiplier and 32-bit adder.", [["Chip X-ray", "xray.html"], ["Lesson 12", G + "12-rtl-to-silicon.md"]]],
+      ["If you double the array size N, what happens to its area?", ["Stays the same", "Doubles", "Roughly quadruples", "Halves"], 2,
+       "N² PEs: 0.014 → 0.063 → 0.273 mm² for N = 2, 4, 8 in the real synthesis results.", [["Lesson 12", G + "12-rtl-to-silicon.md"]]]] },
+    { t: "Applications & research", s: "beyond neural networks", q: [
+      ["How does im2col turn an image convolution into something a TPU can run?", ["It converts the image to frequency space", "It makes every sliding window a row of a matrix, so all windows times all filters is one matrix multiply", "It compresses the image", "It runs each pixel separately"], 1,
+       "64 windows × 9 pixels times 9 × 4 filters = 64 × 4 outputs. Paint your own image on the applications page.", [["Applications", "apps.html"]]],
+      ["How does the graph application count triangles?", ["Breadth-first search", "trace(A³) ÷ 6, where A is the adjacency matrix", "Counting edges and dividing by 3", "Sorting the nodes by degree"], 1,
+       "(A³)[i][i] counts closed 3-step walks; each triangle is counted 6 times (3 starting nodes × 2 directions).", [["Lesson 15", G + "15-application-gallery.md"]]],
+      ["After one Grover iteration on 2 qubits, what is the probability of measuring the marked item?", ["25 %", "50 %", "About 90 %", "100 %"], 3,
+       "For 4 items, one iteration is exact. TinyTPU gets exactly 100 % because every amplitude is a multiple of ½ × 64.", [["Applications", "apps.html"]]],
+      ["In experiment 6, which workload wasted the largest share of its multiply-accumulates on zero operands?", ["Neural network", "Quantum search", "Image filter", "Graph triangles"], 3,
+       "79 %: adjacency matrices are mostly zeros. That's the case for sparse accelerators like EIE and 2:4 structured sparsity.", [["Lesson 19", G + "19-research-frontiers.md"], ["Research library", "research.html"]]]] }
+  ];
+  const TOTAL = U.reduce((s, u) => s + u.q.length, 0);
+  let st = {}; try { st = JSON.parse(localStorage.getItem("tt-quiz") || "{}"); } catch (e) {}
+  const save = () => { try { localStorage.setItem("tt-quiz", JSON.stringify(st)); } catch (e) {} };
+  let unit = 0, qi = 0, answered = false;
+  const key = (u, q) => `${u}.${q}`;
+  const ring = (frac, col) => { const r = 18, c = 2 * Math.PI * r;
+    return `<svg class="ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="${r}" fill="none" stroke="var(--line)" stroke-width="5"/><circle cx="22" cy="22" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c * frac} ${c}" transform="rotate(-90 22 22)"/><text x="22" y="26" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)" font-family="JetBrains Mono, monospace">${Math.round(frac * 100)}</text></svg>`; };
+  function renderUnits() {
+    $("units").innerHTML = U.map((u, i) => { const ok = u.q.filter((_, j) => st[key(i, j)] === true).length;
+      return `<button class="unit" data-u="${i}" aria-current="${i === unit}">${ring(ok / u.q.length, "var(--out)")}<span><b>${i + 1}. ${u.t}</b><span>${u.s} · ${ok}/${u.q.length}</span></span></button>`; }).join("");
+    $("units").querySelectorAll("button").forEach(b => b.onclick = () => { unit = +b.dataset.u; qi = 0; renderQ(); renderUnits(); });
+    $("score").textContent = `${Object.values(st).filter(v => v === true).length} / ${TOTAL}`;
+  }
+  function renderQ() {
+    const u = U[unit];
+    if (qi >= u.q.length) {
+      const ok = u.q.filter((_, j) => st[key(unit, j)] === true).length;
+      $("live").innerHTML = `<div class="done"><div class="big grad-text">${ok} / ${u.q.length}</div><p style="color:var(--muted)">${ok === u.q.length ? "Unit mastered." : "Review the explanations and try again."}</p>
+        <div class="nav" style="justify-content:center"><button id="again">Retry unit</button>${unit < U.length - 1 ? `<button class="primary" id="nextU">Next unit →</button>` : ""}</div></div>`;
+      $("again").onclick = () => { u.q.forEach((_, j) => delete st[key(unit, j)]); save(); qi = 0; renderQ(); renderUnits(); };
+      if ($("nextU")) $("nextU").onclick = () => { unit++; qi = 0; renderQ(); renderUnits(); };
+      return;
+    }
+    const [q, opts, ans, expl, links] = u.q[qi], prev = st[key(unit, qi)];
+    answered = prev !== undefined;
+    $("live").innerHTML = `<div class="qhead"><span>Unit ${unit + 1} · question ${qi + 1} of ${u.q.length}</span><span class="dots">${u.q.map((_, j) => `<i class="${st[key(unit, j)] === true ? "ok" : st[key(unit, j)] === false ? "bad" : ""} ${j === qi ? "cur" : ""}"></i>`).join("")}</span></div>
+      <div class="q">${q}</div>
+      <div class="opts">${opts.map((o, i) => `<button class="opt" data-i="${i}"><kbd>${i + 1}</kbd><span>${o}</span></button>`).join("")}</div>
+      <div class="expl" id="expl"><b id="verdict"></b> ${expl}<div style="margin-top:8px;font-size:13.5px">Learn more: ${links.map(([n, h]) => `<a href="${h}">${n}</a>`).join(" · ")}</div></div>
+      <div class="nav"><button id="prevQ" ${qi === 0 ? "disabled" : ""}>← Back</button><button class="primary" id="nextQ">${qi === u.q.length - 1 ? "Finish unit" : "Next →"}</button></div>`;
+    const pick = i => {
+      if (answered) return; answered = true; st[key(unit, qi)] = i === ans; save();
+      document.querySelectorAll(".opt").forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add("ok"); else if (k === i) b.classList.add("bad"); });
+      $("verdict").textContent = i === ans ? "Correct." : "Not quite."; $("verdict").style.color = i === ans ? "var(--out)" : "var(--red)";
+      $("expl").classList.add("show"); renderUnits();
+    };
+    document.querySelectorAll(".opt").forEach(b => b.onclick = () => pick(+b.dataset.i));
+    if (answered) { document.querySelectorAll(".opt").forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add("ok"); });
+      $("verdict").textContent = prev ? "You got this one." : "Answer:"; $("expl").classList.add("show"); }
+    $("prevQ").onclick = () => { qi = Math.max(0, qi - 1); renderQ(); };
+    $("nextQ").onclick = () => { qi++; renderQ(); };
+    window.__pick = pick;
+  }
+  addEventListener("keydown", e => { if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+    const n = parseInt(e.key); if (n >= 1 && n <= 4 && window.__pick) window.__pick(n - 1);
+    if (e.key === "Enter" && answered && $("nextQ")) $("nextQ").click(); });
+  $("resetAll").onclick = e => { e.preventDefault(); st = {}; save(); qi = 0; renderQ(); renderUnits(); };
+  $("print").onclick = () => {
+    $("printable").innerHTML = `<h2>terrific-tpu worksheet</h2>` + U.map((u, i) => `<h3>${i + 1}. ${u.t}</h3><ol>` + u.q.map(([q, o]) => `<li>${q}<ol type="a">${o.map(x => `<li>${x}</li>`).join("")}</ol></li>`).join("") + `</ol>`).join("") +
+      `<h2 style="page-break-before:always">Answer key</h2>` + U.map((u, i) => `<h3>${i + 1}. ${u.t}</h3><ol>` + u.q.map(([, o, a, ex]) => `<li><b>${"abcd"[a]}) ${o[a]}</b>: ${ex}</li>`).join("") + `</ol>`).join("");
+    window.print();
+  };
+  renderUnits(); renderQ();
+  window.__quiz = { U, pick: i => window.__pick(i) };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

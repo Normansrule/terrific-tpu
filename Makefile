@@ -10,7 +10,7 @@
 #   make fuzz            200 random programs on both versions
 #   make scale           array sizes N = 2, 4, 8, 16 on both versions
 #   make mutants         plant 16 bugs; every one must be caught
-#   make jscheck         the browser simulator must match the RTL exactly
+#   make jscheck         both browser models (v1 and v2) must match the RTL exactly
 #   make test            everything above
 #   make diagrams        regenerate every SVG in diagrams/ (runs the RTL)
 #   make synth           gate counts with Yosys (sky130 area if PDK found)
@@ -87,15 +87,17 @@ mutants:
 	./tools/mutation_test.sh
 
 jscheck:
-	@$(MAKE) -s build/v1_simple.vvp
-	@for d in mlp dft conv grover graph; do \
-	  $(PY) tools/golden_model.py --demo $$d --seed $(SEED) --out build > /dev/null; \
-	  node tools/check_js_sim.js build $$(vvp -n build/v1_simple.vvp +novcd | grep -o "in [0-9]* clock" | grep -o "[0-9]*") || exit 1; \
+	@for v in v1_simple v2_pipelined; do $(MAKE) -s build/$$v.vvp; done
+	@for v in v1_simple v2_pipelined; do flag=$$( [ $$v = v2_pipelined ] && echo v2 ); \
+	  for d in mlp dft conv grover graph; do \
+	    $(PY) tools/golden_model.py --demo $$d --seed $(SEED) --out build > /dev/null; \
+	    node tools/check_js_sim.js build $$(vvp -n build/$$v.vvp +novcd | grep -o "in [0-9]* clock" | grep -o "[0-9]*") $$flag || exit 1; \
+	  done; \
+	  for s in $$(seq 1 40); do \
+	    $(PY) tools/golden_model.py --demo fuzz --seed $$s --out build > /dev/null; \
+	    node tools/check_js_sim.js build $$(vvp -n build/$$v.vvp +novcd | grep -o "in [0-9]* clock" | grep -o "[0-9]*") $$flag > /dev/null || { echo "$$v fuzz seed $$s"; exit 1; }; \
+	  done; echo "browser model of $$v: 40 random programs cycle-exact with the RTL"; \
 	done
-	@for s in $$(seq 1 40); do \
-	  $(PY) tools/golden_model.py --demo fuzz --seed $$s --out build > /dev/null; \
-	  node tools/check_js_sim.js build $$(vvp -n build/v1_simple.vvp +novcd | grep -o "in [0-9]* clock" | grep -o "[0-9]*") > /dev/null || { echo "fuzz seed $$s"; exit 1; }; \
-	done; echo "browser simulator: 40 random programs cycle-exact with the RTL"
 
 test: sim dft apps compile-test fuzz scale jscheck mutants
 	@echo; echo "  ALL TESTS PASSED"

@@ -35,6 +35,7 @@ footer.site { display: none; }
 <nav class="site"></nav>
 <div class="bar">
   <h1>〰 Waveform viewer</h1>
+  <select id="ver" aria-label="Chip version"><option value="v1">Chip v1 (simple)</option><option value="v2">Chip v2 (pipelined)</option></select>
   <select id="preset" aria-label="Program"><option value="mlp">Neural net (9 instructions)</option><option value="tiny">One MMUL</option><option value="custom" hidden>From link</option></select>
   <button id="fit">Fit</button><button id="zin" aria-label="Zoom in">＋</button><button id="zout" aria-label="Zoom out">－</button>
   <button id="radix">dec</button>
@@ -57,7 +58,7 @@ footer.site { display: none; }
 (function () {
   const $ = id => document.getElementById(id);
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const { assemble, disassemble, Chip, STATE } = window.TinyTPUCore;
+  const { assemble, disassemble, Chip, ChipV2, STATE } = window.TinyTPUCore;
   function lcg(seed) { let s = seed >>> 0; return (lo, hi) => { s = (s * 1664525 + 1013904223) >>> 0; return lo + ((s >>> 16) % (hi - lo + 1)); }; }
   const b64d = s => decodeURIComponent(escape(atob(s)));
   const PRESETS = {
@@ -69,7 +70,7 @@ footer.site { display: none; }
   };
   let CUSTOM = {};
   // signals: [name, width, kind, color, getter(chip, comb)]
-  const SIG = [
+  const BASE = [
     ["clk", 1, "clk", "--ctl"],
     ["state", 3, "enum", "--mxu", (c, s) => c.done ? 5 : c.state],
     ["pc", 8, "bus", "--ctl", c => c.pc],
@@ -82,16 +83,24 @@ footer.site { display: none; }
     ["a_skewed[2]", 8, "bus", "--act", (c, s) => s.skewed[2]], ["a_skewed[3]", 8, "bus", "--act", (c, s) => s.skewed[3]],
     ["valid_pipe", 7, "pipe", "--ps", c => c.validPipe.slice()],
     ["out_valid", 1, "bit", "--ps", (c, s) => s.outValid],
-    ["acc_wr_addr", 8, "bus", "--ps", (c, s) => s.outValid ? c.accWr : null],
+    ["acc_wr_addr", 8, "bus", "--ps", (c, s) => s.outValid ? c.resultAddr : null],
     ["result[0]", 32, "bus", "--ps", (c, s) => s.outValid ? s.result[0] : null], ["result[3]", 32, "bus", "--ps", (c, s) => s.outValid ? s.result[3] : null],
     ["ub_wr_en", 1, "bit", "--out", (c, s) => s.ubWrEn],
     ["ub_wr_addr", 8, "bus", "--out", (c, s) => s.ubWrEn ? s.ubWr : null],
     ["act_out[0]", 8, "bus", "--out", (c, s) => s.ubWrEn ? s.actOut[0] : null],
     ["done", 1, "bit", "--red", c => c.done ? 1 : 0]
   ];
+  const V2SIG = [
+    ["in_swap", 1, "bit", "--wt", (c, s) => s.inSwap || 0],
+    ["swap_wait", 8, "bus", "--wt", c => c.swapWait || null],
+    ["stall", 1, "bit", "--red", (c, s) => s.stall ? 1 : 0]
+  ];
+  let SIG = BASE;
   let trace = [], instr = [], N = 0, hex = false;
   function run(src, dataFn) {
-    const chip = new Chip(4), words = assemble(src).words; words.forEach((w, i) => chip.imem[i] = w); dataFn(chip);
+    const v2 = $("ver").value === "v2";
+    SIG = v2 ? BASE.slice(0, 4).concat(V2SIG, BASE.slice(4)) : BASE;
+    const chip = v2 ? new ChipV2(4) : new Chip(4), words = assemble(src).words; words.forEach((w, i) => chip.imem[i] = w); dataFn(chip);
     trace = []; instr = [];
     let cur = null;
     for (let guard = 0; guard < 20000; guard++) {
@@ -101,7 +110,7 @@ footer.site { display: none; }
       if (chip.done) break;
       chip.tick();
     }
-    N = trace.length; $("info").textContent = `${N - 1} cycles · ${words.length} instructions · cycle-exact model of rtl/v1_simple`;
+    N = trace.length; $("info").textContent = `${N - 1} cycles · ${words.length} instructions · cycle-exact model of rtl/${chip.version}` + (chip.stallCycles ? ` · ${chip.stallCycles} stall cycles` : "");
     fit();
   }
   // ---------------------------------------------------------------- view
@@ -175,6 +184,7 @@ footer.site { display: none; }
   $("zin").onclick = () => { px = Math.min(80, px * 1.6); draw(); };
   $("zout").onclick = () => { px = Math.max(2, px / 1.6); draw(); };
   $("radix").onclick = () => { hex = !hex; $("radix").textContent = hex ? "hex" : "dec"; draw(); if (hover !== null) showVals(hover); };
+  $("ver").onchange = () => { const p = PRESETS[$("preset").value]; run(p.src, p.data); showVals(0); };
   $("preset").onchange = () => { const p = PRESETS[$("preset").value]; run(p.src, p.data); showVals(0); };
   $("vcd").onclick = () => {
     const ids = SIG.map((_, i) => String.fromCharCode(33 + i));

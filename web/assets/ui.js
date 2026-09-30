@@ -19,6 +19,7 @@
     ["compile.html", "Compiler", "Design a network, compile it to TinyTPU, run it", "main"],
     ["challenges.html", "Challenges", "Program the chip, beat the par, earn stars", "main"],
     ["research.html", "Research", "Papers behind every idea, mapped to the code", "main"],
+    ["quiz.html", "Quiz", "24 questions with explanations, and a printable worksheet", "more"],
     ["chip.html", "Chip simulator", "Write assembly and step it clock by clock", "more"],
     ["wave.html", "Waveform viewer", "Every signal, every cycle, like GTKWave in the browser", "more"],
     ["playground.html", "Systolic array", "Edit weights and inputs, watch every multiply", "more"],

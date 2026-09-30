@@ -80,9 +80,9 @@ svg#net { width: 100%; height: auto; display: block; border-radius: 14px; backgr
       <h2>Result</h2>
       <div class="stats">
         <div class="stat"><div class="k">instructions</div><div class="v" id="sI">0</div></div>
-        <div class="stat"><div class="k">clock cycles (v1)</div><div class="v" id="sC">0</div></div>
+        <div class="stat"><div class="k">cycles · v1 / v2</div><div class="v" id="sC">0</div></div>
         <div class="stat"><div class="k">useful MACs</div><div class="v" id="sM">0</div></div>
-        <div class="stat"><div class="k">utilization</div><div class="v" id="sU">0</div></div>
+        <div class="stat"><div class="k">utilization · v2</div><div class="v" id="sU">0</div></div>
       </div>
       <div class="stat" style="margin-top:8px"><div class="k">answer check (chip vs plain math)</div><div class="v" id="sOK">…</div></div>
       <div class="mem" id="mem"></div>
@@ -102,7 +102,7 @@ svg#net { width: 100%; height: auto; display: block; border-radius: 14px; backgr
 (function () {
   const $ = id => document.getElementById(id);
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const { assemble, Chip } = window.TinyTPUCore, C = window.TinyTPUCompiler;
+  const { assemble, Chip, ChipV2 } = window.TinyTPUCore, C = window.TinyTPUCompiler;
   let widths = [8, 12, 8, 4], relu = [true, true, false], last = null;
   const b64e = s => btoa(unescape(encodeURIComponent(s)));
   function drawLayers() {
@@ -130,11 +130,13 @@ svg#net { width: 100%; height: auto; display: block; border-radius: 14px; backgr
     words.forEach((w, i) => chip.imem[i] = w); c.wmem.forEach((r, i) => chip.wmem[i] = r); c.ub.forEach((r, i) => { if (r) chip.ub[i] = r; });
     const start = [], states = [];
     while (!chip.done) { if (chip.state === 0) start.push(chip.cycles); states.push(chip.state); chip.tick(); }
-    const ok = JSON.stringify(C.readOutput(chip.ub, c)) === JSON.stringify(c.ref[c.ref.length - 1]);
+    const ok1 = JSON.stringify(C.readOutput(chip.ub, c)) === JSON.stringify(c.ref[c.ref.length - 1]);
+    const v2 = new ChipV2(4); words.forEach((w, i) => v2.imem[i] = w); c.wmem.forEach((r, i) => v2.wmem[i] = r); c.ub.forEach((r, i) => { if (r) v2.ub[i] = r; }); v2.run();
+    const ok = ok1 && JSON.stringify(C.readOutput(v2.ub, c)) === JSON.stringify(c.ref[c.ref.length - 1]);
     last = { c, chip, start, states, hoist };
-    $("sI").textContent = words.length; $("sC").textContent = chip.cycles; $("sM").textContent = c.macs.toLocaleString();
-    $("sU").textContent = Math.round(100 * c.macs / (16 * chip.cycles)) + "%";
-    $("sOK").innerHTML = ok ? `<span class="ok">✓ PASS · all ${M * c.NO} outputs</span>` : `<span class="bad">✗ mismatch</span>`;
+    $("sI").textContent = words.length; $("sC").innerHTML = `${chip.cycles} / <span class="grad-text">${v2.cycles}</span>`; $("sM").textContent = c.macs.toLocaleString();
+    $("sU").textContent = Math.round(100 * c.macs / (16 * v2.cycles)) + "%" + (v2.stallCycles ? ` · ${v2.stallCycles} stalls` : "");
+    $("sOK").innerHTML = ok ? `<span class="ok">✓ PASS · ${M * c.NO} outputs, both chips</span>` : `<span class="bad">✗ mismatch</span>`;
     const cost = start.map((s, i) => (start[i + 1] || chip.cycles) - s), mx = Math.max(...cost);
     $("asm").innerHTML = c.prog.map((line, i) => { const op = line.split(/\s+/)[0];
       return `<div data-i="${i}"><span class="n">${i}</span><span class="op-${op}">${line}</span><span title="${cost[i]} cycles"><i class="cost" style="display:block;width:${cost[i] / mx * 100}%"></i></span>${c.notes[i] ? `<span class="note">${c.notes[i]}</span>` : ""}</div>`; }).join("");

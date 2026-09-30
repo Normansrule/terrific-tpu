@@ -10,6 +10,8 @@ Both bars above come from the real Verilog running `programs/mlp_demo.asm`: **92
 
 In v1, `MMUL` waits until its last result has left the array (2N − 1 = 7 extra cycles), and `LDW` stops the whole array while it shifts in new weights. The array sits idle during both.
 
+**Watch it:** the [chip simulator](../web/chip.html) and the [waveform viewer](../web/wave.html) both have a v1 / v2 switch. The v2 model is checked cycle-for-cycle against `rtl/v2_pipelined` by `make jscheck`, so you can step through stalls and the swap wavefront one clock at a time.
+
 ## The three changes in v2
 
 | Change | File | Idea |

@@ -75,6 +75,10 @@ table.mem tr.rd td { background: var(--act-bg); } table.mem tr.wr td { backgroun
 <main>
   <section class="box" aria-label="Program">
     <h2>Program</h2>
+    <div class="presets" role="group" aria-label="Chip version" style="margin-bottom:6px">
+      <button data-ver="v1" aria-pressed="true" title="rtl/v1_simple: one instruction at a time">Chip v1</button>
+      <button data-ver="v2" aria-pressed="false" title="rtl/v2_pipelined: double-buffered weights, overlapped instructions">Chip v2 (pipelined)</button>
+    </div>
     <div class="presets" role="group" aria-label="Example programs">
       <button data-preset="mlp" aria-pressed="true">Neural net</button>
       <button data-preset="dft" aria-pressed="false">Fourier</button>
@@ -99,7 +103,7 @@ table.mem tr.rd td { background: var(--act-bg); } table.mem tr.wr td { backgroun
       <div class="stat"><div class="k">cycle</div><div class="v num" id="cyc">0</div></div>
       <div class="stat"><div class="k">state</div><div class="v"><span class="state-badge" id="state">FETCH</span></div></div>
       <div class="stat"><div class="k">pc</div><div class="v num" id="pc">0</div></div>
-      <div class="stat"><div class="k">MACs done</div><div class="v num" id="macs">0</div></div>
+      <div class="stat"><div class="k" id="macsK">MACs done</div><div class="v num" id="macs">0</div></div>
     </div>
     <div class="datapath">
       <div class="lanes" id="lanes" aria-label="Input skew registers"></div>
@@ -128,7 +132,9 @@ table.mem tr.rd td { background: var(--act-bg); } table.mem tr.wr td { backgroun
 <script src="tinytpu-core.js"></script>
 <script>
 (function () {
-  const { assemble, disassemble, Chip } = window.TinyTPUCore;
+  const { assemble, disassemble, Chip, ChipV2 } = window.TinyTPUCore;
+  let ver = "v1";
+  const makeChip = () => ver === "v2" ? new ChipV2(N) : new Chip(N);
   const $ = id => document.getElementById(id);
   const N = 4;
 
@@ -178,7 +184,7 @@ HALT`,
     $("err").textContent = errors.join("  ");
     if (errors.length) return;
     words = w; stop();
-    chip = new Chip(N);
+    chip = makeChip();
     words.forEach((x, i) => chip.imem[i] = x);
     PRESETS[preset].data(chip);
     macs = 0; chip.last = chip.comb();
@@ -222,7 +228,7 @@ HALT`,
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
       const aIn = c === 0 ? s.skewed[r] : chip.A[r][c - 1];
       const pIn = r === 0 ? 0 : chip.P[r - 1][c];
-      const busy = chip.state === 3 && (chip.cnt - r - c) >= 0 && (chip.cnt - r - c) < chip.fields().B;
+      const busy = chip.peBusy(r, c);
       g.push(`<div class="pe ${s.wLoad ? "load" : busy ? "busy" : ""}" aria-label="PE ${r},${c}">
         <span class="w">w=${chip.W[r][c]}</span><span class="a">${busy ? "x=" + aIn : ""}</span><span class="p">${busy ? "Σ=" + ((pIn + aIn * chip.W[r][c]) | 0) : ""}</span></div>`);
     }
@@ -239,7 +245,8 @@ HALT`,
     const f = chip.fields();
     switch (chip.stateName) {
       case "FETCH": return `FETCH: read instruction ${chip.pc} from instruction memory into the instruction register.`;
-      case "DECODE": return `DECODE: the opcode is ${f.op.toString(16).toUpperCase()}, so next cycle the controller runs ${disassemble(chip.ir).split(" ")[0]}.`;
+      case "DECODE": if (s.stall) return `DECODE: STALLED. v2's hazard check is holding ${disassemble(chip.ir).split(" ")[0]} back: ${f.op === 1 ? `the swap wavefront hasn't reached the far corner yet (swap_wait = ${chip.swapWait})` : "results are still in flight in the pipeline"}. ${chip.stallCycles} stall cycles so far.`;
+        return `DECODE: the opcode is ${f.op.toString(16).toUpperCase()}, so next cycle the controller runs ${disassemble(chip.ir).split(" ")[0]}.`;
       case "LDW": return `LDW: weight row ${f.A + N - 1 - chip.cnt} is shifting into the top of the array (last row first, so row 0 ends on top). Cycle ${chip.cnt + 1} of ${N}.`;
       case "MMUL": return chip.cnt < f.B
         ? `MMUL: vector ${chip.cnt} of ${f.B} leaves Unified Buffer row ${f.A + chip.cnt} and enters the skew. Each lane waits one more cycle than the lane above it.`
@@ -254,7 +261,7 @@ HALT`,
     const mem = chip[memTab], wide = memTab === "acc";
     let rd = -1, wr = -1;
     if (memTab === "ub") { rd = s.inValid ? s.ubRd : -1; wr = s.ubWrEn ? s.ubWr : -1; }
-    if (memTab === "acc") { rd = chip.stateName === "ACT" ? s.accRd : -1; wr = s.outValid ? chip.accWr : -1; }
+    if (memTab === "acc") { rd = chip.stateName === "ACT" ? s.accRd : -1; wr = s.outValid ? chip.resultAddr : -1; }
     if (memTab === "wmem") { rd = s.wLoad ? s.wmemAddr : -1; }
     let h = `<tr><th style="text-align:left">addr</th>${[0,1,2,3].map(l => `<th>lane ${l}</th>`).join("")}</tr>`;
     for (let i = 0; i < 32; i++) {
@@ -271,6 +278,12 @@ HALT`,
   $("finish").onclick = () => { stop(); while (!chip.done) { const s = chip.tick(); if (s && s.inValid) macs += 16; } render(); };
   $("reset").onclick = load;
   $("assemble").onclick = load;
+  document.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => {
+    ver = b.dataset.ver; document.querySelectorAll("[data-ver]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    document.querySelector("header.top p").innerHTML = ver === "v2"
+      ? "This is <span class=\"num\">rtl/v2_pipelined</span> rebuilt in JavaScript, register for register: shadow weights, a swap flag riding the skew, a metadata pipeline, and the hazard stalls. It is checked cycle-for-cycle against the Verilog on every commit. Try the same program on both chips and compare the cycle counts."
+      : "This is <span class=\"num\">rtl/v1_simple</span> rebuilt in JavaScript, register for register. It is checked against the Verilog on every commit, so it takes the same number of clock cycles and ends with the same memory contents. Write a program, then step through it one clock tick at a time.";
+    load(); });
   document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => {
     preset = b.dataset.preset;
     document.querySelectorAll("[data-preset]").forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -284,7 +297,7 @@ HALT`,
   // ---- share links: #p=<program>&d=<data>, both base64 (made by the compiler page, or the Share button)
   const b64e = str => btoa(unescape(encodeURIComponent(str))), b64d = str => decodeURIComponent(escape(atob(str)));
   var CUSTOM = {};
-  function currentData() { const c = new Chip(N); PRESETS[preset].data(c);
+  function currentData() { const c = makeChip(); PRESETS[preset].data(c);
     const trim = a => { let n = a.length; while (n && a[n - 1].every(v => v === 0)) n--; return a.slice(0, n); };
     return { w: trim(c.wmem), u: trim(c.ub) }; }
   $("share").onclick = () => {

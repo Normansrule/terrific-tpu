@@ -159,7 +159,7 @@ flowchart TB
 | Demo programs | `make`, `make dft` | the neural network and the Fourier transform give the textbook answers on both versions |
 | Random programs | `make fuzz` | 200 random programs per version, with read-after-write dependencies made likely, match the instruction-level model word for word |
 | Array sizes | `make scale` | the Verilog really is parameterized: N = 2, 4, 8, 16 on both versions |
-| Browser model | `make jscheck` | the JavaScript simulator is cycle-exact with the Verilog |
+| Browser models | `make jscheck` | the JavaScript models of v1 **and** v2 are cycle-exact with the Verilog (5 demos + 40 random programs each) |
 | Mutation test | `make mutants` | 16 realistic planted bugs (10 in v1/common, 6 v2 hazards) are all caught |
 | Everything | `make test` | all of the above |
 

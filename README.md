@@ -6,7 +6,7 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-13%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-14%20interactive%20pages%20·%203--D-2563EB)
 ![Research](https://img.shields.io/badge/research-28%20papers%20mapped%20to%20code-E879F9)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
@@ -60,7 +60,8 @@ Everything runs in the browser, on GitHub Pages or locally with `make serve`. Pr
 | <img src="docs/img/compile.png" width="260"> | [**Compiler**](web/compile.html) | design a neural network with buttons; the page tiles it, allocates memory, schedules instructions, calibrates shifts, runs it on the chip model, and checks every output; one click opens it in the simulator or the waveform viewer |
 | <img src="docs/img/wave.png" width="260"> | [**Waveform viewer**](web/wave.html) | GTKWave in the browser: every signal on every cycle, zoom, markers with cycle distances, and a VCD download |
 | <img src="docs/img/research.png" width="260"> | [**Research library**](web/research.html) | 28 papers from Kung's 1978 systolic arrays to TPU v4's optical pods, on a clickable timeline, each mapped to the lesson or file where the idea lives |
-| <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock: controller, skew, array, every memory |
+| <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock on **either chip**: v1, or v2 with its shadow weights, swap wavefront, and hazard stalls; share any program as a link |
+| <img src="docs/img/quiz.png" width="260"> | [**Quiz**](web/quiz.html) | 24 questions in six units, each with an explanation and a link to the lesson; progress saved; one click prints a worksheet and answer key for a class |
 | <img src="docs/img/challenges.png" width="260"> | [**Challenges**](web/challenges.html) | six programming puzzles, from "first light" to "the whole network"; beat the par for three stars |
 | <img src="docs/img/apps.png" width="260"> | [**Applications**](web/apps.html) | paint an image for 4 filters, pick the answer for Grover's search, draw a graph and count triangles |
 | <img src="docs/img/array3d.png" width="260"> | [**Array in 3-D**](web/array3d.html) | spin an array of up to 24 × 24 PEs; tower heights are live partial sums |
@@ -170,7 +171,7 @@ python3 tools/tpu_compile.py --layers 8,12,8,4 --batch 16 --hoist -v   # the com
 make experiments     # 6 experiments -> experiments/results/*.csv + charts
 make fuzz            # 200 random programs per chip vs the instruction-level model
 make scale           # array sizes 2, 4, 8, 16
-make jscheck         # the browser simulator must match the Verilog cycle for cycle
+make jscheck         # both browser models (v1 and v2) must match the Verilog cycle for cycle
 make mutants         # plant 16 bugs; every one must be caught
 make test            # all of the above (includes the applications and compiled networks)
 
@@ -243,8 +244,8 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · tour · xray · race · compile · challenges · research · chip · wave · apps · array3d · playground · explorers
-│   ├── tinytpu-core.js      cycle-exact JavaScript model of the chip + assembler
+├── web/                  index · tour · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
+│   ├── tinytpu-core.js      cycle-exact JavaScript models of both chips (v1 and v2) + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages
 ├── diagrams/             32 SVGs (hand-drawn, concept, measured, application, experiment)
