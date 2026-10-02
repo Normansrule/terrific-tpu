@@ -14,8 +14,9 @@
   const PAGES = [
     ["index.html", "Home", "Start here: the story of a chip that only multiplies", "main"],
     ["tour.html", "3-D tour", "Fly through the whole chip while it runs a neural network", "main"],
-    ["xray.html", "Chip X-ray", "Zoom from the die down to single standard cells", "main"],
-    ["race.html", "The race", "CPU vs vector unit vs systolic array: speed and energy", "main"],
+    ["zoom.html", "Pod → transistor", "One continuous zoom from 4,096 chips down to four transistors", "main"],
+    ["xray.html", "Chip X-ray", "Zoom from the die down to single standard cells", "more"],
+    ["race.html", "The race", "CPU vs vector unit vs systolic array: speed and energy", "more"],
     ["compile.html", "Compiler", "Design a network, compile it to TinyTPU, run it", "main"],
     ["challenges.html", "Challenges", "Program the chip, beat the par, earn stars", "main"],
     ["research.html", "Research", "Papers behind every idea, mapped to the code", "main"],

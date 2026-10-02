@@ -6,7 +6,7 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-14%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-15%20interactive%20pages%20·%203--D-2563EB)
 ![Research](https://img.shields.io/badge/research-28%20papers%20mapped%20to%20code-E879F9)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
@@ -55,6 +55,7 @@ Everything runs in the browser, on GitHub Pages or locally with `make serve`. Pr
 |---|---|---|
 | <img src="docs/img/index.png" width="260"> | [**Home**](web/index.html) | an interactive systolic field, a scroll-driven story of the four beats of a matrix multiply, and every command you need |
 | <img src="docs/img/tour.png" width="260"> | [**3-D chip tour**](web/tour.html) | fly through the whole chip in 3-D while it runs a real neural network; 8 guided chapters, a 92-cycle scrubber, hover any PE to read its registers |
+| <img src="docs/img/zoom.png" width="260"> | [**Pod → transistor**](web/zoom.html) | one continuous zoom through nine levels: a 4,096-chip pod, a board, the package with its memory stacks, the die, a 128 × 128 matrix unit, one processing element, an 8 × 8 multiplier, a full adder, and a four-transistor gate, each explained in plain words |
 | <img src="docs/img/xray.png" width="260"> | [**Chip X-ray**](web/xray.html) | a zoomable floor plan of the die in SkyWater 130 nm: scroll from the whole chip down to individual standard cells in 2.72 µm rows, and watch blocks glow as the chip runs a neural network |
 | <img src="docs/img/race.png" width="260"> | [**The race**](web/race.html) | a scalar CPU, a vector unit, and the systolic array compute the same matrix product; one prize for fastest, one for least energy |
 | <img src="docs/img/compile.png" width="260"> | [**Compiler**](web/compile.html) | design a neural network with buttons; the page tiles it, allocates memory, schedules instructions, calibrates shifts, runs it on the chip model, and checks every output; one click opens it in the simulator or the waveform viewer |
@@ -250,7 +251,7 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · tour · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
+├── web/                  index · tour · zoom · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
 │   ├── tinytpu-core.js      cycle-exact JavaScript models of both chips (v1 and v2) + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages

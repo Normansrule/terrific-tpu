@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: from pod to transistor</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+html, body { height: 100%; } body { display: flex; flex-direction: column; overflow: hidden; }
+.stage { position: relative; flex: 1; min-height: 0; background: #03040A; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: zoom-in; }
+.panel { position: absolute; z-index: 3; left: 18px; bottom: 18px; width: min(420px, calc(100% - 36px)); padding: 20px; border-radius: 18px;
+  border: 1px solid var(--line); background: rgba(8,10,20,.82); backdrop-filter: blur(14px); color: #E9EBF8; }
+.panel .lvl { font: 600 12px "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: #A78BFA; }
+.panel h1 { font-size: 30px; margin: 6px 0 8px; letter-spacing: -.03em; line-height: 1.05; }
+.panel p { color: #B7BCDA; margin: 0; font-size: 14.5px; line-height: 1.55; }
+.panel .scale { margin-top: 10px; font: 600 12.5px "JetBrains Mono", monospace; color: #FBBF24; }
+.panel .link { margin-top: 10px; font-size: 13px; } .panel .link a { color: #E9EBF8; }
+.crumbs { position: absolute; z-index: 3; top: 16px; left: 16px; right: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
+.crumbs button { font-size: 12.5px; padding: 5px 10px; background: rgba(8,10,20,.7); color: #B7BCDA; border: 1px solid rgba(255,255,255,.12); }
+.crumbs button[aria-current="true"] { background: rgba(167,139,250,.3); color: #fff; border-color: #A78BFA; }
+.ctl { position: absolute; z-index: 3; right: 18px; bottom: 18px; display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 14px;
+  background: rgba(8,10,20,.8); border: 1px solid var(--line); color: #E9EBF8; }
+.ctl button { font-size: 13px; padding: 6px 10px; background: rgba(255,255,255,.06); color: #E9EBF8; border-color: rgba(255,255,255,.14); }
+.ctl input { width: 180px; accent-color: #A78BFA; }
+.hint { position: absolute; z-index: 3; right: 18px; top: 60px; color: #8E95BA; font-size: 12.5px; }
+@media (max-width: 760px) { .ctl input { width: 110px; } .panel p { font-size: 13px; } .hint { display: none; } }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body data-nofooter>
+<nav class="site"></nav>
+<div class="stage">
+  <canvas id="cv" aria-label="A continuous zoom from a TPU pod down to a single transistor gate"></canvas>
+  <div class="crumbs" id="crumbs" role="group" aria-label="Jump to a level"></div>
+  <div class="hint">scroll or drag up/down to zoom · <kbd>←</kbd> <kbd>→</kbd> jump a level</div>
+  <aside class="panel" aria-live="polite"><div class="lvl" id="lvl"></div><h1 id="ttl"></h1><p id="txt"></p><div class="scale" id="scl"></div><div class="link" id="lnk"></div></aside>
+  <div class="ctl"><button id="out" aria-label="Zoom out">－</button><input id="z" type="range" min="0" max="8" step="0.001" value="0" aria-label="Zoom level"><button id="in" aria-label="Zoom in">＋</button><button id="play" class="primary">▶ Tour</button></div>
+</div>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const cv = $("cv"), g = cv.getContext("2d");
+  const C = { act: "#60A5FA", wt: "#FBBF24", ps: "#E879F9", out: "#34D399", mxu: "#A78BFA", ctl: "#94A3B8", red: "#F87171", dim: "#1B2040", ink: "#E9EBF8" };
+  let T = 0;
+  // Each level draws itself into a box (x, y, w, h) and names the child rectangle (unit coordinates) the camera dives into.
+  const rr = (x, y, w, h, r, fill, stroke, lw = 1.5) => { g.beginPath(); g.roundRect(x, y, w, h, Math.min(r, w / 2, h / 2)); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } };
+  const txt = (s, x, y, size, col, align = "center", weight = 700) => { if (size < 5) return; g.font = `${weight} ${size}px JetBrains Mono, monospace`; g.fillStyle = col; g.textAlign = align; g.fillText(s, x, y); };
+  const L = [
+    { name: "TPU pod", scale: "≈ a room · thousands of chips", child: [0.43, 0.43, 0.08, 0.08],
+      title: "A pod of thousands of chips",
+      text: "TPU v4 pods connect 4,096 chips into a 3-D torus: every chip talks directly to its neighbors, and optical circuit switches can rewire the shape. Training a large model splits it across all of them.",
+      link: ["Lesson 13 · Real TPUs", "https://github.com/Normansrule/terrific-tpu/blob/main/docs/13-real-tpus.md"],
+      draw(x, y, w, h) { const n = 12, s = w / n;
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const cx = x + (j + .5) * s, cy = y + (i + .5) * s;
+          if (j < n - 1) { g.strokeStyle = "rgba(96,165,250,.35)"; g.lineWidth = s * .05; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + s, cy); g.stroke(); }
+          if (i < n - 1) { g.strokeStyle = "rgba(232,121,249,.3)"; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx, cy + s); g.stroke(); } }
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const glow = .5 + .5 * Math.sin(T * 2 - (i + j) * .5);
+          rr(x + j * s + s * .18, y + i * s + s * .18, s * .64, s * .64, s * .1, `rgba(167,139,250,${.25 + .45 * glow})`, "#A78BFA", s * .03); } } },
+    { name: "Board", scale: "≈ tens of centimeters", child: [0.12, 0.22, 0.3, 0.3],
+      title: "One board, four chips",
+      text: "Each chip sits on a board with its own power delivery and cooling, next to its neighbors. The thick links leaving the board are the chip-to-chip interconnect that forms the torus.",
+      link: ["Pod torus diagram", "https://github.com/Normansrule/terrific-tpu/blob/main/docs/13-real-tpus.md"],
+      draw(x, y, w, h) { rr(x, y, w, h, w * .03, "#0B1A12", "#2F6B4A", w * .006);
+        for (let k = 0; k < 40; k++) { g.strokeStyle = "rgba(52,211,153,.18)"; g.lineWidth = w * .002; g.beginPath(); const yy = y + h * (.05 + k * .023); g.moveTo(x + w * .02, yy); g.lineTo(x + w * .98, yy); g.stroke(); }
+        [[.12, .22], [.58, .22], [.12, .6], [.58, .6]].forEach(([u, v], i) => {
+          rr(x + u * w, y + v * h, .3 * w, .3 * h, w * .02, "#1B1F33", "#A78BFA", w * .005);
+          rr(x + (u + .07) * w, y + (v + .07) * h, .16 * w, .16 * h, w * .01, "#2A2F52", "#E879F9", w * .004);
+          txt("TPU", x + (u + .15) * w, y + (v + .165) * h, w * .03, "#E9EBF8"); });
+        for (let i = 0; i < 6; i++) rr(x + w * (.02 + i * .16), y + h * .92, w * .12, h * .05, w * .01, "#94A3B8"); } },
+    { name: "Package", scale: "≈ a few centimeters", child: [0.33, 0.33, 0.34, 0.34],
+      title: "The chip package",
+      text: "The silicon die sits in the middle. Around it, stacks of High Bandwidth Memory (HBM) are mounted millimeters away so the multipliers can be fed fast enough: the roofline problem, solved with packaging.",
+      link: ["Lesson 11 · the roofline", "https://github.com/Normansrule/terrific-tpu/blob/main/docs/11-performance.md"],
+      draw(x, y, w, h) { rr(x, y, w, h, w * .03, "#141729", "#475569", w * .006);
+        [[.08, .12], [.08, .58], [.74, .12], [.74, .58]].forEach(([u, v]) => { rr(x + u * w, y + v * h, .18 * w, .3 * h, w * .012, "#2A1F10", "#FBBF24", w * .004);
+          for (let k = 0; k < 6; k++) { g.fillStyle = "rgba(251,191,36,.25)"; g.fillRect(x + (u + .02) * w, y + (v + .03 + k * .045) * h, .14 * w, .025 * h); }
+          txt("HBM", x + (u + .09) * w, y + (v + .28) * h, w * .025, "#FBBF24"); });
+        rr(x + .33 * w, y + .33 * h, .34 * w, .34 * h, w * .01, "#1C1640", "#E879F9", w * .006);
+        txt("die", x + .5 * w, y + .52 * h, w * .04, "#E9EBF8"); } },
+    { name: "Die", scale: "≈ 2 centimeters", child: [0.08, 0.1, 0.18, 0.18],
+      title: "Inside the die",
+      text: "A TPU v4 die holds two TensorCores. Each has four matrix-multiply units (MXUs) of 128 × 128 cells, a vector unit for everything that isn't a matrix multiply, a scalar unit that runs the control flow, and big on-chip memories.",
+      link: ["Chip X-ray (TinyTPU's own floor plan)", "xray.html"],
+      draw(x, y, w, h) { rr(x, y, w, h, w * .01, "#0A0C1A", "#E879F9", w * .004);
+        [0, .5].forEach((u, core) => { rr(x + (u + .04) * w, y + .05 * h, .42 * w, .9 * h, w * .01, null, "rgba(167,139,250,.5)", w * .003);
+          txt(`TensorCore ${core}`, x + (u + .25) * w, y + .045 * h, w * .022, "#A78BFA");
+          for (let m = 0; m < 4; m++) { const mx = x + (u + .04 + (m % 2) * .22) * w, my = y + (.1 + Math.floor(m / 2) * .22) * h, pulse = .5 + .5 * Math.sin(T * 3 + m + core);
+            rr(mx, my, .18 * w, .18 * h, w * .006, `rgba(167,139,250,${.25 + .4 * pulse})`, "#A78BFA", w * .003); txt("MXU", mx + .09 * w, my + .1 * h, w * .022, "#fff"); }
+          rr(x + (u + .06) * w, y + .56 * h, .38 * w, .12 * h, w * .006, "rgba(52,211,153,.25)", "#34D399", w * .003); txt("vector unit", x + (u + .25) * w, y + .63 * h, w * .02, "#34D399");
+          rr(x + (u + .06) * w, y + .71 * h, .18 * w, .08 * h, w * .006, "rgba(148,163,184,.25)", "#94A3B8", w * .003); txt("scalar", x + (u + .15) * w, y + .76 * h, w * .018, "#94A3B8");
+          rr(x + (u + .26) * w, y + .71 * h, .18 * w, .2 * h, w * .006, "rgba(96,165,250,.2)", "#60A5FA", w * .003); txt("memory", x + (u + .35) * w, y + .82 * h, w * .018, "#60A5FA"); }); } },
+    { name: "Matrix unit", scale: "≈ a few millimeters", child: [0.2, 0.2, 0.1, 0.1],
+      title: "128 × 128 multiply-accumulate cells",
+      text: "16,384 cells in a grid. Weights sit still inside the cells; inputs flow in from the left and partial sums flow down, one step per clock. The diagonal glow is the wavefront. TinyTPU is the same idea at 4 × 4.",
+      link: ["3-D chip tour", "tour.html"],
+      draw(x, y, w, h) { const n = 10, s = w / n; rr(x, y, w, h, 0, "#0B0D1C");
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const d = ((T * 4) % (2 * n + 6)) - (i + j), on = d > 0 && d < 3;
+          rr(x + j * s + s * .08, y + i * s + s * .08, s * .84, s * .84, s * .12, on ? `rgba(232,121,249,${.5 + .2 * (3 - d)})` : "rgba(167,139,250,.22)", on ? "#E879F9" : "rgba(167,139,250,.5)", s * .03); }
+        txt("…continues to 128 × 128", x + w * .5, y + h * 1.04, w * .03, "#8E95BA"); } },
+    { name: "One cell", scale: "≈ 20 micrometers", child: [0.3, 0.38, 0.22, 0.22],
+      title: "One processing element",
+      text: "A weight register, a multiplier, an adder, and registers that pass the input right and the sum down. This is exactly rtl/v1_simple/pe.v: in SkyWater 130 nm it's 808 standard cells in about 6,900 µm².",
+      link: ["rtl/v1_simple/pe.v", "https://github.com/Normansrule/terrific-tpu/blob/main/rtl/v1_simple/pe.v"],
+      draw(x, y, w, h) { rr(x, y, w, h, w * .02, "#0E1024", "#A78BFA", w * .006);
+        const box = (u, v, bw, bh, col, s) => { rr(x + u * w, y + v * h, bw * w, bh * h, w * .015, col + "33", col, w * .005); txt(s, x + (u + bw / 2) * w, y + (v + bh / 2 + .015) * h, w * .035, col); };
+        box(.3, .1, .22, .16, C.wt, "weight"); box(.3, .38, .22, .22, C.mxu, "×"); box(.62, .38, .22, .22, C.ps, "+");
+        box(.62, .72, .22, .14, C.ps, "sum reg"); box(.62, .1, .22, .16, C.act, "input reg");
+        const arr = (x1, y1, x2, y2, col) => { g.strokeStyle = col; g.lineWidth = w * .008; g.beginPath(); g.moveTo(x + x1 * w, y + y1 * h); g.lineTo(x + x2 * w, y + y2 * h); g.stroke(); };
+        arr(.02, .49, .3, .49, C.act); arr(.41, .26, .41, .38, C.wt); arr(.52, .49, .62, .49, C.mxu); arr(.73, .02, .73, .1, C.ps); arr(.73, .6, .73, .72, C.ps); arr(.73, .86, .73, .98, C.ps); arr(.52, .18, .62, .18, C.act); arr(.84, .18, .98, .18, C.act);
+        const f = (T * .8) % 1; g.fillStyle = C.act; g.beginPath(); g.arc(x + (.02 + .28 * f) * w, y + .49 * h, w * .015, 0, 7); g.fill(); } },
+    { name: "Multiplier", scale: "≈ 10 micrometers", child: [0.62, 0.62, 0.1, 0.1],
+      title: "An 8 × 8 multiplier",
+      text: "Multiplication in binary is shift-and-add. 64 AND gates form the partial products (each bit of one number times each bit of the other), and rows of full adders sum them. Signed versions add a small correction (Baugh-Wooley or Booth encoding).",
+      link: ["Lesson 3 · why fewer bits is cheaper", "https://github.com/Normansrule/terrific-tpu/blob/main/docs/03-numbers-and-quantization.md"],
+      draw(x, y, w, h) { const n = 8, s = w / (n + 2); rr(x, y, w, h, w * .02, "#0E1024", "#A78BFA", w * .004);
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const on = ((i * 3 + j * 5 + Math.floor(T * 2)) % 4) === 0;
+          rr(x + (j + 1) * s + s * .1, y + (i + 1) * s + s * .1, s * .8, s * .8, s * .15, on ? "rgba(251,191,36,.6)" : "rgba(96,165,250,.18)", on ? "#FBBF24" : "rgba(96,165,250,.6)", s * .04);
+          txt(i < 7 && j > 0 ? "FA" : "&", x + (j + 1.5) * s, y + (i + 1.62) * s, s * .32, on ? "#1a1204" : "#60A5FA"); }
+        txt("a[7:0]", x + w * .5, y + s * .65, s * .38, C.act); txt("b[7:0]", x + s * .5, y + h * .5, s * .38, C.wt); } },
+    { name: "Full adder", scale: "≈ 5 micrometers", child: [0.5, 0.18, 0.16, 0.2],
+      title: "A full adder",
+      text: "Adds three bits (a, b, carry-in) into a sum and a carry-out: sum = a ⊕ b ⊕ cin, cout = ab + cin(a ⊕ b). Here it's five gates; standard-cell libraries also offer it as one optimized cell (sky130's fa).",
+      link: ["Standard cells in the chip X-ray", "xray.html"],
+      draw(x, y, w, h) { rr(x, y, w, h, w * .02, "#0E1024", "#A78BFA", w * .004);
+        const gate = (u, v, lab, col) => { rr(x + u * w, y + v * h, .16 * w, .2 * h, w * .03, col + "33", col, w * .006); txt(lab, x + (u + .08) * w, y + (v + .12) * h, w * .04, col); };
+        gate(.25, .18, "XOR", C.act); gate(.5, .18, "XOR", C.act); gate(.25, .5, "AND", C.out); gate(.5, .5, "AND", C.out); gate(.75, .62, "OR", C.ps);
+        const wire = (pts, col) => { g.strokeStyle = col; g.lineWidth = w * .006; g.beginPath(); pts.forEach(([u, v], i) => i ? g.lineTo(x + u * w, y + v * h) : g.moveTo(x + u * w, y + v * h)); g.stroke(); };
+        wire([[.05, .24], [.25, .24]], C.ink); wire([[.05, .32], [.25, .32]], C.ink); wire([[.41, .28], [.5, .28]], C.ink); wire([[.05, .42], [.46, .42], [.46, .24], [.5, .24]], C.ink);
+        wire([[.66, .28], [.95, .28]], C.act); wire([[.66, .6], [.75, .66]], C.out); wire([[.41, .6], [.46, .6], [.46, .8], [.75, .76]], C.out); wire([[.91, .72], [.97, .72]], C.ps);
+        txt("a", x + .03 * w, y + .245 * h, w * .035, C.ink, "left"); txt("b", x + .03 * w, y + .325 * h, w * .035, C.ink, "left"); txt("cin", x + .01 * w, y + .425 * h, w * .03, C.ink, "left");
+        txt("sum", x + .9 * w, y + .26 * h, w * .03, C.act); txt("cout", x + .93 * w, y + .69 * h, w * .03, C.ps); } },
+    { name: "Transistors", scale: "≈ 1 micrometer", child: null,
+      title: "Four transistors",
+      text: "Every gate is built from complementary metal-oxide-semiconductor (CMOS) transistors. A NAND gate is two P-type transistors in parallel to the supply and two N-type in series to ground. Billions of these, switching in rhythm, are the TPU.",
+      link: ["Research library: open-source silicon", "research.html"],
+      draw(x, y, w, h) { rr(x, y, w, h, w * .02, "#0E1024", "#A78BFA", w * .004);
+        const fet = (u, v, p, on) => { rr(x + u * w, y + v * h, .12 * w, .14 * h, w * .015, on ? (p ? "rgba(96,165,250,.45)" : "rgba(52,211,153,.45)") : "rgba(148,163,184,.12)", p ? C.act : C.out, w * .005);
+          txt(p ? "P" : "N", x + (u + .06) * w, y + (v + .09) * h, w * .045, p ? C.act : C.out); };
+        const a = Math.floor(T) % 2, b = Math.floor(T / 2) % 2;
+        fet(.28, .2, true, !a); fet(.58, .2, true, !b); fet(.43, .52, false, a); fet(.43, .72, false, b);
+        const line = (pts, col) => { g.strokeStyle = col; g.lineWidth = w * .006; g.beginPath(); pts.forEach(([u, v], i) => i ? g.lineTo(x + u * w, y + v * h) : g.moveTo(x + u * w, y + v * h)); g.stroke(); };
+        line([[.2, .1], [.8, .1]], C.red); txt("VDD", x + .12 * w, y + .11 * h, w * .03, C.red); line([[.34, .1], [.34, .2]], C.red); line([[.64, .1], [.64, .2]], C.red);
+        line([[.34, .34], [.34, .44], [.64, .44], [.64, .34]], C.ink); line([[.49, .44], [.49, .52]], C.ink); line([[.49, .66], [.49, .72]], C.ink); line([[.49, .86], [.49, .92]], C.ctl);
+        line([[.2, .92], [.8, .92]], C.ctl); txt("GND", x + .12 * w, y + .93 * h, w * .03, C.ctl);
+        line([[.64, .44], [.9, .44]], C.ps); const out = !(a && b) ? 1 : 0; txt(`out = ${out}`, x + .9 * w, y + .41 * h, w * .035, C.ps);
+        txt(`a = ${a}   b = ${b}`, x + .5 * w, y + .06 * h, w * .032, C.ink); } }
+  ];
+  $("z").max = L.length - 1;
+  $("crumbs").innerHTML = L.map((l, i) => `<button data-i="${i}">${i + 1}. ${l.name}</button>`).join("");
+  $("crumbs").querySelectorAll("button").forEach(b => b.onclick = () => target = +b.dataset.i);
+  let z = 0, target = null, W = 0, H = 0, dpr = 1, playing = false;
+  function resize() { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; }
+  // The camera: at level i with fraction f, zoom so level i's child rectangle grows from its size to fill the view.
+  function draw() {
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const i = Math.min(L.length - 1, Math.floor(z)), f = z - i, S = Math.min(W, H) * 0.86;
+    const lv = L[i], ch = lv.child;
+    let bx = (W - S) / 2, by = (H - S) / 2, bs = S;                         // box of level i at f = 0
+    if (ch && f > 0) {
+      // scale grows exponentially; the child's centre slides in a straight line to the screen centre
+      const scale = Math.pow(1 / ch[2], f), cxu = ch[0] + ch[2] / 2, cyu = ch[1] + ch[3] / 2;
+      bs = S * scale;
+      const px = ((W - S) / 2 + cxu * S) * (1 - f) + (W / 2) * f, py = ((H - S) / 2 + cyu * S) * (1 - f) + (H / 2) * f;
+      bx = px - cxu * bs; by = py - cyu * bs;
+    }
+    g.save(); g.globalAlpha = ch ? 1 - Math.max(0, (f - .7) / .3) * .85 : 1; lv.draw(bx, by, bs, bs); g.restore();
+    if (ch) {                                                                    // highlight + the next level fading in inside it
+      const cx = bx + ch[0] * bs, cy = by + ch[1] * bs, cw = ch[2] * bs, chh = ch[3] * bs;
+      g.strokeStyle = `rgba(232,121,249,${.9 - f * .9})`; g.lineWidth = 2.5; g.setLineDash([6, 5]); g.strokeRect(cx - 4, cy - 4, cw + 8, chh + 8); g.setLineDash([]);
+      if (f > .25) { g.save(); g.globalAlpha = Math.min(1, (f - .25) / .55); g.beginPath(); g.rect(cx, cy, cw, chh); g.clip();
+        const s2 = Math.min(cw, chh); L[i + 1].draw(cx + (cw - s2) / 2, cy + (chh - s2) / 2, s2, s2); g.restore(); }
+    }
+    const k = Math.round(z), cur = L[Math.min(L.length - 1, f > .6 && ch ? i + 1 : i)];
+    $("lvl").textContent = `level ${L.indexOf(cur) + 1} of ${L.length} · ${cur.name}`; $("ttl").textContent = cur.title; $("txt").textContent = cur.text;
+    $("scl").textContent = "scale: " + cur.scale;
+    const [ln, lh] = cur.link; $("lnk").innerHTML = `Go deeper: <a href="${lh}">${ln} →</a>`;
+    $("crumbs").querySelectorAll("button").forEach((b, n) => b.setAttribute("aria-current", n === L.indexOf(cur)));
+    $("z").value = z;
+  }
+  cv.addEventListener("wheel", e => { e.preventDefault(); z = Math.max(0, Math.min(L.length - 1, z - e.deltaY * .0012)); target = null; playing = false; $("play").textContent = "▶ Tour"; }, { passive: false });
+  let drag = null;
+  cv.addEventListener("pointerdown", e => { drag = e.clientY; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (drag === null) return; z = Math.max(0, Math.min(L.length - 1, z + (drag - e.clientY) * .006)); drag = e.clientY; target = null; });
+  cv.addEventListener("pointerup", () => drag = null);
+  $("z").oninput = e => { z = +e.target.value; target = null; };
+  $("in").onclick = () => target = Math.min(L.length - 1, Math.floor(z + 1e-6) + 1);
+  $("out").onclick = () => target = Math.max(0, Math.ceil(z - 1e-6) - 1);
+  $("play").onclick = () => { playing = !playing; $("play").textContent = playing ? "❚❚ Pause" : "▶ Tour"; if (playing && z >= L.length - 1.01) z = 0; };
+  addEventListener("keydown", e => { if (e.key === "ArrowRight") $("in").click(); if (e.key === "ArrowLeft") $("out").click(); });
+  let last = performance.now(), hold = 0;
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
+    if (target !== null) { z += (target - z) * (1 - Math.pow(.02, dt)); if (Math.abs(target - z) < .002) { z = target; target = null; } }
+    else if (playing) { if (Math.abs(z - Math.round(z)) < .01 && hold < 2.6) hold += dt; else { hold = Math.abs(z - Math.round(z)) < .01 ? 0 : hold; z = Math.min(L.length - 1, z + dt * .35); if (z >= L.length - 1) { playing = false; $("play").textContent = "▶ Tour"; } } }
+    draw(); requestAnimationFrame(frame);
+  }
+  addEventListener("resize", resize); resize(); requestAnimationFrame(frame);
+  window.__zoom = { set: v => { z = v; target = null; }, L };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>
