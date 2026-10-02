@@ -7,6 +7,8 @@
 #   make compile-test    compile 4 networks, run them on both Verilog chips
 #   make uart            load, run and read back programs over the simulated serial port
 #   make fpga-synth      how much of a Lattice ECP5 FPGA the serial-port TPU needs (Yosys)
+#   make basys3          simulate the Digilent Basys 3 build: buttons, switches, LEDs, display
+#   make basys3-synth    Artix-7 resources for the Basys 3 build (Yosys)
 #   make apps            image filter, quantum search, graph triangles on both versions
 #   make experiments     run the 5 experiments (CSV + charts)
 #   make fuzz            200 random programs on both versions
@@ -26,7 +28,7 @@ FUZZ     ?= 200
 COMMON   := $(wildcard rtl/common/*.v)
 PY       := python3
 
-.PHONY: uart fpga-synth compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
+.PHONY: basys3 basys3-synth uart fpga-synth compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
 
 all: sim
 
@@ -68,6 +70,21 @@ uart:
 
 fpga-synth:
 	./tools/fpga_report.sh
+
+basys3:
+	@for v in $(V); do \
+	  iverilog -g2012 -DSIM -o build/basys3_$$v.vvp tb/tb_basys3.v rtl/fpga/basys3/basys3_top.v \
+	    rtl/fpga/uart_rx.v rtl/fpga/uart_tx.v rtl/fpga/uart_host.v $(COMMON) rtl/$$v/*.v || exit 1; \
+	  echo "== $$v"; (cd rtl/fpga/basys3 && vvp -n ../../../build/basys3_$$v.vvp | grep -v finish); \
+	  (cd rtl/fpga/basys3 && vvp -n ../../../build/basys3_$$v.vvp | grep -q "PASS  - Basys") || exit 1; \
+	done
+
+basys3-synth:
+	@mkdir -p build/fpga
+	cd rtl/fpga/basys3 && yosys -q -l ../../../build/fpga/basys3.log -p "read_verilog ../../common/skew.v ../../common/accumulators.v ../../common/activation.v \
+	  ../../v2_pipelined/pe_db.v ../../v2_pipelined/systolic_array_db.v ../../v2_pipelined/controller_pipe.v ../../v2_pipelined/tpu_top.v \
+	  ../uart_rx.v ../uart_tx.v ../uart_host.v basys3_top.v; synth_xilinx -family xc7 -top basys3_top; stat" > /dev/null
+	@$(PY) tools/basys3_report.py build/fpga/basys3.log
 
 compile-test:
 	@for net in "8,12,8,4 16" "16,16,8 24" "4,4 1" "12,8,8,8 20"; do set -- $$net; \
@@ -113,7 +130,7 @@ jscheck:
 	  done; echo "browser model of $$v: 40 random programs cycle-exact with the RTL"; \
 	done
 
-test: sim dft apps compile-test uart fuzz scale jscheck mutants
+test: sim dft apps compile-test uart basys3 fuzz scale jscheck mutants
 	@echo; echo "  ALL TESTS PASSED"
 
 diagrams:

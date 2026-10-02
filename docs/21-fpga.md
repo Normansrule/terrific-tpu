@@ -107,4 +107,4 @@ On Windows Subsystem for Linux (WSL), a USB serial port has to be attached to Li
 * **Lab:** move the memories to synchronous block RAM, re-time the controller by one cycle, and compare resources and maximum clock.
 * **Tiny Tapeout:** the same host-port idea works with a Serial Peripheral Interface (SPI) front end and much smaller memories ([Lab 6](17-labs.md#lab-6--toward-silicon)).
 
-**Next → [Glossary](glossary.md)**
+**Next → [22 · TinyTPU on a Digilent Basys 3](22-basys3.md)**

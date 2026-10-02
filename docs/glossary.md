@@ -13,12 +13,15 @@ Every acronym in this repo, spelled out.
 | **Batch** | many inputs processed together; bigger batches keep a systolic array busier |
 | **bfloat16 (brain floating point, 16-bit)** | a 16-bit number format with the same range as 32-bit float but less precision; introduced with TPU v2 |
 | **Bitstream** | the configuration file that programs an FPGA |
+| **BUFGCE** | a Xilinx global clock buffer with an enable: used to gate the TPU clock for single-stepping |
 | **Central Processing Unit (CPU)** | a general-purpose processor |
 | **Complex Instruction Set Computer (CISC)** | an instruction style where one instruction does a lot of work; TPU v1 used it |
+| **Constraints file (XDC)** | tells Vivado which FPGA pin each signal uses and how fast the clocks are |
 | **De-skew** | delaying earlier output columns so a result vector comes out all at once |
 | **Discrete Fourier Transform (DFT)** | converts a signal into its frequencies; a matrix multiply in disguise |
 | **Double buffering** | two copies of a register or memory: fill one while the other is in use; v2's shadow weights |
 | **Double Data Rate 3 (DDR3)** | a type of off-chip memory; TPU v1 kept its weights there |
+| **DSP slice (DSP48E1)** | a hard multiply-accumulate block inside the FPGA; each TinyTPU PE maps onto one |
 | **Edge TPU** | Google's small, low-power TPU for devices (sold as Coral) |
 | **Field-Programmable Gate Array (FPGA)** | a chip whose logic can be reconfigured; a common way to test RTL in hardware |
 | **Field-programmable gate array (FPGA)** | a chip whose logic can be rewired after manufacture; lets you run RTL as real hardware without a tapeout |
@@ -35,7 +38,9 @@ Every acronym in this repo, spelled out.
 | **im2col** | "image to columns": rearranging image patches so a convolution becomes a matrix multiply |
 | **Instruction-level model** | a simulator that knows what each instruction means but nothing about clock cycles (`tools/tpu_isa_sim.py`) |
 | **Inter-Chip Interconnect (ICI)** | the direct links that join TPU chips into a pod |
+| **JTAG** | the debug/programming port used to load a bitstream into the FPGA |
 | **Matrix Multiply Unit (MXU)** | Google's name for the systolic array inside a TPU |
+| **MMCM (mixed-mode clock manager)** | the Xilinx block that makes new clock frequencies from the board oscillator |
 | **Multiply-Accumulate (MAC)** | `total = total + a × b`; the one operation a TPU is built around |
 | **Mutation testing** | planting deliberate bugs to prove a test would catch them |
 | **Optical circuit switch** | a switch that steers light beams with tiny mirrors; TPU v4 uses them to rewire its pods |

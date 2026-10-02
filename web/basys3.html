@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: virtual Basys 3 board</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("tt-theme")||"dark"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px; }
+header.top { padding: 30px 0 4px; }
+h1 { font-size: clamp(32px, 4.8vw, 60px); margin: 0 0 10px; letter-spacing: -.045em; line-height: .95; font-weight: 900; }
+header.top p { margin: 0; color: var(--muted); max-width: 80ch; font-size: 16.5px; }
+.grid2 { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-top: 18px; align-items: start; }
+@media (max-width: 1050px) { .grid2 { grid-template-columns: 1fr; } }
+svg#board { width: 100%; height: auto; display: block; border-radius: 22px; filter: drop-shadow(0 30px 60px rgba(0,0,0,.5)); }
+#board .sw, #board .btn { cursor: pointer; }
+#board .btn:active circle { transform: translateY(2px); }
+.side h2 { font-size: 16px; margin: 0 0 8px; }
+.side .now { padding: 12px 14px; border-radius: 12px; background: var(--idle); border-left: 4px solid var(--mxu); font-size: 14.5px; min-height: 4.5em; }
+.tbl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; margin-top: 12px; }
+.tbl b { font-family: "JetBrains Mono", monospace; color: var(--ink); white-space: nowrap; } .tbl span { color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.row button[aria-pressed="true"] { background: var(--mxu-bg); border-color: var(--mxu); }
+.steps { counter-reset: s; display: grid; gap: 8px; margin-top: 12px; font-size: 14px; }
+.steps div { counter-increment: s; padding: 10px 12px; border-radius: 10px; background: var(--idle); }
+.steps div::before { content: counter(s) " "; font-weight: 800; color: var(--mxu); }
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<nav class="site"></nav>
+<main class="wrap">
+  <header class="top">
+    <h1>A virtual <span class="grad-text">Basys 3.</span></h1>
+    <p>This is the same design you load onto a real Digilent Basys 3: the same four baked-in demos, the same switches, buttons, LEDs and display, running on the cycle-exact chip models. Click the switches and buttons. What you see here is what the board shows: the cycle counts match the Verilog. When you're ready for real hardware, follow <a href="https://github.com/Normansrule/terrific-tpu/blob/main/docs/22-basys3.md">lesson 22</a>.</p>
+  </header>
+  <div class="grid2">
+    <svg id="board" viewBox="0 0 1000 640" role="img" aria-label="Interactive Basys 3 board"></svg>
+    <aside class="box side">
+      <h2>What's happening</h2>
+      <div class="now" id="now">Pick a demo with switches 1–0, then press the centre button.</div>
+      <div class="row" role="group" aria-label="Chip version"><button data-v="v1">Chip v1</button><button data-v="v2" aria-pressed="true">Chip v2</button></div>
+      <div class="steps">
+        <div>Switches <b>1–0</b> pick the demo: 00 neural net, 01 Fourier, 10 image filter, 11 Grover.</div>
+        <div>Press <b>C</b> (centre): load, run, self-check. The display shows <b>PASS</b>.</div>
+        <div>Press <b>R</b> for the cycle count, again for pc + operation, again for a result value.</div>
+        <div>Flip <b>switch 15</b> on, press C, then press <b>U</b> to tick the clock once. Watch LEDs 0–4.</div>
+      </div>
+      <div class="tbl">
+        <b>LED 0</b><span>LDW: loading weights</span><b>LED 1</b><span>MMUL: vectors streaming in</span><b>LED 2</b><span>a result lands in the accumulators</span>
+        <b>LED 3</b><span>ACT: ReLU + shift</span><b>LED 4</b><span>results still in flight</span><b>LED 11–5</b><span>program counter</span>
+        <b>LED 12 · 13</b><span>running · done</span><b>LED 14 · 15</b><span>FAIL · PASS</span>
+        <b>SW 14 · 15</b><span>slow motion · single step</span><b>SW 9–8 · 7–0</b><span>lane · row shown in view 3</span>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="tinytpu-core.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const { Chip, ChipV2 } = window.TinyTPUCore;
+  const svg = $("board"), NS = "http://www.w3.org/2000/svg";
+  let ver = "v2", sw = 0, led = 0, view = 0, phase = "idle", chip = null, pass = false, mem = null, demo = 0, slowT = 0;
+  // ---------------------------------------------------------------- the demo ROMs (the same files the bitstream bakes in)
+  async function loadMem() {
+    const get = async f => (await (await fetch(`../rtl/fpga/basys3/mem/${f}.hex`)).text()).trim().split(/\s+/).map(h => parseInt(h, 16) >>> 0);
+    try { mem = { i: await get("imem"), w: await get("wmem"), u: await get("ub"), e: await get("expect") }; }
+    catch (e) { $("now").textContent = "Couldn't load the demo memories (open this page through make serve or GitHub Pages)."; }
+  }
+  const lanes = w => [0, 1, 2, 3].map(k => { const b = (w >>> (8 * k)) & 255; return b > 127 ? b - 256 : b; });
+  const packLanes = l => (l.reduce((a, v, k) => a | ((v & 255) << (8 * k)), 0)) >>> 0;
+  function start() {
+    if (!mem) return;
+    demo = sw & 3; chip = ver === "v2" ? new ChipV2(4) : new Chip(4);
+    for (let a = 0; a < 256; a++) { chip.imem[a] = mem.i[demo * 256 + a]; chip.wmem[a] = lanes(mem.w[demo * 256 + a]); chip.ub[a] = lanes(mem.u[demo * 256 + a]); }
+    phase = "load"; view = 0; pass = false; setTimeout(() => { phase = "run"; }, 650);
+  }
+  function check() { pass = true; for (let a = 0; a < 256; a++) if (packLanes(chip.ub[a]) !== mem.e[demo * 256 + a]) pass = false; phase = "done"; }
+  function tick() { if (phase !== "run" || !chip) return; chip.tick(); if (chip.done) { phase = "check"; setTimeout(check, 250); } }
+  // ---------------------------------------------------------------- inputs
+  function press(b) {
+    if (b === "C") start();
+    if (b === "U" && phase === "run" && (sw >> 15 & 1)) tick();
+    if (b === "R") view = (view + 1) & 3;
+    if (b === "L") view = (view + 3) & 3;
+    if (b === "D") { phase = "idle"; chip = null; view = 0; }
+  }
+  // ---------------------------------------------------------------- 7-segment characters
+  const SEG = { 0: 0x3F, 1: 0x06, 2: 0x5B, 3: 0x4F, 4: 0x66, 5: 0x6D, 6: 0x7D, 7: 0x07, 8: 0x7F, 9: 0x6F, A: 0x77, b: 0x7C, C: 0x39, d: 0x5E, E: 0x79, F: 0x71, I: 0x30, L: 0x38, n: 0x54, o: 0x5C, P: 0x73, r: 0x50, S: 0x6D, U: 0x3E, u: 0x1C, "-": 0x40, " ": 0 };
+  function display() {
+    const dbg = chip ? (() => { const s = chip.comb(); return { pc: chip.pc, ldw: s.wLoad, mm: s.inValid, wr: s.outValid, act: s.ubWrEn, busy: chip.validPipe.some(v => v) }; })() : { pc: 0 };
+    const dec = (v, w = 4) => String(Math.min(9999, Math.abs(v))).padStart(w, " ").split("");
+    if (view === 0) return { idle: "IdLE", load: "LOAd", run: "run ", check: "run ", done: pass ? "PASS" : "FAIL" }[phase].split("");
+    if (view === 1) return dec(chip ? chip.cycles : 0);
+    if (view === 2) return (dbg.ldw ? ["L", "d"] : dbg.mm ? ["n", "n"] : dbg.act ? ["A", "C"] : ["-", "-"]).concat(String(dbg.pc % 100).padStart(2, "0").split(""));
+    const v = chip ? chip.ub[sw & 255][(sw >> 8) & 3] : 0; const d = dec(v, 3); return [v < 0 ? "-" : " "].concat(d);
+  }
+  function leds() {
+    if (!chip) return 0;
+    const s = chip.comb(), busy = chip.validPipe.some(v => v);
+    let L = (s.wLoad ? 1 : 0) | (s.inValid ? 2 : 0) | (s.outValid ? 4 : 0) | (s.ubWrEn ? 8 : 0) | (busy ? 16 : 0) | ((chip.pc & 127) << 5);
+    if (phase === "run") L |= 1 << 12; if (chip.done) L |= 1 << 13; if (phase === "done") L |= pass ? 1 << 15 : 1 << 14;
+    return L;
+  }
+  // ---------------------------------------------------------------- draw the board
+  const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  function build() {
+    svg.innerHTML = "";
+    const defs = el("defs", {}); defs.innerHTML = `<radialGradient id="ledOn"><stop offset="0" stop-color="#d9ffe9"/><stop offset=".45" stop-color="#34D399"/><stop offset="1" stop-color="#34D39900"/></radialGradient>
+      <linearGradient id="pcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14532D"/><stop offset="1" stop-color="#0B3B20"/></linearGradient>`;
+    el("rect", { x: 10, y: 10, width: 980, height: 620, rx: 26, fill: "url(#pcb)", stroke: "#1F7A45", "stroke-width": 3 });
+    for (let i = 0; i < 26; i++) el("path", { d: `M ${40 + i * 36} 40 v 60 h 20 v 40`, stroke: "rgba(134,239,172,.12)", "stroke-width": 2, fill: "none" });
+    el("text", { x: 40, y: 600, fill: "#E5E7EB", "font-family": "Archivo", "font-weight": 900, "font-size": 30 }).textContent = "BASYS 3";
+    el("text", { x: 200, y: 600, fill: "#86EFAC", "font-family": "JetBrains Mono", "font-size": 13 }).textContent = "virtual · terrific-tpu bitstream";
+    // FPGA
+    el("rect", { x: 400, y: 120, width: 200, height: 200, rx: 10, fill: "#111827", stroke: "#6B7280", "stroke-width": 3 });
+    for (let i = 0; i < 12; i++) ["top", "bot"].forEach((s, k) => el("rect", { x: 412 + i * 15, y: k ? 322 : 110, width: 8, height: 8, fill: "#9CA3AF" }));
+    el("text", { x: 500, y: 205, fill: "#E5E7EB", "text-anchor": "middle", "font-family": "Archivo", "font-weight": 800, "font-size": 22 }).textContent = "XILINX";
+    el("text", { x: 500, y: 232, fill: "#9CA3AF", "text-anchor": "middle", "font-family": "JetBrains Mono", "font-size": 14 }).textContent = "ARTIX-7 XC7A35T";
+    window.__fpgaGlow = el("rect", { x: 400, y: 120, width: 200, height: 200, rx: 10, fill: "#A78BFA", opacity: 0 });
+    // USB, power, 7-seg
+    el("rect", { x: 60, y: 90, width: 90, height: 60, rx: 6, fill: "#9CA3AF" }); el("text", { x: 105, y: 170, fill: "#D1FAE5", "text-anchor": "middle", "font-size": 13, "font-family": "JetBrains Mono" }).textContent = "USB (prog + UART)";
+    el("rect", { x: 120, y: 250, width: 230, height: 110, rx: 10, fill: "#0A0A0A", stroke: "#374151", "stroke-width": 2 });
+    window.__digits = [0, 1, 2, 3].map(d => { const g = el("g", { transform: `translate(${135 + d * 55},262)` });
+      const P = { a: "6,0 36,0 31,6 11,6", b: "38,2 38,40 32,36 32,8", c: "38,46 38,84 32,78 32,50", d: "6,86 36,86 31,80 11,80", e: "0,46 0,84 6,78 6,50", f: "0,2 0,40 6,36 6,8", g: "4,43 10,39 32,39 38,43 32,47 10,47" };
+      const segs = "abcdefg".split("").map(n => el("polygon", { points: P[n], fill: "#2a0606" }, g)); const dp = el("circle", { cx: 44, cy: 84, r: 3.5, fill: "#2a0606" }, g); return { segs, dp }; });
+    // LEDs and switches
+    window.__leds = []; window.__sws = [];
+    for (let i = 0; i < 16; i++) { const x = 900 - i * 52;
+      el("text", { x, y: 412, fill: "#BBF7D0", "text-anchor": "middle", "font-size": 11, "font-family": "JetBrains Mono" }).textContent = "LD" + i;
+      const glow = el("circle", { cx: x, cy: 432, r: 16, fill: "url(#ledOn)", opacity: 0 }); const dot = el("rect", { x: x - 6, y: 427, width: 12, height: 10, rx: 2, fill: "#14532D", stroke: "#86EFAC" });
+      window.__leds.push({ glow, dot });
+      const g = el("g", { class: "sw", "data-i": i, role: "switch", tabindex: 0, "aria-label": "switch " + i });
+      el("rect", { x: x - 12, y: 470, width: 24, height: 60, rx: 5, fill: "#E5E7EB" }, g);
+      const knob = el("rect", { x: x - 9, y: 500, width: 18, height: 26, rx: 3, fill: "#374151" }, g);
+      el("text", { x, y: 548, fill: "#BBF7D0", "text-anchor": "middle", "font-size": 11, "font-family": "JetBrains Mono" }, g).textContent = "SW" + i;
+      g.addEventListener("click", () => { sw ^= 1 << i; render(); });
+      g.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); sw ^= 1 << i; render(); } });
+      window.__sws.push(knob); }
+    // buttons (cross)
+    [["U", 800, 130], ["L", 730, 200], ["C", 800, 200], ["R", 870, 200], ["D", 800, 270]].forEach(([b, x, y]) => {
+      const g = el("g", { class: "btn", role: "button", tabindex: 0, "aria-label": "button " + b });
+      el("rect", { x: x - 24, y: y - 24, width: 48, height: 48, rx: 8, fill: "#1F2937" }, g);
+      el("circle", { cx: x, cy: y, r: 16, fill: b === "C" ? "#A78BFA" : "#9CA3AF" }, g);
+      el("text", { x, y: y + 38, fill: "#BBF7D0", "font-size": 11, "text-anchor": "middle", "font-family": "JetBrains Mono" }, g).textContent = "btn" + b;
+      g.addEventListener("click", () => { press(b); render(); });
+      g.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); press(b); render(); } }); });
+  }
+  function render() {
+    led = leds();
+    window.__leds.forEach((l, i) => { const on = (led >> i) & 1; l.glow.setAttribute("opacity", on ? 1 : 0); l.dot.setAttribute("fill", on ? "#BBF7D0" : "#14532D"); });
+    window.__sws.forEach((k, i) => k.setAttribute("y", (sw >> i) & 1 ? 474 : 500));
+    const ch = display();
+    window.__digits.forEach((d, k) => { const code = SEG[ch[k]] || 0; d.segs.forEach((s, n) => s.setAttribute("fill", (code >> n) & 1 ? "#FF3B30" : "#2a0606")); d.dp.setAttribute("fill", 3 - k === view ? "#FF3B30" : "#2a0606"); });
+    window.__fpgaGlow.setAttribute("opacity", phase === "run" ? .25 : phase === "load" ? .12 : 0);
+    const mode = sw >> 15 & 1 ? "single-step" : sw >> 14 & 1 ? "slow-motion" : "full-speed";
+    const names = ["neural net", "Fourier transform", "image filter", "Grover search"];
+    $("now").innerHTML = phase === "idle" ? `Demo <b>${names[sw & 3]}</b> selected (switches 1–0). Press <b>C</b>.` :
+      phase === "load" ? `Copying the ${names[demo]} program and data from block RAM into the chip over the host port…` :
+      phase === "run" ? `Running in <b>${mode}</b> mode on chip ${ver}: cycle ${chip.cycles}, pc ${chip.pc}. ${mode === "single-step" ? "Press U to tick the clock." : ""}` :
+      phase === "check" ? "Reading back all 256 Unified Buffer rows and comparing with the answer key…" :
+      `${pass ? "PASS" : "FAIL"}: ${names[demo]} finished in <b>${chip.cycles}</b> cycles on chip ${ver}. Press R to see the cycle count on the display.`;
+  }
+  // ---------------------------------------------------------------- clock
+  let last = performance.now();
+  function frame(now) {
+    const dt = (now - last) / 1000; last = now;
+    if (phase === "run" && chip) {
+      if (sw >> 15 & 1) { /* wait for btnU */ }
+      else if (sw >> 14 & 1) { slowT += dt; while (slowT > .25 && phase === "run") { slowT -= .25; tick(); } }
+      else { for (let k = 0; k < 8 && phase === "run"; k++) tick(); }   // visibly fast, still every cycle
+    }
+    render(); requestAnimationFrame(frame);
+  }
+  document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { ver = b.dataset.v; document.querySelectorAll("[data-v]").forEach(x => x.setAttribute("aria-pressed", x === b)); phase = "idle"; chip = null; });
+  addEventListener("keydown", e => { if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return; const k = { c: "C", u: "U", l: "L", r: "R", d: "D", arrowleft: "L", arrowright: "R", arrowup: "U", arrowdown: "D" }[e.key.toLowerCase()]; if (k && !e.ctrlKey) press(k); });
+  build(); loadMem(); requestAnimationFrame(frame);
+  window.__b3 = { press, setSw: v => sw = v, state: () => ({ phase, pass, cycles: chip && chip.cycles, display: display().join(""), led }) };
+})();
+</script>
+<script src="assets/ui.js"></script>
+</body>
+</html>

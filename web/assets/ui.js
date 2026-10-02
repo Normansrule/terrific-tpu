@@ -21,6 +21,7 @@
     ["challenges.html", "Challenges", "Program the chip, beat the par, earn stars", "main"],
     ["research.html", "Research", "Papers behind every idea, mapped to the code", "main"],
     ["quiz.html", "Quiz", "24 questions with explanations, and a printable worksheet", "more"],
+    ["basys3.html", "Virtual Basys 3", "Click the switches and buttons of the FPGA board build before you buy one", "more"],
     ["lab.html", "Live lab", "Run three experiments in the browser on both chip models", "more"],
     ["present.html", "Lecture slides", "15 slides with speaker notes; arrow keys, F for fullscreen, print to PDF", "more"],
     ["chip.html", "Chip simulator", "Write assembly and step it clock by clock", "more"],
@@ -32,7 +33,7 @@
   ];
   const DOCS = [["01-what-is-a-tpu", "Lesson 1 · What is a TPU?"], ["04-systolic-arrays", "Lesson 4 · Systolic arrays"], ["07-architecture", "Lesson 7 · Architecture"],
     ["08-rtl-walkthrough", "Lesson 8 · RTL walkthrough"], ["10-pipelining-v2", "Lesson 10 · Pipelining v2"], ["12-rtl-to-silicon", "Lesson 12 · RTL to silicon"],
-    ["15-application-gallery", "Lesson 15 · Application gallery"], ["16-experiments", "Lesson 16 · Experiments"], ["17-labs", "Lesson 17 · Labs"], ["19-research-frontiers", "Lesson 19 · Research frontiers"], ["20-reading-the-tpu-paper", "Lesson 20 · Reading the TPU paper"], ["21-fpga", "Lesson 21 · Running on a real FPGA"], ["glossary", "Glossary"]];
+    ["15-application-gallery", "Lesson 15 · Application gallery"], ["16-experiments", "Lesson 16 · Experiments"], ["17-labs", "Lesson 17 · Labs"], ["19-research-frontiers", "Lesson 19 · Research frontiers"], ["20-reading-the-tpu-paper", "Lesson 20 · Reading the TPU paper"], ["21-fpga", "Lesson 21 · Running on a real FPGA"], ["22-basys3", "Lesson 22 · TinyTPU on a Basys 3"], ["glossary", "Glossary"]];
   const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
     <stop offset="0" stop-color="#60A5FA"/><stop offset=".5" stop-color="#A78BFA"/><stop offset="1" stop-color="#E879F9"/></linearGradient></defs>
     <rect x="3" y="3" width="26" height="26" rx="7" fill="none" stroke="url(#lg)" stroke-width="2.4"/>

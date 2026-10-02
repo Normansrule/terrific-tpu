@@ -44,7 +44,10 @@ module tpu_top #(
     input  wire [7:0]           host_addr,
     input  wire [HW-1:0]        host_wdata,
     output wire [N*DW-1:0]      host_ub_rdata,
-    output wire [N*AW-1:0]      host_acc_rdata
+    output wire [N*AW-1:0]      host_acc_rdata,
+    // ---- debug: what the chip is doing right now (drives the LEDs on an FPGA board)
+    //      [7:0] pc  [8] LDW  [9] MMUL streaming  [10] result written  [11] ACT  [12] results in flight
+    output wire [15:0]          dbg
 );
     localparam LAT = 2*N - 1;
 
@@ -131,4 +134,5 @@ module tpu_top #(
         wmem[i] = 0;
         ub[i]   = 0;
     end
+    assign dbg = {3'b000, |valid_pipe, ub_wr_en, out_valid, in_valid, w_load, pc};
 endmodule

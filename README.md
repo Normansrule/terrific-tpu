@@ -6,7 +6,8 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-17%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-18%20interactive%20pages%20·%203--D-2563EB)
+![FPGA](https://img.shields.io/badge/FPGA-Basys%203%20(Artix--7)%20·%20ECP5-34D399)
 ![Research](https://img.shields.io/badge/research-28%20papers%20mapped%20to%20code-E879F9)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
@@ -62,6 +63,7 @@ Everything runs in the browser, on GitHub Pages or locally with `make serve`. Pr
 | <img src="docs/img/wave.png" width="260"> | [**Waveform viewer**](web/wave.html) | GTKWave in the browser: every signal on every cycle, zoom, markers with cycle distances, and a VCD download |
 | <img src="docs/img/research.png" width="260"> | [**Research library**](web/research.html) | 28 papers from Kung's 1978 systolic arrays to TPU v4's optical pods, on a clickable timeline, each mapped to the lesson or file where the idea lives |
 | <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock on **either chip**: v1, or v2 with its shadow weights, swap wavefront, and hazard stalls; share any program as a link |
+| <img src="docs/img/basys3.png" width="260"> | [**Virtual Basys 3**](web/basys3.html) | click the switches and buttons of the real board build: the same four demos, LEDs and 7-segment display, on the cycle-exact models; try it before you buy the board |
 | <img src="docs/img/lab.png" width="260"> | [**Live lab**](web/lab.html) | three experiments that run in the browser on both cycle-exact chip models: batch-size sweep, hundreds of random programs (both chips must agree on every memory word), and the compiler's hoisting trick |
 | <img src="docs/img/present.png" width="260"> | [**Lecture slides**](web/present.html) | a 15-slide lecture built from the repo's own diagrams, with speaker notes (N), fullscreen (F), and print-to-PDF; links straight into the live demos |
 | <img src="docs/img/quiz.png" width="260"> | [**Quiz**](web/quiz.html) | 24 questions in six units, each with an explanation and a link to the lesson; progress saved; one click prints a worksheet and answer key for a class |
@@ -95,7 +97,7 @@ flowchart LR
       M11["11 Performance"] --> M12["12 Silicon"] --> M13["13 Real TPUs"]
     end
     subgraph N["New ideas"]
-      N14["14 Applications"] --> N15["15 Gallery"] --> N16["16 Experiments"] --> N17["17 Labs"] --> N19["19 Frontiers"] --> N20["20 TPU paper"] --> N21["21 FPGA"]
+      N14["14 Applications"] --> N15["15 Gallery"] --> N16["16 Experiments"] --> N17["17 Labs"] --> N19["19 Frontiers"] --> N20["20 TPU paper"] --> N21["21 FPGA"] --> N22["22 Basys 3"]
     end
     U --> B --> M --> N
     classDef u fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
@@ -105,7 +107,7 @@ flowchart LR
     class A1,A2,A3,A4,A5,A6 u
     class B7,B8,B9,B10 b
     class M11,M12,M13 m
-    class N14,N15,N16,N17,N19,N20,N21 n
+    class N14,N15,N16,N17,N19,N20,N21,N22 n
 ```
 
 | # | Lesson | You'll see |
@@ -131,6 +133,7 @@ flowchart LR
 | 19 | [Research frontiers](docs/19-research-frontiers.md) | sparsity, fewer bits, dataflow search, memory, compilers, open silicon; a project for each |
 | 20 | [Reading the TPU v1 paper](docs/20-reading-the-tpu-paper.md) | the original paper, section by section, mapped to this repo |
 | 21 | [Running TinyTPU on a real FPGA](docs/21-fpga.md) | a serial-port wrapper, a laptop host program, ECP5 resource numbers, the bitstream flow |
+| 22 | [TinyTPU on a Digilent Basys 3](docs/22-basys3.md) | four self-checking demos on switches and buttons, single-step on the LEDs, datasheets, Vivado build and programming |
 | 📖 | [Glossary](docs/glossary.md) | every acronym spelled out |
 
 ---
@@ -173,6 +176,8 @@ make apps            # image filter, quantum search, graph triangles
 make compile-test    # compile 4 neural networks and run them on both Verilog chips
 make uart            # load, run and read back over a simulated serial port
 make fpga-synth      # Lattice ECP5 resources for the serial-port TPU (Yosys)
+make basys3          # simulate the Basys 3 build: buttons, switches, LEDs, display, self-check
+make basys3-synth    # Artix-7 XC7A35T resources (Yosys); Vivado build: docs/22-basys3.md
 python3 tools/tpu_host.py --fake --demo conv   # the laptop side, with a virtual board
 python3 tools/tpu_compile.py --layers 8,12,8,4 --batch 16 --hoist -v   # the compiler by itself
 make experiments     # 6 experiments -> experiments/results/*.csv + charts
@@ -237,8 +242,9 @@ terrific-tpu/
 │   ├── common/           skew.v · accumulators.v · activation.v
 │   ├── v1_simple/        pe.v · systolic_array.v · controller.v · tpu_top.v
 │   ├── v2_pipelined/     pe_db.v · systolic_array_db.v · controller_pipe.v · tpu_top.v
-│   └── fpga/             uart_rx.v · uart_tx.v · tpu_uart_top.v · boards/ulx3s.lpf
-├── tb/                   tb_tpu_top.v (any program, any version) · tb_scale.v (N = 2..16) · tb_uart.v (serial port)
+│   └── fpga/             uart_rx.v · uart_tx.v · uart_host.v · tpu_uart_top.v · boards/ulx3s.lpf
+│       └── basys3/       basys3_top.v · basys3.xdc · build.tcl · program.tcl · mem/ (demo programs)
+├── tb/                   tb_tpu_top.v · tb_scale.v · tb_uart.v (serial port) · tb_basys3.v (board: buttons, LEDs)
 ├── programs/             mlp_demo · dft4 · conv2d · grover2 · graph_paths (.asm)
 ├── tools/
 │   ├── tpu_asm.py           assembler + disassembler
@@ -253,13 +259,13 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · present · lab · tour · zoom · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
+├── web/                  index · basys3 · present · lab · tour · zoom · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
 │   ├── tinytpu-core.js      cycle-exact JavaScript models of both chips (v1 and v2) + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages
 ├── diagrams/             32 SVGs (hand-drawn, concept, measured, application, experiment)
 ├── data/synth.csv        synthesis results
-├── docs/                 21 lessons + glossary
+├── docs/                 22 lessons + glossary
 └── sim/tpu.gtkw          GTKWave layout
 ```
 
