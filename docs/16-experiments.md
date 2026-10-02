@@ -2,6 +2,8 @@
 
 > **In one sentence:** six reproducible experiments turn the chip into a lab bench: each one asks a question, runs the Verilog or the cycle-exact model, writes a CSV, and redraws its chart.
 
+**In the browser:** the [live lab](../web/lab.html) reruns experiment 1's question (on fresh random programs), the batch-size sweep behind lesson 11, and the compiler's hoisting trick, on both chip models, in a few seconds.
+
 ```bash
 make experiments                         # all six, a few minutes
 python3 experiments/e2_quantization.py   # or one at a time

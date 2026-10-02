@@ -6,7 +6,7 @@
 ![Tests](https://img.shields.io/badge/tests-400%20random%20programs%20·%2016%2F16%20mutants-059669)
 ![Apps](https://img.shields.io/badge/apps-neural%20net%20·%20Fourier%20·%20vision%20·%20quantum%20·%20graphs-C026D3)
 ![Silicon](https://img.shields.io/badge/synthesis-SkyWater%20sky130-D97706)
-![Web](https://img.shields.io/badge/web-15%20interactive%20pages%20·%203--D-2563EB)
+![Web](https://img.shields.io/badge/web-17%20interactive%20pages%20·%203--D-2563EB)
 ![Research](https://img.shields.io/badge/research-28%20papers%20mapped%20to%20code-E879F9)
 ![License](https://img.shields.io/badge/license-MIT-64748B)
 
@@ -62,6 +62,8 @@ Everything runs in the browser, on GitHub Pages or locally with `make serve`. Pr
 | <img src="docs/img/wave.png" width="260"> | [**Waveform viewer**](web/wave.html) | GTKWave in the browser: every signal on every cycle, zoom, markers with cycle distances, and a VCD download |
 | <img src="docs/img/research.png" width="260"> | [**Research library**](web/research.html) | 28 papers from Kung's 1978 systolic arrays to TPU v4's optical pods, on a clickable timeline, each mapped to the lesson or file where the idea lives |
 | <img src="docs/img/chip.png" width="260"> | [**Chip simulator**](web/chip.html) | write assembly and step it clock by clock on **either chip**: v1, or v2 with its shadow weights, swap wavefront, and hazard stalls; share any program as a link |
+| <img src="docs/img/lab.png" width="260"> | [**Live lab**](web/lab.html) | three experiments that run in the browser on both cycle-exact chip models: batch-size sweep, hundreds of random programs (both chips must agree on every memory word), and the compiler's hoisting trick |
+| <img src="docs/img/present.png" width="260"> | [**Lecture slides**](web/present.html) | a 15-slide lecture built from the repo's own diagrams, with speaker notes (N), fullscreen (F), and print-to-PDF; links straight into the live demos |
 | <img src="docs/img/quiz.png" width="260"> | [**Quiz**](web/quiz.html) | 24 questions in six units, each with an explanation and a link to the lesson; progress saved; one click prints a worksheet and answer key for a class |
 | <img src="docs/img/challenges.png" width="260"> | [**Challenges**](web/challenges.html) | six programming puzzles, from "first light" to "the whole network"; beat the par for three stars |
 | <img src="docs/img/apps.png" width="260"> | [**Applications**](web/apps.html) | paint an image for 4 filters, pick the answer for Grover's search, draw a graph and count triangles |
@@ -251,7 +253,7 @@ terrific-tpu/
 │   ├── synth_report.sh      Yosys + sky130 area report
 │   └── diagrams/            every generated SVG (concept + measured)
 ├── experiments/          e1..e5 scripts, common.py, results/*.csv
-├── web/                  index · tour · zoom · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
+├── web/                  index · present · lab · tour · zoom · xray · race · compile · challenges · research · chip · wave · quiz · apps · array3d · playground · explorers
 │   ├── tinytpu-core.js      cycle-exact JavaScript models of both chips (v1 and v2) + assembler
 │   ├── assets/              theme.css (design system) · ui.js (navigation, animations)
 │   └── vendor/three/        three.js r160 (MIT), for the 3-D pages

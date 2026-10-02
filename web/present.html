@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>terrific-tpu: lecture slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #07080F; --ink: #E9EBF8; --muted: #9AA2C6; --line: #262B47; --mxu: #A78BFA; --ps: #E879F9; --wt: #FBBF24; --act: #60A5FA; --out: #34D399;
+        --grad: linear-gradient(100deg, #60A5FA 0%, #A78BFA 35%, #E879F9 65%, #FBBF24 100%); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: Archivo, "Segoe UI", sans-serif; overflow: hidden; }
+.deck { position: fixed; inset: 0; display: grid; place-items: center; }
+.slide { position: absolute; width: min(100vw, 177.78vh); height: min(56.25vw, 100vh); padding: 4.5% 5.5%; display: none; flex-direction: column;
+  background: radial-gradient(60% 50% at 10% 0%, rgba(124,58,237,.18), transparent 70%), radial-gradient(50% 40% at 100% 100%, rgba(232,121,249,.1), transparent 70%), var(--bg); }
+.slide.on { display: flex; animation: in .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes in { from { opacity: 0; transform: translateY(14px); } }
+.slide .k { font: 700 clamp(10px, 1.1vw, 15px) "JetBrains Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--mxu); }
+.slide h1 { font-size: clamp(28px, 4.6vw, 72px); letter-spacing: -.04em; line-height: 1; margin: .2em 0 .3em; font-weight: 900; }
+.slide h2 { font-size: clamp(22px, 3vw, 46px); letter-spacing: -.03em; line-height: 1.05; margin: .25em 0 .4em; font-weight: 800; }
+.g { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.35fr; gap: 4%; align-items: center; }
+.cols.single { grid-template-columns: 1fr; }
+ul { margin: 0; padding-left: 1.1em; font-size: clamp(13px, 1.55vw, 24px); line-height: 1.5; color: #D5D9F0; }
+li { margin: .35em 0; } li b { color: #fff; }
+.fig { height: 100%; display: grid; place-items: center; min-height: 0; }
+.fig img { max-width: 100%; max-height: 100%; border-radius: 14px; background: #F8FAFC; box-shadow: 0 30px 80px -30px rgba(124,58,237,.6); }
+.big { font-size: clamp(40px, 8vw, 128px); font-weight: 900; letter-spacing: -.05em; line-height: .9; }
+.sub { color: var(--muted); font-size: clamp(14px, 1.7vw, 26px); max-width: 40ch; }
+code { font-family: "JetBrains Mono", monospace; font-size: .9em; background: rgba(255,255,255,.08); padding: .05em .35em; border-radius: .3em; }
+a { color: var(--ink); }
+.links a { display: inline-block; margin: .25em .5em .25em 0; padding: .4em .8em; border-radius: .6em; border: 1px solid var(--line); text-decoration: none; font-size: clamp(12px, 1.3vw, 20px); background: rgba(255,255,255,.04); }
+.bar { position: fixed; left: 0; bottom: 0; height: 4px; background: var(--grad); transition: width .3s; z-index: 5; }
+.hud { position: fixed; right: 14px; bottom: 12px; z-index: 5; font: 600 13px "JetBrains Mono", monospace; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+.hud button { background: rgba(255,255,255,.06); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; font: inherit; cursor: pointer; }
+.notes { position: fixed; left: 14px; right: 14px; bottom: 34px; z-index: 6; display: none; padding: 14px 18px; border-radius: 14px; background: rgba(8,10,20,.94); border: 1px solid var(--mxu); font-size: 16px; line-height: 1.5; max-height: 30vh; overflow: auto; }
+.notes.on { display: block; }
+.home { position: fixed; left: 14px; top: 10px; z-index: 5; font: 600 13px "JetBrains Mono", monospace; color: var(--muted); text-decoration: none; }
+@media print {
+  @page { size: 1600px 900px; margin: 0; }
+  html, body { overflow: visible; height: auto; }
+  .deck { position: static; display: block; } .slide { position: relative; display: flex !important; width: 1600px; height: 900px; page-break-after: always; animation: none; }
+  .bar, .hud, .notes, .home { display: none !important; }
+}
+</style>
+</head>
+<body>
+<a class="home" href="index.html">← terrific-tpu</a>
+<div class="deck" id="deck"></div>
+<div class="bar" id="bar"></div>
+<div class="notes" id="notes"></div>
+<div class="hud"><span id="ctr"></span><button id="nb" title="Speaker notes (N)">notes</button><button id="fb" title="Fullscreen (F)">⛶</button><button id="pb" title="Print or save as PDF">PDF</button></div>
+<script>
+(function () {
+  const D = "../diagrams/", R = "https://github.com/Normansrule/terrific-tpu/blob/main/docs/";
+  const S = [
+    { k: "terrific-tpu", custom: `<div style="margin:auto 0"><div class="big">A chip that<br><span class="g">only multiplies.</span></div><p class="sub" style="margin-top:1.2em">How a Tensor Processing Unit (TPU) works, built from scratch: math, Verilog, silicon, and new applications.</p></div>`,
+      n: "Opening. Ask: what fraction of a CPU's energy goes to arithmetic? (Very little: most goes to fetching instructions and moving data.) Today we build a chip that flips that ratio." },
+    { k: "1 · why", t: "Neural networks are mostly <span class='g'>matrix multiplies</span>", img: "cpu_gpu_tpu.svg",
+      b: ["Every layer: <b>multiply</b> inputs by weights, <b>add</b> them up, <b>squash</b> the result", "A CPU does a few of these per clock; a GPU, thousands", "A TPU gives up almost everything else to do <b>tens of thousands per clock</b>"],
+      n: "Point at the three columns. The TPU column is the extreme: little control, huge arithmetic. Lesson 1 and 2." },
+    { k: "2 · energy", t: "Moving data costs more than <span class='g'>math</span>", img: "energy_costs.svg",
+      b: ["8-bit multiply: <b>0.2 pJ</b>", "32-bit read from off-chip DRAM: <b>640 pJ</b>", "So: fetch each number <b>once</b>, use it <b>many</b> times"],
+      n: "Horowitz, ISSCC 2014, 45 nm. 640 / 0.2 ≈ 3,200 multiplies per DRAM read. This motivates everything that follows." },
+    { k: "3 · the idea", t: "The systolic array", img: "systolic_wavefront.svg",
+      b: ["A grid of identical cells, each with one <b>weight</b> that never moves", "Inputs flow <b>right</b>, partial sums flow <b>down</b>", "A diagonal <b>wavefront</b> sweeps across: one step per clock"],
+      n: "Kung & Leiserson, 1978. Live demo: open the systolic playground and step the clock." },
+    { k: "4 · one cell", t: "A processing element", img: "pe_schematic.svg",
+      b: ["Weight register, multiplier, adder, two pass-through registers", "<code>p_out = p_in + a_in × w</code>, every cycle", "In SkyWater 130 nm: <b>808 cells, ≈ 6,900 µm²</b>"],
+      n: "This is rtl/v1_simple/pe.v, about 30 lines of Verilog. Lesson 8." },
+    { k: "5 · the chip", t: "TinyTPU: TPU v1's blocks, at <span class='g'>4 × 4</span>", img: "tpu_block_diagram.svg",
+      b: ["Instruction memory and a small controller", "Unified Buffer → skew → array → de-skew → accumulators", "ReLU + shift back to 8 bits, then the next layer"],
+      n: "Same block diagram as Jouppi et al. 2017. Live demo: the 3-D chip tour, chapter 1." },
+    { k: "6 · programming", t: "Five instructions", img: "instruction_format.svg",
+      b: ["<code>LDW</code> load a weight tile", "<code>MMUL</code> stream vectors through the array", "<code>ACT</code> ReLU, shift, clamp to 8 bits", "<code>HALT</code>, and <code>NOP</code>"],
+      n: "A whole two-layer network is 9 instructions. Live demo: chip simulator, step one instruction at a time." },
+    { k: "7 · proof", t: "A real waveform", img: "waveform_ldw_mmul.svg",
+      b: ["Drawn from the Verilog simulation, not by hand", "The staircase in the inputs is the skew", "Results appear <b>2N − 1 = 7</b> cycles later"],
+      n: "Ask the class to predict the latency before revealing it. The waveform viewer page lets them measure it with markers." },
+    { k: "8 · scale", t: "Tiling: small grid, big matrices", img: "tiling.svg",
+      b: ["Cut weights into 4 × 4 tiles", "Tiles along K <b>add</b> in the accumulators", "Choosing tile order is a <b>compiler's</b> job"],
+      n: "Live demo: the compiler page tiles any network you design and shows the memory map." },
+    { k: "9 · overlap", t: "Pipelining: v1 → v2", img: "v1_vs_v2_timeline.svg",
+      b: ["Shadow weights: load the next tile while computing", "A swap flag rides the wavefront", "Hazard checks stall only when needed: <b>92 → 77 cycles</b>"],
+      n: "Both bars are measured from the Verilog. Mutation testing proves the hazard checks matter: remove one and random programs fail." },
+    { k: "10 · performance", t: "Batches and the roofline", img: "utilization_vs_batch.svg",
+      b: ["Fill and drain cost the same for any batch", "Small batches waste the array; large ones fill it", "TPU v1's ridge: <b>≈ 2,700 ops per byte</b>: many workloads were memory-bound"],
+      n: "Live demo: the lab page reruns this sweep in the browser in about a second." },
+    { k: "11 · silicon", t: "From Verilog to <span class='g'>real cells</span>", img: "synth_area.svg",
+      b: ["Yosys maps the design onto the open SkyWater 130 nm library", "Area grows with <b>N²</b>", "Next stop: an FPGA over a serial port (lesson 21)"],
+      n: "65,536 PEs at 130 nm would be about 450 mm² for the array alone; TPU v1 used 28 nm." },
+    { k: "12 · the real thing", t: "A decade of TPUs", img: "tpu_timeline.svg",
+      b: ["v1 (2015): inference, 8-bit, 92 TOPS", "v2–v4: training, bfloat16, HBM, pods of thousands", "Same core idea all the way: a systolic array"],
+      n: "Live demo: Pod → transistor zoom page, from a 4,096-chip pod down to a NAND gate." },
+    { k: "13 · beyond", t: "If it's a matrix multiply, it runs here", img: "app_grover.svg",
+      b: ["Image filtering (im2col)", "Grover's quantum search: gates are matrices", "Triangles in a graph: trace(A³) ÷ 6"],
+      n: "All three run on the real Verilog, checked against independent math. Applications page lets students change the inputs." },
+    { k: "try it", custom: `<h2>Your turn</h2><div class="links" style="margin-top:.5em">
+        <a href="tour.html">3-D chip tour</a><a href="chip.html">Chip simulator</a><a href="compile.html">Compiler</a><a href="challenges.html">Challenges</a>
+        <a href="lab.html">Live lab</a><a href="quiz.html">Quiz + worksheet</a><a href="zoom.html">Pod → transistor</a><a href="research.html">Research library</a></div>
+        <p class="sub" style="margin-top:1.5em">Everything is open source: <code>git clone https://github.com/Normansrule/terrific-tpu</code> then <code>make test</code></p>`,
+      n: "Assign: challenges 1–4 as homework, then the quiz. Print the worksheet from the quiz page for an in-class version." }
+  ];
+  const deck = document.getElementById("deck");
+  deck.innerHTML = S.map((s, i) => `<section class="slide" data-i="${i}" aria-label="Slide ${i + 1}"><div class="k">${s.k}</div>` +
+    (s.custom ? s.custom : `<h2>${s.t}</h2><div class="cols"><ul>${s.b.map(x => `<li>${x}</li>`).join("")}</ul><div class="fig"><img src="${D}${s.img}" alt=""></div></div>`) + `</section>`).join("");
+  const slides = [...document.querySelectorAll(".slide")];
+  let i = Math.max(0, Math.min(S.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+  const notes = document.getElementById("notes");
+  function show() { slides.forEach((s, k) => s.classList.toggle("on", k === i)); document.getElementById("ctr").textContent = `${i + 1} / ${S.length}`;
+    document.getElementById("bar").style.width = ((i + 1) / S.length * 100) + "%"; notes.textContent = S[i].n || ""; history.replaceState(null, "", "#" + (i + 1)); }
+  const go = d => { i = Math.max(0, Math.min(S.length - 1, i + d)); show(); };
+  addEventListener("keydown", e => {
+    if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(1); }
+    if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(-1); }
+    if (e.key === "Home") { i = 0; show(); } if (e.key === "End") { i = S.length - 1; show(); }
+    if (e.key === "n" || e.key === "N") notes.classList.toggle("on");
+    if (e.key === "f" || e.key === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  });
+  deck.addEventListener("click", e => { if (e.target.closest("a")) return; go(e.clientX > innerWidth / 3 ? 1 : -1); });
+  let tx = null; deck.addEventListener("touchstart", e => tx = e.touches[0].clientX); deck.addEventListener("touchend", e => { if (tx !== null) { const d = e.changedTouches[0].clientX - tx; if (Math.abs(d) > 40) go(d < 0 ? 1 : -1); tx = null; } });
+  document.getElementById("nb").onclick = () => notes.classList.toggle("on");
+  document.getElementById("fb").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  document.getElementById("pb").onclick = () => print();
+  show();
+})();
+</script>
+</body>
+</html>
