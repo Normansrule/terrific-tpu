@@ -14,6 +14,7 @@
 |---|---|
 | Digilent Basys 3 | Artix-7 XC7A35T-1CPG236C FPGA, 16 switches, 16 LEDs, 5 buttons, 4-digit 7-segment display, USB programming + USB-UART on one micro-USB port |
 | Micro-USB cable | a **data** cable, not charge-only |
+| VGA monitor + cable (optional) | any monitor with a VGA input, or an HDMI monitor through a VGA-to-HDMI adapter that has its own power |
 | AMD Vivado ML Standard Edition | free; supports the XC7A35T. Install on **Windows** (or native Linux): USB access from Windows Subsystem for Linux (WSL) is awkward for programming |
 | This repo | clone it on the machine that runs Vivado, or reach your WSL copy from Windows at `\\wsl$\Ubuntu\home\<you>\terrific-tpu` |
 
@@ -43,10 +44,11 @@ flowchart LR
     BTN["buttons + switches"] --> SEQ
     PC["PC: tools/tpu_host.py"] -- "USB-UART (sw 13)" --> UH["uart_host"] -- host port --> TPU
     TPU --> OUT["LEDs + 7-segment display"]
+    TPU --> VGA["VGA monitor:<br/>live array view"]
     classDef c fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95
     classDef d fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
     class TPU,SEQ,UH,GATE c
-    class ROM,BTN,PC,OUT,OSC,MMCM d
+    class ROM,BTN,PC,OUT,OSC,MMCM,VGA d
 ```
 
 | Control | Does |
@@ -78,10 +80,23 @@ flowchart LR
 | 12 · 13 | running · done |
 | 14 · 15 | **FAIL** · **PASS** |
 
+## The VGA monitor view
+
+Plug a monitor into the board's VGA port and [`vga_view.v`](../rtl/fpga/basys3/vga_view.v) draws the chip live at 640 × 480: the 4 × 4 array with each processing element (PE) lit **magenta on the cycles it multiplies**, the four input lanes (blue) and result lanes (green), five operation lamps, the cycle counter, a program-counter bar, and a status banner.
+
+| Single-stepped to cycle 12 of the neural net | After the run |
+|---|---|
+| <img src="img/vga_run.png" alt="VGA frame during the wavefront" width="420"> | <img src="img/vga_pass.png" alt="VGA frame after PASS" width="420"> |
+
+These two pictures were not drawn by hand. `make basys3-vga` simulates the board's VGA pins frame by frame, checks the timing (525 lines of 800 pixels, the standard 640 × 480 format), and saves exactly what a monitor would show. The [virtual board](../web/basys3.html) draws the same picture next to its switches.
+
+Single-step with SW 15 and btnU while watching the monitor: the magenta diagonal moves one PE per press. That is the systolic wavefront, on real hardware.
+
 ## Step 1 · Simulate the board (any machine)
 
 ```bash
 make basys3
+make basys3-vga        # also save the VGA frames as PNG images (needs Pillow: pip install pillow)
 ```
 
 The testbench presses the buttons and flips the switches like you would: every demo passes its self-check, 10 presses of btnU give exactly 10 clock cycles, slow motion finishes on its own, view 3 shows the right number, and when the answer key is deliberately corrupted the board shows FAIL. Expected cycle counts:
@@ -101,7 +116,7 @@ make basys3-synth        # Yosys estimate → data/basys3.csv
 
 | Resource | Used | XC7A35T has |
 |---|---|---|
-| Lookup tables (logic) | ≈ 8,400 | 20,800 |
+| Lookup tables (logic) | ≈ 9,400 | 20,800 |
 | Lookup tables used as memory | ≈ 2,750 | (part of the 20,800) |
 | Flip-flops | ≈ 1,400 | 41,600 |
 | DSP48E1 multipliers | 16 (one per PE) | 90 |
@@ -170,6 +185,7 @@ Programming over JTAG is lost at power-off. To keep it, write it to the board's 
 | Tested | How |
 |---|---|
 | ✅ the board logic, on both chips | `make basys3`: demos, self-check, sabotage, step, slow, display |
+| ✅ VGA timing and picture | `make basys3-vga`: 525 lines × 800 pixels, frames saved as images |
 | ✅ the serial protocol | `make uart` and `tpu_host.py --fake` |
 | ✅ it fits the XC7A35T | Yosys `synth_xilinx` estimate |
 | ⬜ Vivado build, timing, real board | not yet run; please report the WNS and whether you see `PASS` |

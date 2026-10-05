@@ -23,6 +23,8 @@ The goal: **understand a TPU first, then find new things to use it for.**
 
 ### [▶ Open the live site](https://normansrule.github.io/terrific-tpu/web/) · [Take the 3-D tour](https://normansrule.github.io/terrific-tpu/web/tour.html) · [Zoom into the silicon](https://normansrule.github.io/terrific-tpu/web/xray.html) · [Run the race](https://normansrule.github.io/terrific-tpu/web/race.html) · [Try the challenges](https://normansrule.github.io/terrific-tpu/web/challenges.html)
 
+<img src="docs/img/vga_run.png" alt="The Basys 3 VGA output during the systolic wavefront, rendered from the Verilog" width="49%"> <img src="docs/img/vga_pass.png" alt="The Basys 3 VGA output after a passing run" width="49%">
+
 <a href="https://normansrule.github.io/terrific-tpu/web/tour.html"><img src="docs/img/tour.png" alt="3-D chip tour: the TinyTPU running a neural network, with glowing processing elements and live memory screens" width="100%"></a>
 
 <img src="diagrams/animated_wavefront.svg" alt="Animated systolic wavefront" width="640">
@@ -133,7 +135,7 @@ flowchart LR
 | 19 | [Research frontiers](docs/19-research-frontiers.md) | sparsity, fewer bits, dataflow search, memory, compilers, open silicon; a project for each |
 | 20 | [Reading the TPU v1 paper](docs/20-reading-the-tpu-paper.md) | the original paper, section by section, mapped to this repo |
 | 21 | [Running TinyTPU on a real FPGA](docs/21-fpga.md) | a serial-port wrapper, a laptop host program, ECP5 resource numbers, the bitstream flow |
-| 22 | [TinyTPU on a Digilent Basys 3](docs/22-basys3.md) | four self-checking demos on switches and buttons, single-step on the LEDs, datasheets, Vivado build and programming |
+| 22 | [TinyTPU on a Digilent Basys 3](docs/22-basys3.md) | four self-checking demos on switches and buttons, single-step on the LEDs, a live VGA view of the wavefront, datasheets, Vivado build and programming |
 | 📖 | [Glossary](docs/glossary.md) | every acronym spelled out |
 
 ---
@@ -178,6 +180,7 @@ make uart            # load, run and read back over a simulated serial port
 make fpga-synth      # Lattice ECP5 resources for the serial-port TPU (Yosys)
 make basys3          # simulate the Basys 3 build: buttons, switches, LEDs, display, self-check
 make basys3-synth    # Artix-7 XC7A35T resources (Yosys); Vivado build: docs/22-basys3.md
+make basys3-vga      # render the board's VGA output to docs/img/vga_*.png
 python3 tools/tpu_host.py --fake --demo conv   # the laptop side, with a virtual board
 python3 tools/tpu_compile.py --layers 8,12,8,4 --batch 16 --hoist -v   # the compiler by itself
 make experiments     # 6 experiments -> experiments/results/*.csv + charts
@@ -243,8 +246,8 @@ terrific-tpu/
 │   ├── v1_simple/        pe.v · systolic_array.v · controller.v · tpu_top.v
 │   ├── v2_pipelined/     pe_db.v · systolic_array_db.v · controller_pipe.v · tpu_top.v
 │   └── fpga/             uart_rx.v · uart_tx.v · uart_host.v · tpu_uart_top.v · boards/ulx3s.lpf
-│       └── basys3/       basys3_top.v · basys3.xdc · build.tcl · program.tcl · mem/ (demo programs)
-├── tb/                   tb_tpu_top.v · tb_scale.v · tb_uart.v (serial port) · tb_basys3.v (board: buttons, LEDs)
+│       └── basys3/       basys3_top.v · vga_view.v · basys3.xdc · build.tcl · program.tcl · mem/
+├── tb/                   tb_tpu_top.v · tb_scale.v · tb_uart.v (serial port) · tb_basys3.v (board: buttons, LEDs) · tb_vga.v (monitor frames)
 ├── programs/             mlp_demo · dft4 · conv2d · grover2 · graph_paths (.asm)
 ├── tools/
 │   ├── tpu_asm.py           assembler + disassembler

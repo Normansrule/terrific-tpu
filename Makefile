@@ -9,6 +9,7 @@
 #   make fpga-synth      how much of a Lattice ECP5 FPGA the serial-port TPU needs (Yosys)
 #   make basys3          simulate the Digilent Basys 3 build: buttons, switches, LEDs, display
 #   make basys3-synth    Artix-7 resources for the Basys 3 build (Yosys)
+#   make basys3-vga      render what the board's VGA port shows, as PNG images (needs Pillow)
 #   make apps            image filter, quantum search, graph triangles on both versions
 #   make experiments     run the 5 experiments (CSV + charts)
 #   make fuzz            200 random programs on both versions
@@ -28,7 +29,7 @@ FUZZ     ?= 200
 COMMON   := $(wildcard rtl/common/*.v)
 PY       := python3
 
-.PHONY: basys3 basys3-synth uart fpga-synth compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
+.PHONY: basys3 basys3-synth basys3-vga uart fpga-synth compile-test serve screenshots all sim dft apps experiments fuzz scale mutants jscheck test diagrams synth wave clean
 
 all: sim
 
@@ -73,17 +74,25 @@ fpga-synth:
 
 basys3:
 	@for v in $(V); do \
-	  iverilog -g2012 -DSIM -o build/basys3_$$v.vvp tb/tb_basys3.v rtl/fpga/basys3/basys3_top.v \
+	  iverilog -g2012 -DSIM -o build/basys3_$$v.vvp tb/tb_basys3.v rtl/fpga/basys3/basys3_top.v rtl/fpga/basys3/vga_view.v \
 	    rtl/fpga/uart_rx.v rtl/fpga/uart_tx.v rtl/fpga/uart_host.v $(COMMON) rtl/$$v/*.v || exit 1; \
 	  echo "== $$v"; (cd rtl/fpga/basys3 && vvp -n ../../../build/basys3_$$v.vvp | grep -v finish); \
 	  (cd rtl/fpga/basys3 && vvp -n ../../../build/basys3_$$v.vvp | grep -q "PASS  - Basys") || exit 1; \
 	done
 
+basys3-vga:
+	@mkdir -p build docs/img
+	iverilog -g2012 -DSIM -o build/vga.vvp tb/tb_vga.v rtl/fpga/basys3/basys3_top.v rtl/fpga/basys3/vga_view.v \
+	  rtl/fpga/uart_rx.v rtl/fpga/uart_tx.v rtl/fpga/uart_host.v $(COMMON) rtl/v2_pipelined/*.v
+	cd rtl/fpga/basys3 && vvp -n ../../../build/vga.vvp | grep -v finish
+	$(PY) tools/ppm2png.py build/vga_run.ppm docs/img/vga_run.png
+	$(PY) tools/ppm2png.py build/vga_pass.ppm docs/img/vga_pass.png
+
 basys3-synth:
 	@mkdir -p build/fpga
 	cd rtl/fpga/basys3 && yosys -q -l ../../../build/fpga/basys3.log -p "read_verilog ../../common/skew.v ../../common/accumulators.v ../../common/activation.v \
 	  ../../v2_pipelined/pe_db.v ../../v2_pipelined/systolic_array_db.v ../../v2_pipelined/controller_pipe.v ../../v2_pipelined/tpu_top.v \
-	  ../uart_rx.v ../uart_tx.v ../uart_host.v basys3_top.v; synth_xilinx -family xc7 -top basys3_top; stat" > /dev/null
+	  ../uart_rx.v ../uart_tx.v ../uart_host.v vga_view.v basys3_top.v; synth_xilinx -family xc7 -top basys3_top; stat" > /dev/null
 	@$(PY) tools/basys3_report.py build/fpga/basys3.log
 
 compile-test:

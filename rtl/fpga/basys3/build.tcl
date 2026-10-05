@@ -8,7 +8,7 @@ set version [expr {[llength $argv] > 0 ? [lindex $argv 0] : "v2_pipelined"}]
 set rtl ../..
 file mkdir build
 read_verilog [glob $rtl/common/*.v] [glob $rtl/$version/*.v] \
-    $rtl/fpga/uart_rx.v $rtl/fpga/uart_tx.v $rtl/fpga/uart_host.v basys3_top.v
+    $rtl/fpga/uart_rx.v $rtl/fpga/uart_tx.v $rtl/fpga/uart_host.v vga_view.v basys3_top.v
 read_xdc basys3.xdc
 synth_design -top basys3_top -part xc7a35tcpg236-1
 opt_design

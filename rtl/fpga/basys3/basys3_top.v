@@ -19,6 +19,7 @@
 //            view 2 pc and current operation                view 3 result value
 //  LEDS      0 LDW   1 MMUL streaming   2 result written   3 ACT   4 results in flight
 //            11:5 pc   12 running   13 done   14 FAIL   15 PASS
+//  VGA       a live picture of the array, the wavefront, the cycle counter and PASS/FAIL
 //
 //  The TPU runs on a gated copy of the system clock (one BUFGCE), so
 //  slow motion and single-stepping show every real clock edge on the LEDs.
@@ -39,7 +40,9 @@ module basys3_top #(
     output wire        dp,
     output wire [3:0]  an,                 // digit enables, active low
     input  wire        RsRx,               // USB-UART: PC -> FPGA
-    output wire        RsTx                // USB-UART: FPGA -> PC
+    output wire        RsTx,               // USB-UART: FPGA -> PC
+    output wire [3:0]  vgaRed, vgaGreen, vgaBlue,
+    output wire        Hsync, Vsync
 );
     // ------------------------------------------------------------ system clock
     //  An MMCM turns the 100 MHz oscillator into CLK_MHZ. 50 MHz leaves plenty of
@@ -196,6 +199,28 @@ module basys3_top #(
     sevenseg u_7 (.ch(ch[digit]), .seg(seg));
     assign an = ~(4'b0001 << digit);
     assign dp = ~(digit == view);                // the lit decimal point shows which view you are in
+
+    // ------------------------------------------------------------ VGA monitor view
+    //  PE(r,c) multiplies on the cycle the vector that entered r + c cycles ago reaches it,
+    //  so a 7-bit history of "a vector entered" is enough to light the wavefront exactly.
+    reg [5:0] vin_hist = 0;
+    always @(posedge tclk) vin_hist <= b_rst && !uart_mode ? 6'd0 : {vin_hist[4:0], dbg[9]};
+    wire [6:0] vin = {vin_hist, dbg[9]};
+    wire [15:0] pe_busy;
+    wire [3:0]  lane_in;
+    genvar gr, gc;
+    generate for (gr = 0; gr < 4; gr = gr + 1) begin : vr
+        for (gc = 0; gc < 4; gc = gc + 1) begin : vc
+            assign pe_busy[gr * 4 + gc] = vin[gr + gc];
+        end
+        assign lane_in[gr] = vin[gr];
+    end endgenerate
+    wire [2:0] vstatus = uart_mode ? 3'd5 : (st == S_DONE) ? (pass ? 3'd3 : 3'd4) : (st == S_RUN || st == S_CHECK) ? 3'd2 :
+                         (st == S_LOAD || st == S_RST) ? 3'd1 : 3'd0;
+    wire [11:0] rgb;
+    vga_view u_vga (.clk(clk), .pe_busy(pe_busy), .lane_in(lane_in), .result(dbg[10]), .ops({dbg[12], dbg[11], dbg[10], dbg[9], dbg[8]}),
+        .pc(dbg[7:0]), .cycles(cycles > 9999 ? 14'd9999 : cycles[13:0]), .status(vstatus), .hsync(Hsync), .vsync(Vsync), .rgb(rgb));
+    assign {vgaRed, vgaGreen, vgaBlue} = rgb;
 
     // ------------------------------------------------------------ LEDs
     always @(posedge clk)

@@ -24,6 +24,10 @@ svg#board { width: 100%; height: auto; display: block; border-radius: 22px; filt
 .tbl b { font-family: "JetBrains Mono", monospace; color: var(--ink); white-space: nowrap; } .tbl span { color: var(--muted); }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
 .row button[aria-pressed="true"] { background: var(--mxu-bg); border-color: var(--mxu); }
+.monitor { margin-top: 18px; display: grid; justify-items: center; }
+.bezel { width: min(100%, 700px); padding: 18px 18px 30px; border-radius: 18px; background: linear-gradient(#1f2433, #10131d); box-shadow: 0 30px 60px -20px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06); }
+#vga { width: 100%; height: auto; display: block; border-radius: 6px; image-rendering: pixelated; background: #000; }
+.mcap { margin-top: 10px; font-size: 13px; color: var(--muted); text-align: center; max-width: 640px; }
 .steps { counter-reset: s; display: grid; gap: 8px; margin-top: 12px; font-size: 14px; }
 .steps div { counter-increment: s; padding: 10px 12px; border-radius: 10px; background: var(--idle); }
 .steps div::before { content: counter(s) " "; font-weight: 800; color: var(--mxu); }
@@ -38,7 +42,11 @@ svg#board { width: 100%; height: auto; display: block; border-radius: 22px; filt
     <p>This is the same design you load onto a real Digilent Basys 3: the same four baked-in demos, the same switches, buttons, LEDs and display, running on the cycle-exact chip models. Click the switches and buttons. What you see here is what the board shows: the cycle counts match the Verilog. When you're ready for real hardware, follow <a href="https://github.com/Normansrule/terrific-tpu/blob/main/docs/22-basys3.md">lesson 22</a>.</p>
   </header>
   <div class="grid2">
-    <svg id="board" viewBox="0 0 1000 640" role="img" aria-label="Interactive Basys 3 board"></svg>
+    <div>
+      <svg id="board" viewBox="0 0 1000 640" role="img" aria-label="Interactive Basys 3 board"></svg>
+      <div class="monitor"><div class="bezel"><canvas id="vga" width="640" height="480" aria-label="What the board's VGA port shows on a monitor"></canvas></div>
+        <div class="mcap">VGA monitor: the same picture <code>vga_view.v</code> draws on a real screen (640 × 480). Magenta = a PE multiplying this cycle.</div></div>
+    </div>
     <aside class="box side">
       <h2>What's happening</h2>
       <div class="now" id="now">Pick a demo with switches 1–0, then press the centre button.</div>
@@ -53,7 +61,7 @@ svg#board { width: 100%; height: auto; display: block; border-radius: 22px; filt
         <b>LED 0</b><span>LDW: loading weights</span><b>LED 1</b><span>MMUL: vectors streaming in</span><b>LED 2</b><span>a result lands in the accumulators</span>
         <b>LED 3</b><span>ACT: ReLU + shift</span><b>LED 4</b><span>results still in flight</span><b>LED 11–5</b><span>program counter</span>
         <b>LED 12 · 13</b><span>running · done</span><b>LED 14 · 15</b><span>FAIL · PASS</span>
-        <b>SW 14 · 15</b><span>slow motion · single step</span><b>SW 9–8 · 7–0</b><span>lane · row shown in view 3</span>
+        <b>SW 14 · 15</b><span>slow motion · single step</span><b>VGA</b><span>plug in a monitor: live array view</span><b>SW 9–8 · 7–0</b><span>lane · row shown in view 3</span>
       </div>
     </aside>
   </div>
@@ -165,6 +173,34 @@ svg#board { width: 100%; height: auto; display: block; border-radius: 22px; filt
       phase === "check" ? "Reading back all 256 Unified Buffer rows and comparing with the answer key…" :
       `${pass ? "PASS" : "FAIL"}: ${names[demo]} finished in <b>${chip.cycles}</b> cycles on chip ${ver}. Press R to see the cycle count on the display.`;
   }
+  // ---------------------------------------------------------------- VGA monitor (mirrors rtl/fpga/basys3/vga_view.v)
+  const V = $("vga").getContext("2d"), hex = c => "#" + c.toString(16).padStart(3, "0").split("").map(d => d + d).join("");
+  const C12 = { BG: 0x102, PANEL: 0x213, DIM: 0x325, MAG: 0xE3F, VIO: 0xA8F, BLU: 0x6AF, GRN: 0x3D9, AMB: 0xFB2, RED: 0xF54, WHT: 0xEEF, GRY: 0x778 };
+  const SEGD = [0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F];
+  function vga() {
+    const st = phase === "done" ? (pass ? 3 : 4) : (phase === "run" || phase === "check") ? 2 : phase === "load" ? 1 : 0;
+    const f = (c, x, y, w, h) => { V.fillStyle = hex(c); V.fillRect(x, y, w, h); };
+    f(C12.BG, 0, 0, 640, 480);
+    f([C12.PANEL, 0x862, 0x52A, 0x1A5, 0xA22][st], 0, 0, 640, 36);
+    const s = chip ? chip.comb() : null, busyPE = (r, c) => chip && phase === "run" ? chip.peBusy(r, c) : false;
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      if (busyPE(r, c)) f(C12.MAG, 96 + c * 72, 84 + r * 72, 60, 60); else { f(C12.VIO, 96 + c * 72, 84 + r * 72, 60, 60); f(C12.DIM, 98 + c * 72, 86 + r * 72, 56, 56); } }
+    for (let r = 0; r < 4; r++) f(busyPE(r, 0) ? C12.BLU : C12.PANEL, 40, 104 + r * 72, 40, 20);
+    for (let c = 0; c < 4; c++) f(s && s.outValid && phase === "run" ? C12.GRN : C12.PANEL, 106 + c * 72, 380, 40, 24);
+    f(C12.PANEL, 400, 60, 216, 380);
+    const ops = s && phase === "run" ? [s.wLoad, s.inValid, s.outValid, s.ubWrEn, chip.validPipe.some(v => v)] : [0, 0, 0, 0, 0];
+    [C12.AMB, C12.VIO, C12.MAG, C12.GRN, C12.BLU].forEach((c, k) => f(ops[k] ? c : C12.DIM, 416 + k * 40, 76, 32, 32));
+    const digits = String(Math.min(9999, chip ? chip.cycles : 0)).padStart(4, "0");
+    const SEGR = [[4, 0, 24, 6], [26, 4, 6, 24], [26, 28, 6, 24], [4, 50, 24, 6], [0, 28, 6, 24], [0, 4, 6, 24], [4, 25, 24, 6]];
+    for (let k = 0; k < 4; k++) SEGR.forEach((g, n) => f((SEGD[+digits[k]] >> n) & 1 ? C12.WHT : 0x324, 424 + k * 44 + g[0], 140 + g[1], g[2], g[3]));
+    const pc = chip ? chip.pc : 0;
+    for (let k = 0; k < 16; k++) f(k < pc ? C12.BLU : C12.DIM, 416 + k * 12, 228, 10, 20);
+    f([C12.GRY, C12.AMB, C12.VIO, C12.GRN, C12.RED][st], 416, 280, 184, 60);
+    V.lineWidth = 10; V.lineCap = "butt";
+    if (st === 3) { V.strokeStyle = hex(C12.GRN); V.beginPath(); V.moveTo(470, 360); V.lineTo(500, 390); V.lineTo(560, 330 + 60); V.stroke(); }
+    if (st === 4) { V.strokeStyle = hex(C12.RED); V.beginPath(); V.moveTo(470, 360); V.lineTo(540, 430); V.moveTo(540, 360); V.lineTo(470, 430); V.stroke(); }
+  }
+
   // ---------------------------------------------------------------- clock
   let last = performance.now();
   function frame(now) {
@@ -174,7 +210,7 @@ svg#board { width: 100%; height: auto; display: block; border-radius: 22px; filt
       else if (sw >> 14 & 1) { slowT += dt; while (slowT > .25 && phase === "run") { slowT -= .25; tick(); } }
       else { for (let k = 0; k < 8 && phase === "run"; k++) tick(); }   // visibly fast, still every cycle
     }
-    render(); requestAnimationFrame(frame);
+    render(); vga(); requestAnimationFrame(frame);
   }
   document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { ver = b.dataset.v; document.querySelectorAll("[data-v]").forEach(x => x.setAttribute("aria-pressed", x === b)); phase = "idle"; chip = null; });
   addEventListener("keydown", e => { if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return; const k = { c: "C", u: "U", l: "L", r: "R", d: "D", arrowleft: "L", arrowright: "R", arrowup: "U", arrowdown: "D" }[e.key.toLowerCase()]; if (k && !e.ctrlKey) press(k); });

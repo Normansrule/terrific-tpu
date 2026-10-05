@@ -1,7 +1,7 @@
 resource,used,available_xc7a35t
-Lookup tables (logic),8419,20800
+Lookup tables (logic),9407,20800
 Lookup tables used as memory (RAM64M × 4),2752,20800
-Flip-flops,1400,41600
+Flip-flops,1441,41600
 DSP48E1 multipliers,16,90
 Block RAM (RAMB36E1),4,50
 Global clock buffers (BUFG + BUFGCE),2,32
